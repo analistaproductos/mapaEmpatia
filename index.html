@@ -1,367 +1,295 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Empatía - Cotrafa Social</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.95;
-        }
-        
-        .empathy-map {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: auto auto auto auto;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .center-circle {
-            grid-column: 1 / -1;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        
-        .center-circle h2 {
-            color: #667eea;
-            font-size: 1.8em;
-            margin-bottom: 10px;
-        }
-        
-        .center-circle p {
-            color: #555;
-            font-size: 1.1em;
-            line-height: 1.6;
-        }
-        
-        .quadrant {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
-        }
-        
-        .quadrant:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-        }
-        
-        .quadrant-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid;
-        }
-        
-        .icon {
-            font-size: 2.5em;
-            margin-right: 15px;
-        }
-        
-        .quadrant-header h3 {
-            font-size: 1.5em;
-        }
-        
-        .quadrant ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .quadrant li {
-            padding: 8px 0;
-            padding-left: 25px;
-            position: relative;
-            line-height: 1.5;
-            color: #444;
-        }
-        
-        .quadrant li:before {
-            content: "•";
-            position: absolute;
-            left: 8px;
-            font-size: 1.5em;
-            line-height: 1;
-        }
-        
-        .see { border-color: #4CAF50; }
-        .see .quadrant-header { border-color: #4CAF50; color: #4CAF50; }
-        .see li:before { color: #4CAF50; }
-        
-        .hear { border-color: #2196F3; }
-        .hear .quadrant-header { border-color: #2196F3; color: #2196F3; }
-        .hear li:before { color: #2196F3; }
-        
-        .think { border-color: #FF9800; }
-        .think .quadrant-header { border-color: #FF9800; color: #FF9800; }
-        .think li:before { color: #FF9800; }
-        
-        .say { border-color: #9C27B0; }
-        .say .quadrant-header { border-color: #9C27B0; color: #9C27B0; }
-        .say li:before { color: #9C27B0; }
-        
-        .pains { border-color: #F44336; }
-        .pains .quadrant-header { border-color: #F44336; color: #F44336; }
-        .pains li:before { color: #F44336; }
-        
-        .gains { border-color: #4CAF50; }
-        .gains .quadrant-header { border-color: #4CAF50; color: #4CAF50; }
-        .gains li:before { color: #4CAF50; }
-        
-        .section-title {
-            color: white;
-            text-align: center;
-            font-size: 1.8em;
-            margin: 40px 0 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .insights {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-top: 30px;
-        }
-        
-        .insights h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 2em;
-            text-align: center;
-        }
-        
-        .insights-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .insight-item {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        
-        .insight-item strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-        
-        @media (max-width: 768px) {
-            .empathy-map {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .header p {
-                font-size: 1em;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mapa de Empatía — Cotrafa Social (Versión Ejecutiva)</title>
+  <meta name="description" content="Mapa de Empatía para el asistente virtual de Cotrafa Social, presentado en un formato ejecutivo, claro y listo para imprimir." />
+
+  <!-- Tipografía del sistema para máxima compatibilidad -->
+  <style>
+    :root {
+      /* Paleta sobria y ejecutiva */
+      --brand: #0a6b5a;       /* Verde corporativo (ajustable) */
+      --brand-600: #0c7f6b;
+      --brand-100: #e6f3f0;
+      --ink: #0f172a;         /* Azul pizarra oscuro */
+      --muted: #475569;       /* Gris azulado para secundarios */
+      --line: #e2e8f0;        /* Borde claro */
+      --surface: #ffffff;     /* Fondos */
+      --bg: #f8fafc;          /* Página */
+      --radius: 14px;
+      --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
+      --shadow-md: 0 8px 24px rgba(2, 6, 23, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding: 32px 20px;
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; }
+
+    header.header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-600));
+      box-shadow: var(--shadow-sm);
+    }
+    .brand-title { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; }
+    .brand-sub { font-size: 13px; color: var(--muted); }
+
+    .meta {
+      display: grid; justify-items: end; gap: 4px;
+      font-size: 12px; color: var(--muted);
+    }
+    .meta .tag {
+      background: var(--brand-100); color: var(--brand);
+      border: 1px solid #cde6df; padding: 4px 10px; border-radius: 999px; font-weight: 600;
+    }
+
+    h1.page-title {
+      font-size: 28px; font-weight: 800; margin: 8px 0 18px;
+      letter-spacing: 0.2px;
+    }
+    p.lead { margin: 0 0 24px; color: var(--muted); }
+
+    /* Tarjetas y layout */
+    .grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+    }
+    .card h3 { margin: 0 0 10px; font-size: 16px; letter-spacing: 0.3px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    .center {
+      grid-column: 1 / -1;
+      display: grid; grid-template-columns: 1.2fr 2fr; gap: 20px;
+      align-items: start;
+    }
+    .center .who h3 { color: var(--brand); }
+
+    /* Cuadrantes */
+    .quad { min-height: 100%; }
+    .quad h4 { margin: 0 0 12px; font-size: 15px; letter-spacing: 0.25px; color: var(--brand); }
+    .quad ul { list-style: none; margin: 0; padding: 0; }
+    .quad li { padding: 6px 0 6px 20px; position: relative; border-bottom: 1px dashed var(--line); }
+    .quad li:last-child { border-bottom: none; }
+    .quad li::before {
+      content: ""; position: absolute; left: 0; top: 12px;
+      width: 8px; height: 8px; border-radius: 2px; background: var(--brand);
+    }
+
+    /* Bloque Dolores / Ganancias */
+    .duo { grid-column: 1 / -1; display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+    .duo .left { grid-column: span 6; border-top: 3px solid #dc2626; }
+    .duo .right { grid-column: span 6; border-top: 3px solid #16a34a; }
+    .duo h3 { margin-top: 6px; }
+    .duo .quad h4 { color: inherit; }
+
+    /* Insights ejecutivos */
+    .insights { grid-column: 1 / -1; }
+    .insights-grid { display: grid; gap: 12px; grid-template-columns: repeat(12, 1fr); }
+    .insights-grid .insite { grid-column: span 3; }
+    .insite {
+      border: 1px solid var(--line); border-radius: 12px; background: #f9fbfd;
+      padding: 16px; box-shadow: var(--shadow-sm);
+    }
+    .insite strong { display: block; margin-bottom: 6px; font-size: 13px; letter-spacing: 0.3px; color: var(--ink); }
+    .section-title { margin: 10px 0 6px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    footer {
+      margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted);
+    }
+
+    /* Responsivo */
+    @media (max-width: 1024px) {
+      .center { grid-template-columns: 1fr; }
+      .insights-grid .insite { grid-column: span 6; }
+      .duo .left, .duo .right { grid-column: span 12; }
+    }
+    @media (max-width: 640px) {
+      .insights-grid .insite { grid-column: span 12; }
+    }
+
+    /* Estilos de impresión (A4) */
+    @page { size: A4; margin: 14mm; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .card, .insite { box-shadow: none; }
+      a[href]::after { content: " (" attr(href) ")"; font-size: 10px; color: #64748b; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Mapa de Empatía</h1>
-            <p>Asistente Virtual - Cotrafa Social</p>
+  <div class="wrap">
+    <header class="header" aria-label="Encabezado">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-title">Cotrafa Social</div>
+          <div class="brand-sub">Mapa de Empatía — Asistente Virtual</div>
         </div>
-        
-        <div class="empathy-map">
-            <div class="center-circle">
-                <h2>👤 Usuario</h2>
-                <p><strong>Empleados de Cotrafa Social</strong></p>
-                <p>Necesitan consultar información sobre proyectos (ejecutados y en proceso), responsables y documentación asociada</p>
-            </div>
-            
-            <div class="quadrant see">
-                <div class="quadrant-header">
-                    <span class="icon">👀</span>
-                    <h3>¿Qué VE?</h3>
-                </div>
-                <ul>
-                    <li>Múltiples carpetas dispersas en diferentes ubicaciones</li>
-                    <li>Nomenclaturas inconsistentes en archivos</li>
-                    <li>Compañeros preguntando constantemente por información</li>
-                    <li>Sistemas desactualizados o incompletos</li>
-                    <li>Documentos duplicados con versiones diferentes</li>
-                    <li>Falta de repositorio central visible</li>
-                    <li>Correos antiguos como única fuente histórica</li>
-                </ul>
-            </div>
-            
-            <div class="quadrant hear">
-                <div class="quadrant-header">
-                    <span class="icon">👂</span>
-                    <h3>¿Qué ESCUCHA?</h3>
-                </div>
-                <ul>
-                    <li>"No sé dónde está ese documento"</li>
-                    <li>"Pregúntale a [nombre], él llevó ese proyecto"</li>
-                    <li>"Busca en la carpeta compartida"</li>
-                    <li>"Esa información está desactualizada"</li>
-                    <li>Quejas de clientes por tiempos lentos</li>
-                    <li>Gerentes solicitando informes urgentes</li>
-                    <li>"Necesito esto para ayer"</li>
-                </ul>
-            </div>
-            
-            <div class="quadrant think">
-                <div class="quadrant-header">
-                    <span class="icon">💭</span>
-                    <h3>¿Qué PIENSA y SIENTE?</h3>
-                </div>
-                <ul>
-                    <li>"Pierdo mucho tiempo buscando información básica"</li>
-                    <li>"No sé si tengo la versión correcta"</li>
-                    <li>"Me da pena preguntar lo mismo otra vez"</li>
-                    <li>"¿Y si tomo decisiones con información incorrecta?"</li>
-                    <li>"Debería haber una forma más fácil"</li>
-                    <li>"Me siento poco productivo"</li>
-                    <li>"Quiero ser más eficiente en mi trabajo"</li>
-                    <li>"Necesito autonomía sin depender de otros"</li>
-                </ul>
-            </div>
-            
-            <div class="quadrant say">
-                <div class="quadrant-header">
-                    <span class="icon">💬</span>
-                    <h3>¿Qué DICE y HACE?</h3>
-                </div>
-                <ul>
-                    <li>Envía múltiples correos preguntando por información</li>
-                    <li>Interrumpe a compañeros en sus tareas</li>
-                    <li>Busca en múltiples carpetas sin éxito</li>
-                    <li>Abre varios archivos hasta encontrar el correcto</li>
-                    <li>Guarda copias personales por miedo</li>
-                    <li>"¿Alguien sabe dónde está el proyecto de...?"</li>
-                    <li>"¿Esta es la última versión?"</li>
-                </ul>
-            </div>
-        </div>
-        
-        <h2 class="section-title">😟 Dolores vs 😊 Ganancias</h2>
-        
-        <div class="empathy-map">
-            <div class="quadrant pains">
-                <div class="quadrant-header">
-                    <span class="icon">😟</span>
-                    <h3>DOLORES (Pains)</h3>
-                </div>
-                <ul>
-                    <li>Pérdida de tiempo en búsquedas</li>
-                    <li>Frustración al no obtener respuestas rápidas</li>
-                    <li>Inseguridad sobre la información</li>
-                    <li>Dependencia de personas específicas</li>
-                    <li>Estrés por tiempos de respuesta</li>
-                    <li>Sensación de ineficiencia profesional</li>
-                    <li>Duplicación de esfuerzos</li>
-                    <li>Miedo a equivocarse</li>
-                    <li>Interrupción constante del trabajo</li>
-                    <li>Desmotivación por obstáculos evitables</li>
-                </ul>
-            </div>
-            
-            <div class="quadrant gains">
-                <div class="quadrant-header">
-                    <span class="icon">😊</span>
-                    <h3>GANANCIAS (Gains)</h3>
-                </div>
-                <ul>
-                    <li>Acceso inmediato a información en segundos</li>
-                    <li>Búsqueda intuitiva en lenguaje natural</li>
-                    <li>Información actualizada y confiable</li>
-                    <li>Disponibilidad 24/7</li>
-                    <li>Claridad sobre responsables</li>
-                    <li>Trazabilidad de documentos</li>
-                    <li>Mayor autonomía y empoderamiento</li>
-                    <li>Reducción de interrupciones</li>
-                    <li>Respuestas más rápidas a stakeholders</li>
-                    <li>Más tiempo para trabajo estratégico</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="insights">
-            <h2>🎯 Insights Clave para el Diseño</h2>
-            <div class="insights-grid">
-                <div class="insight-item">
-                    <strong>1. Lenguaje Natural</strong>
-                    Debe entender preguntas cotidianas, no solo códigos técnicos
-                </div>
-                <div class="insight-item">
-                    <strong>2. Respuestas Contextuales</strong>
-                    Información resumida y relevante con opción a profundizar
-                </div>
-                <div class="insight-item">
-                    <strong>3. Identificación de Responsables</strong>
-                    Información de contacto y rol actualizada
-                </div>
-                <div class="insight-item">
-                    <strong>4. Estado de Proyectos</strong>
-                    Claridad sobre ejecución, terminado o suspendido
-                </div>
-                <div class="insight-item">
-                    <strong>5. Búsqueda Flexible</strong>
-                    Por nombre, ubicación, responsable, fecha o tipo
-                </div>
-                <div class="insight-item">
-                    <strong>6. Confiabilidad Visible</strong>
-                    Mostrar fecha de actualización y versión
-                </div>
-                <div class="insight-item">
-                    <strong>7. Accesibilidad Multiplataforma</strong>
-                    Disponible desde diferentes dispositivos
-                </div>
-                <div class="insight-item">
-                    <strong>8. Aprendizaje Continuo</strong>
-                    Que mejore con las consultas frecuentes
-                </div>
-            </div>
-        </div>
-    </div>
+      </div>
+      <div class="meta">
+        <span class="tag">Versión ejecutiva</span>
+        <span>Actualizado: <time datetime="2025-10-08">08 oct 2025</time></span>
+      </div>
+    </header>
+
+    <h1 class="page-title">Mapa de Empatía</h1>
+    <p class="lead">Resumen claro y accionable de dolores, expectativas e insights para orientar decisiones de producto y adopción interna.</p>
+
+    <!-- Centro: Quién y Necesidad -->
+    <section class="card center" aria-labelledby="usuario">
+      <div class="who">
+        <h3 id="usuario">Usuario objetivo</h3>
+        <p><strong>Empleados de Cotrafa Social</strong></p>
+      </div>
+      <div class="need">
+        <h3>Necesidad clave</h3>
+        <p>Consultar rápidamente información de proyectos (ejecutados y en proceso), responsables y documentación asociada en un repositorio confiable.</p>
+      </div>
+    </section>
+
+    <!-- Cuadrantes -->
+    <section class="grid" aria-label="Cuadrantes del mapa">
+      <div class="card quad" style="grid-column: span 6;">
+        <h4>¿Qué ve?</h4>
+        <ul>
+          <li>Múltiples carpetas en diferentes ubicaciones</li>
+          <li>Nomenclaturas inconsistentes de archivos</li>
+          <li>Compañeros solicitando información con frecuencia</li>
+          <li>Sistemas desactualizados o incompletos</li>
+          <li>Documentos duplicados con versiones diferentes</li>
+          <li>Ausencia de un repositorio central visible</li>
+          <li>Correos antiguos como única fuente histórica</li>
+        </ul>
+      </div>
+
+      <div class="card quad" style="grid-column: span 6;">
+        <h4>¿Qué escucha?</h4>
+        <ul>
+          <li>“No sé dónde está ese documento”.</li>
+          <li>“Consúltalo con la persona que llevó el proyecto”.</li>
+          <li>“Busca en la carpeta compartida”.</li>
+          <li>“Esa información está desactualizada”.</li>
+          <li>Quejas de clientes por tiempos lentos.</li>
+          <li>Solicitudes urgentes de gerencia.</li>
+          <li>“Lo necesito para ayer”.</li>
+        </ul>
+      </div>
+
+      <div class="card quad" style="grid-column: span 6;">
+        <h4>¿Qué piensa y siente?</h4>
+        <ul>
+          <li>“Pierdo tiempo buscando información básica”.</li>
+          <li>“¿Esta es la versión correcta?”.</li>
+          <li>“Me incomoda preguntar otra vez”.</li>
+          <li>“¿Y si decido con información incorrecta?”.</li>
+          <li>“Debería haber una forma más sencilla”.</li>
+          <li>“Me siento poco productivo, quiero ser más eficiente”.</li>
+          <li>“Necesito más autonomía y menos dependencia”.</li>
+        </ul>
+      </div>
+
+      <div class="card quad" style="grid-column: span 6;">
+        <h4>¿Qué dice y hace?</h4>
+        <ul>
+          <li>Envía varios correos solicitando información.</li>
+          <li>Interrumpe a compañeros para ubicar archivos.</li>
+          <li>Explora múltiples carpetas sin éxito.</li>
+          <li>Abre versiones hasta hallar la correcta.</li>
+          <li>Guarda copias personales por precaución.</li>
+          <li>“¿Alguien sabe dónde está el proyecto de…?”</li>
+          <li>“¿Esta es la última versión?”</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Dolores vs Ganancias -->
+    <h2 class="section-title">Dolores y ganancias</h2>
+    <section class="grid duo" aria-label="Dolores y ganancias">
+      <div class="card quad left">
+        <h3>Dolores</h3>
+        <ul>
+          <li>Pérdida de tiempo en búsquedas.</li>
+          <li>Frustración ante respuestas tardías.</li>
+          <li>Inseguridad sobre la información.</li>
+          <li>Dependencia de personas clave.</li>
+          <li>Estrés por tiempos de respuesta.</li>
+          <li>Sensación de ineficiencia profesional.</li>
+          <li>Duplicación de esfuerzos.</li>
+          <li>Miedo a equivocarse.</li>
+          <li>Interrupciones constantes.</li>
+          <li>Desmotivación por obstáculos evitables.</li>
+        </ul>
+      </div>
+      <div class="card quad right">
+        <h3>Ganancias</h3>
+        <ul>
+          <li>Acceso inmediato a información.</li>
+          <li>Búsqueda en lenguaje natural.</li>
+          <li>Información vigente y confiable.</li>
+          <li>Disponibilidad 24/7.</li>
+          <li>Claridad de responsables.</li>
+          <li>Trazabilidad de documentos.</li>
+          <li>Mayor autonomía.</li>
+          <li>Menos interrupciones.</li>
+          <li>Respuestas más rápidas a stakeholders.</li>
+          <li>Más tiempo para trabajo estratégico.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Insights ejecutivos -->
+    <h2 class="section-title">Insights para el diseño</h2>
+    <section class="card insights">
+      <div class="insights-grid">
+        <div class="insite"><strong>1. Lenguaje natural</strong> Debe entender preguntas cotidianas, no solo códigos.</div>
+        <div class="insite"><strong>2. Respuestas contextuales</strong> Resumen claro con opción a profundizar.</div>
+        <div class="insite"><strong>3. Responsables visibles</strong> Contacto y rol actualizados.</div>
+        <div class="insite"><strong>4. Estado de proyectos</strong> Ejecutado, en curso o suspendido.</div>
+        <div class="insite"><strong>5. Búsqueda flexible</strong> Por nombre, ubicación, responsable, fecha o tipo.</div>
+        <div class="insite"><strong>6. Confiabilidad</strong> Mostrar fecha de actualización y versión.</div>
+        <div class="insite"><strong>7. Multiplataforma</strong> Acceso desde distintos dispositivos.</div>
+        <div class="insite"><strong>8. Aprendizaje</strong> Mejora continua basada en uso.</div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Preparado por: Equipo de Innovación</span>
+      <span>© Cotrafa Social</span>
+    </footer>
+  </div>
 </body>
 </html>
