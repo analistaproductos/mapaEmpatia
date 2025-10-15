@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mapa de Empatía — Cotrafa Social (Versión Ejecutiva)</title>
   <meta name="description" content="Mapa de Empatía para el asistente virtual de Cotrafa Social, presentado en un formato ejecutivo, claro y listo para imprimir." />
+  <meta name="theme-color" content="#0b2f6b" />
+  <meta name="color-scheme" content="light" />
+  <meta property="og:title" content="Mapa de Empatía — Cotrafa Social" />
+  <meta property="og:description" content="Resumen ejecutivo del mapa de empatía del asistente virtual de Cotrafa Social." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" />
 
   <!-- Tipografía del sistema para máxima compatibilidad -->
   <style>
@@ -210,6 +216,53 @@
     .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#f9fbff;text-align:center}
     .kpi strong{display:block;font-size:18px}
 
+    /* Chat flotante */
+    .chat-launcher{
+      position:fixed; right:18px; bottom:18px; z-index:50;
+      width:56px; height:56px; border-radius:999px; border:0; cursor:pointer;
+      background:linear-gradient(90deg,var(--navy),var(--teal)); color:#fff;
+      box-shadow: var(--shadow-md);
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .chat-launcher:hover{ transform: translateY(-1px); }
+    .chat-launcher svg{ width:24px; height:24px; fill:none; stroke:#fff; stroke-width:1.8 }
+
+    .chat-widget{
+      position:fixed; right:18px; bottom:86px; z-index:50;
+      width:380px; max-width:calc(100vw - 32px); max-height:72vh;
+      display:none; grid-template-rows:auto 1fr auto; gap:10px;
+      background:var(--surface); backdrop-filter:saturate(140%) blur(8px);
+      border:1px solid var(--line); border-radius:16px; box-shadow: var(--shadow-md);
+      overflow:hidden;
+    }
+    .chat-widget.open{ display:grid; }
+    .chat-header{ display:flex; align-items:center; justify-content:space-between; padding:12px 12px 6px 12px; border-bottom:1px solid var(--line); }
+    .chat-title{ display:flex; align-items:center; gap:8px; font-weight:800; color:var(--brand); letter-spacing:.2px; }
+    .chat-header .actions{ display:flex; gap:6px; align-items:center }
+    .chat-clear{ background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:12px }
+    .chat-close{ background:transparent; border:0; width:32px; height:32px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+    .chat-close:hover{ background:#f3f6fb }
+    .chat-body{ display:grid; grid-template-rows: 1fr auto auto; gap:8px; padding:8px 12px 12px }
+    .chat-messages{ overflow:auto; padding-right:4px }
+    .chat-suggestions{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{ border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer }
+    .chip:hover{ background:#f6faff }
+    .chat-input{ display:flex; gap:8px }
+    .chat-input input{ flex:1; border:1px solid var(--line); border-radius:12px; padding:12px 12px; font-size:14px; background:#fff }
+    .btn-chat{ padding:10px 14px; border-radius:12px }
+    .msg{ display:flex; margin:8px 0 }
+    .msg .bubble{ max-width:78%; padding:10px 12px; border-radius:14px; line-height:1.4; box-shadow: var(--shadow-sm); }
+    .msg.user{ justify-content:flex-end }
+    .msg.user .bubble{ background: #0b2f6b; color:#fff; border-top-right-radius:4px }
+    .msg.bot{ justify-content:flex-start }
+    .msg.bot .bubble{ background:#fff; border:1px solid var(--line); border-top-left-radius:4px }
+    .msg small{ display:block; color:var(--muted); margin-top:4px; font-size:11px }
+
+    @media (max-width: 480px){
+      .chat-widget{ right:12px; left:12px; width:auto; bottom:80px; max-height:70vh }
+      .chat-launcher{ right:12px; bottom:12px }
+    }
+
     </style>
 </head>
 <body>
@@ -368,6 +421,39 @@
       <span>© Cotrafa Social</span>
     </footer>
   </div>
+  
+  <!-- Chat flotante: Respuestas rápidas -->
+  <button id="chat-launcher" class="chat-launcher" aria-label="Abrir chat de respuestas rápidas" aria-controls="chat-panel" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 1 1 18-5z"/></svg>
+  </button>
+  <section id="chat-panel" class="chat-widget" role="dialog" aria-label="Chat de respuestas rápidas" aria-modal="false" hidden>
+    <header class="chat-header">
+      <div class="chat-title">
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 1 1 18-5z"/></svg></span>
+        <span>Asistente Cotrafa</span>
+      </div>
+      <div class="actions">
+        <button id="chat-clear" class="chat-clear" type="button" aria-label="Borrar historial">Borrar</button>
+        <button id="chat-close" class="chat-close" type="button" aria-label="Cerrar chat">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6l-12 12" stroke="#0f172a" stroke-width="1.6"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="chat-body">
+      <div id="chat-messages" class="chat-messages" aria-live="polite" aria-relevant="additions" aria-atomic="false"></div>
+      <div class="chat-suggestions" aria-label="Sugerencias rápidas">
+        <button class="chip" data-q="¿Cuál es el estado del proyecto de investigación de mercado?">Estado del proyecto</button>
+        <button class="chip" data-q="¿Quién es el responsable del proyecto?">Responsable</button>
+        <button class="chip" data-q="Muéstrame los documentos relevantes del proyecto">Documentos</button>
+        <button class="chip" data-q="Ayuda">Ayuda</button>
+      </div>
+      <div class="chat-input">
+        <input id="chat-input" type="text" placeholder="Escribe tu pregunta…" aria-label="Escribe tu mensaje" autocomplete="off" />
+        <button id="chat-send" class="btn btn-chat" type="button">Enviar</button>
+      </div>
+    </div>
+  </section>
+
   <script>
     (function(){
       const btn = document.getElementById('demo-btn');
@@ -401,6 +487,139 @@
         const query = q.value.trim()||'¿Cuál es el estado del proyecto de investigación de mercado?';
         type(sample(query));
       });
+    })();
+  </script>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'cotrafa_chat_history_v1';
+      const launcher = document.getElementById('chat-launcher');
+      const panel = document.getElementById('chat-panel');
+      const closeBtn = document.getElementById('chat-close');
+      const clearBtn = document.getElementById('chat-clear');
+      const messagesEl = document.getElementById('chat-messages');
+      const inputEl = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+      const chips = Array.from(document.querySelectorAll('.chat-suggestions .chip'));
+
+      if(!launcher || !panel || !messagesEl || !inputEl || !sendBtn) return;
+
+      let messages = loadHistory();
+
+      function loadHistory(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : [];
+        }catch{ return []; }
+      }
+      function saveHistory(){
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-50))); }catch{}
+      }
+      function now(){
+        const d = new Date();
+        const pad = (n)=>String(n).padStart(2,'0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+      function render(){
+        messagesEl.innerHTML = '';
+        for(const m of messages){
+          const row = document.createElement('div');
+          row.className = `msg ${m.role}`;
+          const bubble = document.createElement('div');
+          bubble.className = 'bubble';
+          bubble.innerHTML = m.content;
+          const meta = document.createElement('small');
+          meta.textContent = m.time || now();
+          bubble.appendChild(meta);
+          row.appendChild(bubble);
+          messagesEl.appendChild(row);
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      function addMessage(role, content){
+        messages.push({ role, content, time: now() });
+        saveHistory();
+        render();
+      }
+      function normalize(text){
+        return text
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu,'')
+          .replace(/\s+/g,' ') 
+          .trim();
+      }
+      function answerFor(query){
+        const qn = normalize(query);
+        // Rutas rápidas
+        if(/ayuda|help|que puedes hacer|como funcionas/.test(qn)){
+          return '<strong>¿Cómo puedo ayudarte?</strong><br/>Puedo darte respuestas rápidas sobre:<ul><li><strong>Estado de proyectos</strong></li><li><strong>Responsables</strong></li><li><strong>Documentos relevantes</strong></li></ul>Usa las sugerencias o escribe tu pregunta.';
+        }
+        if(/estado.*proyecto|proyecto.*estado|investigacion de mercado/.test(qn)){
+          return '<strong>Proyecto:</strong> Investigación de mercado (2025-Q3)<br/><strong>Estado:</strong> En curso ✅<br/><strong>Responsable:</strong> Ana Pérez — Unidad de Innovación<br/><strong>Última actualización:</strong> 02 oct 2025 — Informe preliminar cargado.';
+        }
+        if(/responsable|quien.*responsable|contacto|encargado/.test(qn)){
+          return '<strong>Responsable:</strong> Ana Pérez — Unidad de Innovación<br/><strong>Contacto:</strong> ana.perez@cotrafasocial.com';
+        }
+        if(/documentos|docs|archivos|evidencias/.test(qn)){
+          return '<strong>Documentos relevantes:</strong><ol><li>Acta de inicio — 2025-08-15</li><li>Informe preliminar — 2025-10-02</li><li>Plan de trabajo — 2025-08-10</li></ol>';
+        }
+        if(/version|actualizacion|ultima.*actualizacion/.test(qn)){
+          return '<strong>Última actualización:</strong> 02 oct 2025. Próximo hito: informe final (31 oct 2025).';
+        }
+        // Por defecto
+        return 'No tengo una respuesta específica aún. Prueba con: <em>Estado del proyecto</em>, <em>Responsable</em>, <em>Documentos</em> o escribe <em>Ayuda</em>.';
+      }
+
+      function openChat(){
+        panel.classList.add('open');
+        panel.removeAttribute('hidden');
+        launcher.setAttribute('aria-expanded','true');
+        setTimeout(()=>inputEl.focus(), 0);
+        if(messages.length === 0){
+          addMessage('bot', 'Hola, soy el asistente de Cotrafa. ¿En qué te ayudo hoy?');
+        } else {
+          render();
+        }
+      }
+      function closeChat(){
+        panel.classList.remove('open');
+        panel.setAttribute('hidden','');
+        launcher.setAttribute('aria-expanded','false');
+        launcher.focus();
+      }
+      function send(){
+        const text = inputEl.value.trim();
+        if(!text) return;
+        addMessage('user', text);
+        inputEl.value='';
+        setTimeout(()=>{
+          const a = answerFor(text);
+          addMessage('bot', a);
+        }, 150);
+      }
+
+      launcher.addEventListener('click', ()=>{
+        const isOpen = panel.classList.contains('open');
+        isOpen ? closeChat() : openChat();
+      });
+      closeBtn && closeBtn.addEventListener('click', closeChat);
+      clearBtn && clearBtn.addEventListener('click', ()=>{
+        messages = [];
+        saveHistory();
+        render();
+        addMessage('bot','Historial borrado. ¿Quieres probar con alguna de las sugerencias?');
+      });
+      sendBtn.addEventListener('click', send);
+      inputEl.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+        if(e.key === 'Escape'){ closeChat(); }
+      });
+      chips.forEach(ch => ch.addEventListener('click', ()=>{
+        const q = ch.getAttribute('data-q') || ch.textContent || '';
+        inputEl.value = q;
+        send();
+      }));
     })();
   </script>
 </body>
