@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mapa de Empatía — Cotrafa Social (Versión Ejecutiva)</title>
-  <meta name="description" content="Mapa de Empatía para el asistente virtual de Cotrafa Social, presentado en un formato ejecutivo, claro y listo para imprimir." />
+  <title>Mapa de Empatía — COTRAFA SOCIAL (Versión Ejecutiva)</title>
+  <meta name="description" content="Mapa de Empatía para el asistente virtual de COTRAFA SOCIAL, presentado en un formato ejecutivo, claro y listo para imprimir." />
   <meta name="theme-color" content="#0b2f6b" />
   <meta name="color-scheme" content="light" />
-  <meta property="og:title" content="Mapa de Empatía — Cotrafa Social" />
-  <meta property="og:description" content="Resumen ejecutivo del mapa de empatía del asistente virtual de Cotrafa Social." />
+  <meta property="og:title" content="Mapa de Empatía — COTRAFA SOCIAL" />
+  <meta property="og:description" content="Resumen ejecutivo del mapa de empatía del asistente virtual de COTRAFA SOCIAL." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" />
 
   <!-- Tipografía del sistema para máxima compatibilidad -->
   <style>
     :root {
-      /* Paleta Cotrafa Social — aproximada desde el logo */
-      --navy: #0b2f6b;        /* Azul corporativo (Cotrafa) */
+      /* Paleta COTRAFA SOCIAL — aproximada desde el logo */
+      --navy: #0b2f6b;        /* Azul corporativo (COTRAFA SOCIAL) */
       --navy-600: #113a82;    
       --gold: #f3b21a;        /* Amarillo dorado */
       --green: #0f8a3b;       /* Verde */
@@ -274,9 +274,9 @@
     </div>
     <header class="header" aria-label="Encabezado">
       <div class="brand">
-        <img class="brand-logo" src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="Cotrafa Social" />
+        <img class="brand-logo" src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="COTRAFA SOCIAL" />
         <div>
-          <div class="brand-title">Cotrafa Social</div>
+          <div class="brand-title">COTRAFA SOCIAL</div>
           <div class="brand-sub">Mapa de Empatía — Asistente Virtual</div>
         </div>
       </div>
@@ -289,11 +289,12 @@
     <h1 class="page-title">Mapa de Empatía</h1>
     <p class="lead">Resumen claro y accionable de dolores, expectativas e insights para orientar decisiones de producto y adopción interna.</p>
 
+    <main id="contenido" role="main">
     <!-- Centro: Quién y Necesidad -->
     <section class="card center" aria-labelledby="usuario">
       <div class="who">
         <h3 id="usuario">Usuario objetivo</h3>
-        <p><strong>Empleados de Cotrafa Social</strong></p>
+        <p><strong>Empleados de COTRAFA SOCIAL</strong></p>
       </div>
       <div class="need">
         <h3>Necesidad clave</h3>
@@ -416,9 +417,10 @@
       </div>
     </section>
 
+    </main>
     <footer>
       <span>Preparado por: Equipo de Innovación</span>
-      <span>© Cotrafa Social</span>
+      <span>© COTRAFA SOCIAL</span>
     </footer>
   </div>
   
@@ -430,7 +432,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 1 1 18-5z"/></svg></span>
-        <span>Asistente Cotrafa</span>
+        <span>Asistente COTRAFA SOCIAL</span>
       </div>
       <div class="actions">
         <button id="chat-clear" class="chat-clear" type="button" aria-label="Borrar historial">Borrar</button>
@@ -492,7 +494,7 @@
 
   <script>
     (function(){
-      const STORAGE_KEY = 'cotrafa_chat_history_v1';
+      const STORAGE_KEY = 'COTRAFA_SOCIAL_chat_history_v1';
       const launcher = document.getElementById('chat-launcher');
       const panel = document.getElementById('chat-panel');
       const closeBtn = document.getElementById('chat-close');
@@ -577,7 +579,7 @@
         launcher.setAttribute('aria-expanded','true');
         setTimeout(()=>inputEl.focus(), 0);
         if(messages.length === 0){
-          addMessage('bot', 'Hola, soy el asistente de Cotrafa. ¿En qué te ayudo hoy?');
+          addMessage('bot', 'Hola, soy el asistente de COTRAFA SOCIAL. ¿En qué te ayudo hoy?');
         } else {
           render();
         }
