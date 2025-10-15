@@ -216,6 +216,9 @@
     .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#f9fbff;text-align:center}
     .kpi strong{display:block;font-size:18px}
 
+    /* KPI tile inside insights */
+    .insite .kpis{margin-top:8px}
+
     /* Chat flotante */
     .chat-launcher{
       position:fixed; right:18px; bottom:18px; z-index:50;
@@ -414,6 +417,17 @@
         <div class="insite"><strong>6. Confiabilidad</strong> Mostrar fecha de actualización y versión.</div>
         <div class="insite"><strong>7. Multiplataforma</strong> Acceso desde distintos dispositivos.</div>
         <div class="insite"><strong>8. Aprendizaje</strong> Mejora continua basada en uso.</div>
+        <div class="insite" id="kpi-proyecto">
+          <strong>Resumen del proyecto — KPI</strong>
+          <div class="kpis">
+            <div class="kpi"><span>Estado</span><strong id="kpi-estado">En curso</strong></div>
+            <div class="kpi"><span>Avance</span><strong id="kpi-avance">65%</strong></div>
+            <div class="kpi"><span>Docs</span><strong id="kpi-docs">3</strong></div>
+          </div>
+          <div style="margin-top:8px;color:var(--muted);font-size:12px">
+            <span>Última actualización:</span> <strong id="kpi-fecha">02 oct 2025</strong>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -507,6 +521,7 @@
       if(!launcher || !panel || !messagesEl || !inputEl || !sendBtn) return;
 
       let messages = loadHistory();
+      let busy = false;
 
       function loadHistory(){
         try{
@@ -529,7 +544,11 @@
           row.className = `msg ${m.role}`;
           const bubble = document.createElement('div');
           bubble.className = 'bubble';
-          bubble.innerHTML = m.content;
+          if(m.html){
+            bubble.innerHTML = m.content;
+          } else {
+            bubble.textContent = m.content;
+          }
           const meta = document.createElement('small');
           meta.textContent = m.time || now();
           bubble.appendChild(meta);
@@ -538,8 +557,8 @@
         }
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
-      function addMessage(role, content){
-        messages.push({ role, content, time: now() });
+      function addMessage(role, content, opts){
+        messages.push({ role, content, time: now(), html: !!(opts && opts.html) });
         saveHistory();
         render();
       }
@@ -590,15 +609,46 @@
         launcher.setAttribute('aria-expanded','false');
         launcher.focus();
       }
-      function send(){
+      async function send(){
         const text = inputEl.value.trim();
         if(!text) return;
         addMessage('user', text);
         inputEl.value='';
-        setTimeout(()=>{
-          const a = answerFor(text);
-          addMessage('bot', a);
-        }, 150);
+        // Quick local suggestion first
+        const quick = answerFor(text);
+        if(quick){
+          addMessage('bot', quick, { html: true });
+        }
+        // Then try backend call
+        try{
+          if(busy) return; busy = true;
+          const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, history: messages })
+          });
+          const data = await resp.json();
+          if(data && data.reply){
+            addMessage('bot', data.reply, { html: false });
+            if(data.kpis){
+              const { status, progress, docs, lastUpdate } = data.kpis;
+              const estadoEl = document.getElementById('kpi-estado');
+              const avanceEl = document.getElementById('kpi-avance');
+              const docsEl = document.getElementById('kpi-docs');
+              const fechaEl = document.getElementById('kpi-fecha');
+              if(estadoEl) estadoEl.textContent = status || 'N/D';
+              if(avanceEl) avanceEl.textContent = (progress ?? 'N/D') + (typeof progress==='number'?'%':'');
+              if(docsEl) docsEl.textContent = (docs ?? '0');
+              if(fechaEl) fechaEl.textContent = lastUpdate || 'N/D';
+            }
+          } else if(data && data.error){
+            // keep quiet, local quick already answered
+          }
+        } catch {
+          // network error: ignore, quick answer already shown
+        } finally {
+          busy = false;
+        }
       }
 
       launcher.addEventListener('click', ()=>{
@@ -622,6 +672,25 @@
         inputEl.value = q;
         send();
       }));
+
+      // Inicializa KPI con dataset si el backend está disponible
+      (async function initKpi(){
+        try{
+          const r = await fetch('/api/projects');
+          const d = await r.json();
+          const list = Array.isArray(d.projects) ? d.projects : [];
+          if(!list.length) return;
+          const target = list.find(p => String(p.name||'').toLowerCase().includes('investigación de mercado')) || list[0];
+          const estadoEl = document.getElementById('kpi-estado');
+          const avanceEl = document.getElementById('kpi-avance');
+          const docsEl = document.getElementById('kpi-docs');
+          const fechaEl = document.getElementById('kpi-fecha');
+          if(estadoEl) estadoEl.textContent = target.status || 'N/D';
+          if(avanceEl) avanceEl.textContent = (target.progress ?? 'N/D') + (typeof target.progress==='number'?'%':'');
+          if(docsEl) docsEl.textContent = (target.documents||[]).length;
+          if(fechaEl) fechaEl.textContent = target.lastUpdate || 'N/D';
+        }catch{}
+      })();
     })();
   </script>
 </body>

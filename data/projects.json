@@ -1,0 +1,30 @@
+[
+  {
+    "id": "proj-mercado-2025-q3",
+    "name": "Investigación de mercado",
+    "status": "En curso",
+    "progress": 65,
+    "responsible": { "name": "Ana Pérez", "area": "Unidad de Innovación", "email": "ana.perez@cotrafasocial.com" },
+    "lastUpdate": "2025-10-02",
+    "description": "Proyecto para analizar tendencias y preferencias de usuarios, determinando oportunidades de mejora en servicios.",
+    "tags": ["investigación", "mercado", "2025", "innovación"],
+    "documents": [
+      { "title": "Acta de inicio", "date": "2025-08-15", "url": "#" },
+      { "title": "Informe preliminar", "date": "2025-10-02", "url": "#" },
+      { "title": "Plan de trabajo", "date": "2025-08-10", "url": "#" }
+    ]
+  },
+  {
+    "id": "proj-digitalizacion-archivos",
+    "name": "Digitalización de archivos",
+    "status": "Ejecutado",
+    "progress": 100,
+    "responsible": { "name": "Luis Gómez", "area": "Operaciones", "email": "luis.gomez@cotrafasocial.com" },
+    "lastUpdate": "2025-07-22",
+    "description": "Consolidación y digitalización de documentos históricos en repositorio central para acceso ágil.",
+    "tags": ["digitalización", "documentos", "repositorio"],
+    "documents": [
+      { "title": "Informe final", "date": "2025-07-22", "url": "#" }
+    ]
+  }
+]
