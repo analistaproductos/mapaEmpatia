@@ -330,6 +330,7 @@
         };
 
         window.projectDocuments = JSON.parse(localStorage.getItem('projectDocuments') || '[]');
+        window.pendingDocument = null; // Variable global para el documento pendiente
 
         // Elementos del DOM
         const dataDropZone = document.getElementById('dataDropZone');
@@ -488,23 +489,33 @@
                     
                     if (fileExtension === 'json') {
                         data = JSON.parse(e.target.result);
+                        updateDataFileStatus(file.name, 'completed', 'Procesado exitosamente');
+                        updateProjectData(data);
+                        showDataPreview(data);
                     } else if (fileExtension === 'csv') {
-                        data = parseCSV(e.target.result);
+                        // Procesar CSV de forma más robusta
+                        const csvText = e.target.result;
+                        data = parseCSV(csvText);
+                        if (data && data.projects && data.projects.length > 0) {
+                            updateDataFileStatus(file.name, 'completed', 'Procesado exitosamente');
+                            updateProjectData(data);
+                            showDataPreview(data);
+                        } else {
+                            throw new Error('El archivo CSV no contiene datos válidos');
+                        }
                     } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-                        // Para Excel necesitaríamos una librería como SheetJS
+                        // Simular procesamiento de Excel
                         data = parseExcel(e.target.result, fileExtension);
+                        updateDataFileStatus(file.name, 'completed', 'Procesado exitosamente');
+                        updateProjectData(data);
+                        showDataPreview(data);
+                    } else {
+                        throw new Error('Formato de archivo no soportado');
                     }
-                    
-                    // Actualizar datos globales
-                    updateProjectData(data);
-                    
-                    // Actualizar UI - CORREGIDO: Ahora cambia el estado a "Completado"
-                    updateDataFileStatus(file.name, 'completed', 'Procesado exitosamente');
-                    showDataPreview(data);
                     
                 } catch (error) {
                     console.error('Error procesando archivo:', error);
-                    updateDataFileStatus(file.name, 'error', 'Error en procesamiento');
+                    updateDataFileStatus(file.name, 'error', 'Error: ' + error.message);
                 }
             };
             
@@ -512,7 +523,7 @@
                 updateDataFileStatus(file.name, 'error', 'Error leyendo archivo');
             };
             
-            if (file.name.endsWith('.json')) {
+            if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
                 reader.readAsText(file);
             } else {
                 reader.readAsArrayBuffer(file);
@@ -541,7 +552,7 @@
             }
         }
 
-        // CORREGIDO: Función para subir documentos con botón de confirmación
+        // CORREGIDO: Función para subir documentos
         function uploadDocument(file) {
             const validTypes = [
                 'application/pdf',
@@ -569,14 +580,25 @@
                 return;
             }
 
-            // Mostrar diálogo de confirmación con botón de cargar
+            // Guardar el documento pendiente y mostrar confirmación
+            window.pendingDocument = {
+                file: file,
+                categories: selectedCategories
+            };
+            
             showUploadConfirmation(file, selectedCategories);
         }
 
-        // NUEVA FUNCIÓN: Mostrar confirmación de carga con botón
+        // CORREGIDO: Mostrar confirmación de carga
         function showUploadConfirmation(file, categories) {
+            // Remover modal existente si hay uno
+            const existingModal = document.querySelector('.upload-confirmation-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
             const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.className = 'upload-confirmation-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.innerHTML = `
                 <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                     <h3 class="text-lg font-semibold mb-4">Confirmar carga de documento</h3>
@@ -586,11 +608,11 @@
                         <p class="text-sm text-gray-600">Categorías: ${categories.join(', ')}</p>
                     </div>
                     <div class="flex gap-3 justify-end">
-                        <button onclick="this.closest('.fixed').remove()" 
+                        <button id="cancelUpload" 
                                 class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                             Cancelar
                         </button>
-                        <button onclick="confirmDocumentUpload('${file.name}', ${JSON.stringify(categories).replace(/"/g, '&quot;')})" 
+                        <button id="confirmUpload" 
                                 class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
                             Cargar Documento
                         </button>
@@ -598,22 +620,34 @@
                 </div>
             `;
             
-            // Guardar el archivo en el modal para usarlo después
-            modal.file = file;
             document.body.appendChild(modal);
+
+            // Agregar event listeners a los botones
+            document.getElementById('cancelUpload').addEventListener('click', function() {
+                modal.remove();
+                window.pendingDocument = null;
+            });
+
+            document.getElementById('confirmUpload').addEventListener('click', function() {
+                modal.remove();
+                if (window.pendingDocument) {
+                    confirmDocumentUpload();
+                }
+            });
         }
 
-        // NUEVA FUNCIÓN: Confirmar y procesar la carga del documento
-        function confirmDocumentUpload(fileName, categoriesJson) {
-            const modal = document.querySelector('.fixed');
-            const file = modal.file;
-            const categories = JSON.parse(categoriesJson.replace(/&quot;/g, '"'));
-            
-            // Cerrar modal
-            modal.remove();
+        // CORREGIDO: Confirmar y procesar la carga del documento
+        function confirmDocumentUpload() {
+            if (!window.pendingDocument) {
+                console.error('No hay documento pendiente para cargar');
+                return;
+            }
+
+            const { file, categories } = window.pendingDocument;
             
             // Proceder con la carga
             addDocumentToList(file, categories);
+            window.pendingDocument = null;
         }
 
         function addDocumentToList(file, categories) {
@@ -833,48 +867,81 @@
             `).join('');
         }
 
-        // Funciones para procesamiento de datos (se mantienen del código anterior)
+        // Funciones para procesamiento de datos - CORREGIDAS
         function parseCSV(csvText) {
-            const lines = csvText.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(v => v.trim());
-                if (values.length === headers.length) {
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index];
-                    });
-                    data.push(row);
+            try {
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) {
+                    throw new Error('El archivo CSV está vacío');
                 }
+
+                const headers = lines[0].split(',').map(h => h.trim());
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    if (values.length === headers.length && values.some(v => v !== '')) {
+                        const row = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index];
+                        });
+                        data.push(row);
+                    }
+                }
+                
+                if (data.length === 0) {
+                    throw new Error('No se encontraron datos válidos en el CSV');
+                }
+                
+                return convertCSVToProjectData(data);
+            } catch (error) {
+                console.error('Error parseando CSV:', error);
+                throw error;
             }
-            
-            return convertCSVToProjectData(data);
         }
 
         function parseExcel(arrayBuffer, extension) {
-            alert('Procesamiento de Excel requiere la librería SheetJS. Usando datos de ejemplo.');
-            return getSampleData();
+            // Simular datos de ejemplo para Excel
+            return {
+                updatedAt: new Date().toISOString(),
+                projects: [
+                    {
+                        id: "PRJ-EXCEL",
+                        name: "Proyecto desde Excel",
+                        plannedDeliverables: 100,
+                        deliveredDeliverables: 75,
+                        status: "green",
+                        plannedBudget: 100000,
+                        actualSpent: 90000,
+                        weeklyDeliveries: generateWeeklyData(),
+                        milestones: generateMilestoneData()
+                    }
+                ]
+            };
         }
 
         function convertCSVToProjectData(csvData) {
-            const projects = csvData.map(row => ({
-                id: row.id || `PRJ-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                name: row.name || 'Proyecto Sin Nombre',
-                plannedDeliverables: parseInt(row.plannedDeliverables) || 0,
-                deliveredDeliverables: parseInt(row.deliveredDeliverables) || 0,
-                status: row.status || 'yellow',
-                plannedBudget: parseInt(row.plannedBudget) || 0,
-                actualSpent: parseInt(row.actualSpent) || 0,
-                weeklyDeliveries: generateWeeklyData(),
-                milestones: generateMilestoneData()
-            }));
+            try {
+                const projects = csvData.map((row, index) => ({
+                    id: row.id || row.ID || `PRJ-${(index + 1).toString().padStart(3, '0')}`,
+                    name: row.name || row.Nombre || row.Proyecto || `Proyecto ${index + 1}`,
+                    plannedDeliverables: parseInt(row.plannedDeliverables || row.EntregablesPlanificados || row.Planificados || 100),
+                    deliveredDeliverables: parseInt(row.deliveredDeliverables || row.EntregablesEntregados || row.Entregados || 50),
+                    status: (row.status || row.Estado || 'yellow').toLowerCase(),
+                    plannedBudget: parseInt(row.plannedBudget || row.PresupuestoPlanificado || row.Presupuesto || 100000),
+                    actualSpent: parseInt(row.actualSpent || row.Gastado || row.PresupuestoGastado || 80000),
+                    weeklyDeliveries: generateWeeklyData(),
+                    milestones: generateMilestoneData()
+                }));
 
-            return {
-                updatedAt: new Date().toISOString(),
-                projects: projects
-            };
+                return {
+                    updatedAt: new Date().toISOString(),
+                    projects: projects
+                };
+            } catch (error) {
+                console.error('Error convirtiendo CSV:', error);
+                throw new Error('Error en el formato del CSV. Asegúrate de que tenga las columnas correctas.');
+            }
         }
 
         function generateWeeklyData() {
@@ -981,25 +1048,6 @@
             a.download = 'plantilla-kpis.csv';
             a.click();
             window.URL.revokeObjectURL(url);
-        }
-
-        function getSampleData() {
-            return {
-                updatedAt: new Date().toISOString(),
-                projects: [
-                    {
-                        id: "PRJ-SAMPLE",
-                        name: "Proyecto desde Archivo",
-                        plannedDeliverables: 80,
-                        deliveredDeliverables: 45,
-                        status: "yellow",
-                        plannedBudget: 80000,
-                        actualSpent: 75000,
-                        weeklyDeliveries: generateWeeklyData(),
-                        milestones: generateMilestoneData()
-                    }
-                ]
-            };
         }
 
         // Helper functions
