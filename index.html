@@ -3,291 +3,717 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestión de proyectos — Cotrafa Social (Versión Ejecutiva)</title>
-  <meta name="description" content="Gestión de proyectos para el asistente virtual de Cotrafa Social, presentado en un formato ejecutivo, claro y listo para imprimir." />
+  <title>Dashboard de KPIs — Portafolio de Proyectos</title>
+  <meta name="description" content="Dashboard ejecutivo de KPIs con vista general de portafolio y por proyecto, con tabla filtrable, gráficos y chatbot en cliente." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0b2f6b',
+            brand: '#0b2f6b',
+            gold: '#f3b21a',
+            green: '#16a34a',
+            yellow: '#f59e0b',
+            red: '#dc2626',
+            mute: '#475569'
+          },
+          boxShadow: {
+            glass: '0 10px 30px rgba(2,6,23,.08)'
+          },
+          borderRadius: {
+            xl2: '16px'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    :root{
-      --navy:#0b2f6b;--navy-600:#113a82;--gold:#f3b21a;--green:#0f8a3b;--teal:#0ca3c3;
-      --brand:var(--navy);--brand-600:var(--navy-600);--brand-100:#eaf0fb;--accent:var(--gold);--accent-100:#fff6da;
-      --ink:#0f172a;--muted:#475569;--line:#e2e8f0;--surface:rgba(255,255,255,.82);
-      --bg:linear-gradient(180deg,#f7fafc 0%,#f3f7ff 100%);--radius:16px;
-      --shadow-sm:0 2px 10px rgba(2,6,23,.06);--shadow-md:0 12px 30px rgba(2,6,23,.10)
-    }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:Inter,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;padding:32px 20px}
-    .wrap{max-width:1200px;margin:0 auto}
-    header.header{display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;margin-bottom:28px;position:relative}
-    header.header::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--teal),var(--gold));animation:flow 8s ease-in-out infinite;background-size:200% 100%}
-    @keyframes flow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-    .brand{display:flex;align-items:center;gap:14px}
-    .brand-logo{height:44px;width:auto;display:block}
-    .brand-title{font-size:20px;font-weight:800;letter-spacing:.2px;color:var(--navy)}
-    .brand-sub{font-size:13px;color:var(--muted)}
-    .meta{display:grid;justify-items:end;gap:4px;font-size:12px;color:var(--muted)}
-    .meta .tag{background:var(--brand-100);color:var(--brand);border:1px solid #cde6df;padding:4px 10px;border-radius:999px;font-weight:600}
-    h1.page-title{font-size:30px;font-weight:900;margin:8px 0 18px;letter-spacing:.2px;background:linear-gradient(90deg,var(--navy),var(--teal),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
-    p.lead{margin:0 0 24px;color:var(--muted)}
-    .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
-    .card{background:var(--surface);backdrop-filter:saturate(140%) blur(8px);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:20px;position:relative;overflow:hidden;transition:.3s ease}
-    .card::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(120deg,transparent 0 40%,rgba(255,255,255,.2) 50%,transparent 60%);transform:translateX(-100%);animation:sheen 6s linear infinite}
-    .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-    @keyframes sheen{to{transform:translateX(100%)}}
-    .card h3{margin:0 0 10px;font-size:16px;letter-spacing:.3px}
-    .card p{margin:0;color:var(--muted)}
-    .center{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 2fr;gap:20px;align-items:start}
-    .center .who h3{color:var(--brand)}
-    .quad{min-height:100%}
-    .quad h4{margin:0 0 12px;font-size:15px;letter-spacing:.25px;color:var(--brand);display:flex;align-items:center}
-    .quad ul{list-style:none;margin:0;padding:0}
-    .quad li{padding:6px 0 6px 20px;position:relative;border-bottom:1px dashed var(--line)}
-    .quad li:last-child{border-bottom:none}
-    .quad li::before{content:"";position:absolute;left:0;top:12px;width:8px;height:8px;border-radius:2px;background:linear-gradient(135deg,var(--navy),var(--gold))}
-    .duo{grid-column:1/-1;display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
-    .duo .left{grid-column:span 6;border-top:3px solid #dc2626}
-    .duo .right{grid-column:span 6;border-top:3px solid #16a34a}
-    .duo h3{margin-top:6px}
-    .insights{grid-column:1/-1}
-    .insights-grid{display:grid;gap:12px;grid-template-columns:repeat(12,1fr)}
-    .insights-grid .insite{grid-column:span 3}
-    .insite{border:1px solid var(--line);border-radius:12px;background:#f9fbfd;padding:16px;box-shadow:var(--shadow-sm)}
-    .insite strong{display:block;margin-bottom:6px;font-size:13px;letter-spacing:.3px;color:var(--ink)}
-    .section-title{margin:10px 0 6px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-    footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
-    @media (max-width:1024px){.center{grid-template-columns:1fr}.insights-grid .insite{grid-column:span 6}.duo .left,.duo .right{grid-column:span 12}}
-    @media (max-width:640px){.insights-grid .insite{grid-column:span 12}}
-    @page{size:A4;margin:14mm}
-    @media print{
-      body{background:#fff;padding:0}
-      .card,.insite{box-shadow:none;backdrop-filter:none}
-      a[href]::after{content:" (" attr(href) ")";font-size:10px;color:#64748b}
-      h1.page-title{color:#000;background:none;-webkit-background-clip:initial}
-    }
-    .ico{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:8px;border-radius:6px;background:linear-gradient(135deg,var(--gold),var(--teal));box-shadow:0 2px 8px rgba(15,136,171,.25)}
-    .ico svg{width:14px;height:14px;fill:none;stroke:#0b2f6b;stroke-width:1.6}
-    .btn{appearance:none;border:0;border-radius:14px;padding:10px 16px;font-weight:700;cursor:pointer;position:relative;overflow:hidden;background:linear-gradient(90deg,var(--navy),var(--teal));color:#fff}
-    .btn::before{content:"";position:absolute;inset:-2px;border-radius:16px;padding:2px;background:linear-gradient(90deg,var(--green),var(--teal),var(--gold));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:flow 8s ease-in-out infinite;background-size:200% 100%}
-    .btn:hover{transform:translateY(-1px)}
-    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
-    .bg-orbs span{position:absolute;filter:blur(40px);opacity:.28;border-radius:50%}
-    .bg-orbs .o1{background:var(--gold);width:180px;height:180px;left:-40px;top:20vh;animation:float 14s ease-in-out infinite}
-    .bg-orbs .o2{background:var(--teal);width:220px;height:220px;right:-60px;top:10vh;animation:float 18s ease-in-out infinite reverse}
-    .bg-orbs .o3{background:var(--green);width:160px;height:160px;left:30%;bottom:-60px;animation:float 16s ease-in-out infinite}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
-    .demo{display:grid;gap:12px}.demo .input{display:flex;gap:8px}
-    .demo input[type="text"]{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;background:#fff}
-    .demo-output{min-height:80px;border:1px dashed var(--line);border-radius:12px;padding:14px;background:#fff}
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
-    .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#f9fbff;text-align:center}
-    .kpi strong{display:block;font-size:18px}
-    .chatbot{display:grid;gap:12px}
-    .chat-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .chat-toolbar input[type="password"],.chat-toolbar input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;min-width:260px;background:#fff}
-    .chat-toolbar .btn{white-space:nowrap}
-    .store{display:grid;gap:10px;grid-template-columns:1fr}
-    .store textarea{width:100%;min-height:120px;border:1px dashed var(--line);border-radius:12px;padding:12px;font-size:13px;background:#fff}
-    .store small{color:var(--muted)}
-    .chat-window{border:1px solid var(--line);border-radius:14px;background:#fff;min-height:220px;max-height:420px;overflow:auto;padding:12px}
-    .msg{display:flex;gap:10px;margin:8px 0}
-    .msg .bubble{border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-sm)}
-    .msg.user .bubble{background:#eef6ff}
-    .msg.bot .bubble{background:#f8fbff}
-    .assistant-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--navy),var(--gold));box-shadow:0 2px 6px rgba(0,0,0,.1)}
-    .user-avatar{width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,var(--teal),var(--green))}
-    .chat-input{display:flex;gap:8px}
-    .chat-input textarea{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:58px;resize:vertical;font-size:14px;background:#fff}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--accent-100);color:var(--navy);font-weight:700;font-size:12px}
-    .progress{height:8px;background:#eef2ff;border-radius:999px;overflow:hidden}
-    .progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--teal));width:0}
+    html, body { height: 100%; }
+    body { background: linear-gradient(180deg,#f7fafc 0%,#f3f7ff 100%); }
+    .status-pill { display:inline-flex; align-items:center; gap:.5rem; padding:.25rem .6rem; border-radius:999px; font-weight:700; font-size:.75rem; }
+    .status-green { background:#e8faef; color:#166534; border:1px solid #bbf7d0; }
+    .status-yellow { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+    .status-red { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .progress { height: 10px; background:#eef2ff; border-radius:999px; overflow:hidden; }
+    .progress > span { display:block; height:100%; background:linear-gradient(90deg,#16a34a,#0ea5e9); width:0; }
+    .tooltip { text-decoration: underline dotted; cursor: help; }
+    /* Chatbot overlay */
+    .chat-fab { position: fixed; right: 16px; bottom: 16px; z-index: 10000; }
+    .chat-panel { position: fixed; right: 16px; bottom: 76px; width: 360px; max-width: calc(100vw - 24px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,.15); display: none; z-index: 10001; }
+    .chat-panel.open { display: grid; grid-template-rows: auto 1fr auto; }
+    .chat-window { overflow: auto; max-height: 50vh; }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="bg-orbs" aria-hidden="true"><span class="o1"></span><span class="o2"></span><span class="o3"></span></div>
-    <header class="header" aria-label="Encabezado">
-      <div class="brand">
-        <img class="brand-logo" src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="Cotrafa Social" />
-        <div><div class="brand-title">Cotrafa Social</div><div class="brand-sub">Gestión de proyectos — Asistente Virtual</div></div>
+<body class="text-slate-900">
+  <div class="max-w-7xl mx-auto p-4 lg:p-6">
+    <header class="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
+      <div class="flex items-center gap-3">
+        <img src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="Cotrafa Social" class="h-10 w-auto" />
+        <div>
+          <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-navy via-sky-600 to-gold">Dashboard de KPIs</h1>
+          <p class="text-sm text-slate-600">Portafolio de proyectos — Vista ejecutiva</p>
+        </div>
       </div>
-      <div class="meta"><span class="tag">Versión ejecutiva</span><span>Actualizado: <time datetime="2025-10-08">08 oct 2025</time></span></div>
+      <div class="text-right text-sm text-slate-600">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+          <span class="font-semibold">Última actualización</span>
+          <time id="lastUpdated" datetime=""></time>
+        </div>
+      </div>
     </header>
 
-    <h1 class="page-title">Gestión de proyectos</h1>
-    <p class="lead">Resumen claro y accionable de dolores, expectativas e insights para orientar decisiones de producto y adopción interna.</p>
+    <!-- Tabs -->
+    <nav class="mt-4" role="tablist" aria-label="Vistas">
+      <div class="inline-flex rounded-xl overflow-hidden border border-slate-200 shadow-sm" role="tablist">
+        <button id="tab-general" role="tab" aria-controls="view-general" aria-selected="true" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy">General (portafolio)</button>
+        <button id="tab-proyecto" role="tab" aria-controls="view-proyecto" aria-selected="false" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 border-l border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy">Por proyecto</button>
+      </div>
+    </nav>
 
-    <section class="card center" aria-labelledby="usuario">
-      <div class="who"><h3 id="usuario">Usuario objetivo</h3><p><strong>Empleados de Cotrafa Social</strong></p></div>
-      <div class="need"><h3>Necesidad clave</h3><p>Consultar rápidamente información de proyectos (ejecutados y en proceso), responsables y documentación asociada en un repositorio confiable.</p></div>
-    </section>
-
-    <section class="grid" aria-label="Cuadrantes del mapa">
-      <div class="card quad" style="grid-column: span 6;">
-        <h4><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="5"></ellipse><circle cx="12" cy="12" r="2.5"></circle></svg></span>¿Qué ve?</h4>
-        <ul><li>Múltiples carpetas...</li><li>Nomenclaturas inconsistentes...</li><li>Compañeros solicitando información...</li><li>Sistemas desactualizados o incompletos</li><li>Documentos duplicados...</li><li>Ausencia de un repositorio central visible</li><li>Correos antiguos como única fuente histórica</li></ul>
-      </div>
-      <div class="card quad" style="grid-column: span 6;">
-        <h4><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 10 v4 a4 4 0 0 0 8 0 v-4"/><rect x="6" y="9" width="12" height="6" rx="3"/></svg></span>¿Qué escucha?</h4>
-        <ul><li>“No sé dónde está ese documento”.</li><li>“Consúltalo con la persona que llevó el proyecto”.</li><li>“Busca en la carpeta compartida”.</li><li>“Esa información está desactualizada”.</li><li>Quejas de clientes por tiempos lentos.</li><li>Solicitudes urgentes de gerencia.</li><li>“Lo necesito para ayer”.</li></ul>
-      </div>
-      <div class="card quad" style="grid-column: span 6;">
-        <h4><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21c4-3 7-5.5 7-9a7 7 0 0 0-13 0c0 3.5 3 6 6 9z"/></svg></span>¿Qué piensa y siente?</h4>
-        <ul><li>“Pierdo tiempo...”</li><li>“¿Esta es la versión correcta?”</li><li>“Me incomoda preguntar otra vez”</li><li>“¿Y si decido con información incorrecta?”</li><li>“Debería haber una forma más sencilla”</li><li>“Me siento poco productivo...”</li><li>“Necesito más autonomía...”</li></ul>
-      </div>
-      <div class="card quad" style="grid-column: span 6;">
-        <h4><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="4"/><path d="M8 17l-2.5 3"/></svg></span>¿Qué dice y hace?</h4>
-        <ul><li>Envía varios correos solicitando información</li><li>Interrumpe a compañeros...</li><li>Explora múltiples carpetas...</li><li>Abre versiones hasta hallar la correcta</li><li>Guarda copias personales...</li><li>“¿Alguien sabe dónde está el proyecto de…?”</li><li>“¿Esta es la última versión?”</li></ul>
-      </div>
-    </section>
-
-    <h2 class="section-title">Dolores y ganancias</h2>
-    <section class="grid duo" aria-label="Dolores y ganancias">
-      <div class="card quad left"><h3>Dolores</h3><ul><li>Pérdida de tiempo...</li><li>Frustración...</li><li>Inseguridad...</li><li>Dependencia...</li><li>Estrés...</li><li>Ineficiencia...</li><li>Duplicación...</li><li>Miedo a equivocarse</li><li>Interrupciones</li><li>Desmotivación</li></ul></div>
-      <div class="card quad right"><h3>Ganancias</h3><ul><li>Acceso inmediato...</li><li>Búsqueda en lenguaje natural</li><li>Información vigente y confiable</li><li>Disponibilidad 24/7</li><li>Claridad de responsables</li><li>Trazabilidad</li><li>Mayor autonomía</li><li>Menos interrupciones</li><li>Respuestas más rápidas</li><li>Más tiempo estratégico</li></ul></div>
-    </section>
-
-    <!-- Chatbot funcional -->
-    <h2 class="section-title">Chatbot Cotrafa (funcional con tu API Key)</h2>
-    <section class="card chatbot" id="chatbot">
-      <div class="chat-toolbar">
-        <span class="pill">Config</span>
-        <input type="password" id="apiKey" placeholder="Pega aquí tu OpenAI API Key (no se guarda)" aria-label="OpenAI API Key">
-        <input type="text" id="orgId" placeholder="(Opcional) OpenAI Organization ID" aria-label="Organization ID">
-        <button class="btn" id="saveKey" type="button">Usar clave</button>
-        <button class="btn" id="clearKey" type="button">Olvidar</button>
-      </div>
-      <details class="store" id="store">
-        <summary><strong>Base de conocimiento (RAG)</strong> — pega texto o carga JSON con tus proyectos</summary>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <input type="file" id="fileInput" accept=".json,.txt">
-          <button class="btn" id="embedBtn" type="button">Crear/Actualizar embeddings</button>
-          <div class="progress" style="flex:1;min-width:160px"><span id="progBar"></span></div>
-          <small id="embedInfo">Sin datos aún</small>
+    <!-- View: General -->
+    <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-4 grid gap-6">
+      <!-- KPIs resumen portafolio -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass" aria-labelledby="kpi-avg">
+          <div class="flex items-center justify-between">
+            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Promedio ponderado de avance
+              <span class="tooltip" title="Fórmula: (Σ entregado) / (Σ planificado) × 100">[?]</span>
+            </h3>
+            <span id="avgProgressLabel" class="text-sm font-bold"></span>
+          </div>
+          <div class="progress mt-2" aria-hidden="true"><span id="avgProgressBar"></span></div>
+          <p class="mt-2 text-xs text-slate-600">Avance = entregado/planificado (ponderado por alcance planificado)</p>
         </div>
-        <textarea id="rawDocs" placeholder='Ejemplo JSON: [{"id":"PRJ-001","titulo":"App Web","texto":"Descripción del proyecto..."}]
-También puedes pegar texto libre; cada línea será un documento.'></textarea>
-      </details>
-      <div class="chat-window" id="chatWin" aria-live="polite"></div>
-      <div class="chat-input">
-        <textarea id="chatQ" placeholder="Haz una pregunta sobre tus proyectos..."></textarea>
-        <button class="btn" id="sendQ" type="button">Enviar</button>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Estado del portafolio
+            <span class="tooltip" title="Estados reportados por proyecto: verde/amarillo/rojo">[?]</span>
+          </h3>
+          <div class="mt-2 flex gap-2 text-xs">
+            <span id="count-green" class="status-pill status-green" aria-label="Proyectos en verde"></span>
+            <span id="count-yellow" class="status-pill status-yellow" aria-label="Proyectos en amarillo"></span>
+            <span id="count-red" class="status-pill status-red" aria-label="Proyectos en rojo"></span>
+          </div>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Velocidad 4 semanas (portafolio)
+            <span class="tooltip" title="Fórmula: promedio de entregas semanales (Σ puntos) en 4 semanas">[?]</span>
+          </h3>
+          <p class="mt-2 text-2xl font-black" id="portfolioVelocity">—</p>
+          <p class="mt-1 text-xs text-slate-600">Puntos/semana (promedio 4 semanas)</p>
+        </div>
       </div>
-      <small>Privacidad: la clave se guarda solo en memoria de esta página (no se envía a otro sitio). Para producción usa un proxy seguro en tu backend.</small>
-    </section>
 
-    <h2 class="section-title">Demo interactivo</h2>
-    <section class="card demo" id="demo">
-      <div class="input"><input type="text" id="demo-q" placeholder="Ej: ¿Cuál es el estado del proyecto de investigación de mercado?" aria-label="Pregunta de ejemplo" /><button class="btn" id="demo-btn" type="button">Probar</button></div>
-      <div class="demo-output" id="demo-out" aria-live="polite"></div>
-    </section>
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Distribución por estado</h3>
+          <canvas id="statusChart" class="mt-2" aria-label="Gráfico de distribución por estado" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Desviación presupuestal por proyecto
+            <span class="tooltip" title="Fórmula: (gastado − planificado) / planificado × 100">[?]</span>
+          </h3>
+          <canvas id="budgetChart" class="mt-2" aria-label="Gráfico de desviación presupuestal" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Entregas por semana (últimas 4) — Portafolio</h3>
+          <canvas id="velocityChart" class="mt-2" aria-label="Gráfico de velocidad 4 semanas" role="img"></canvas>
+        </div>
+      </div>
 
-    <h2 class="section-title">Insights para el diseño</h2>
-    <section class="card insights">
-      <div class="insights-grid">
-        <div class="insite"><strong>1. Lenguaje natural</strong> Debe entender preguntas cotidianas, no solo códigos.</div>
-        <div class="insite"><strong>2. Respuestas contextuales</strong> Resumen claro con opción a profundizar.</div>
-        <div class="insite"><strong>3. Responsables visibles</strong> Contacto y rol actualizados.</div>
-        <div class="insite"><strong>4. Estado de proyectos</strong> Ejecutado, en curso o suspendido.</div>
-        <div class="insite"><strong>5. Búsqueda flexible</strong> Por nombre, ubicación, responsable, fecha o tipo.</div>
-        <div class="insite"><strong>6. Confiabilidad</strong> Mostrar fecha de actualización y versión.</div>
-        <div class="insite"><strong>7. Multiplataforma</strong> Acceso desde distintos dispositivos.</div>
-        <div class="insite"><strong>8. Aprendizaje</strong> Mejora continua basada en uso.</div>
+      <!-- Filtros + Tabla -->
+      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <label for="searchInput" class="text-sm font-semibold">Buscar</label>
+            <input id="searchInput" type="search" placeholder="Nombre de proyecto…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-64" />
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="statusFilter" class="text-sm font-semibold">Estado</label>
+            <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <option value="">Todos</option>
+              <option value="green">Verde</option>
+              <option value="yellow">Amarillo</option>
+              <option value="red">Rojo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-auto">
+          <table class="min-w-full text-sm" role="table" aria-label="Tabla de proyectos">
+            <thead class="text-left border-b border-slate-200 bg-slate-50">
+              <tr>
+                <th class="px-3 py-2">Proyecto</th>
+                <th class="px-3 py-2">% avance <span class="tooltip" title="entregado/planificado × 100">[?]</span></th>
+                <th class="px-3 py-2">Estado</th>
+                <th class="px-3 py-2">Cumpl. hitos <span class="tooltip" title="hitos cumplidos/planificados × 100">[?]</span></th>
+                <th class="px-3 py-2">Desv. presupuestal <span class="tooltip" title="(gastado − planificado)/planificado × 100">[?]</span></th>
+                <th class="px-3 py-2">Velocidad 4s <span class="tooltip" title="promedio (puntos/semana) en 4 semanas">[?]</span></th>
+                <th class="px-3 py-2">Próximo hito</th>
+              </tr>
+            </thead>
+            <tbody id="projectTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <footer><span>Preparado por: Equipo de Innovación</span><span>© Cotrafa Social</span></footer>
+    <!-- View: Proyecto -->
+    <section id="view-proyecto" role="tabpanel" aria-labelledby="tab-proyecto" class="mt-4 grid gap-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <label for="projectSelect" class="text-sm font-semibold">Proyecto</label>
+          <select id="projectSelect" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-72"></select>
+        </div>
+        <div class="text-sm text-slate-600" id="projectMeta"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass md:col-span-2">
+          <h3 class="text-sm font-semibold text-slate-700">% de avance</h3>
+          <div class="mt-2 progress" aria-hidden="true"><span id="projProgressBar"></span></div>
+          <p class="mt-2 text-xs text-slate-600" id="projProgressLabel"></p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Estado</h3>
+          <div class="mt-2" id="projStatus"></div>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Cumplimiento de hitos</h3>
+          <p class="mt-2 text-xl font-black" id="projMilestoneRate">—</p>
+          <p class="text-xs text-slate-600">Hitos cumplidos / planificados</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Desviación presupuestal</h3>
+          <p class="mt-2 text-xl font-black" id="projBudgetDev">—</p>
+          <p class="text-xs text-slate-600">(gastado − planificado) / planificado</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Progreso</h3>
+          <canvas id="projProgressChart" class="mt-2" aria-label="Gráfico de progreso" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Presupuesto</h3>
+          <canvas id="projBudgetChart" class="mt-2" aria-label="Gráfico de presupuesto" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Velocidad (8 semanas)</h3>
+          <canvas id="projVelocityChart" class="mt-2" aria-label="Gráfico de velocidad" role="img"></canvas>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <h3 class="text-sm font-semibold text-slate-700">Hitos y próximos entregables</h3>
+        <ul id="milestoneList" class="mt-2 grid gap-2"></ul>
+      </div>
+    </section>
   </div>
 
-  <script>
-  if (!window.__cotrafa_loaded__) {
-    window.__cotrafa_loaded__ = true;
+  <!-- Floating Chatbot -->
+  <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500" aria-label="Abrir chatbot" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Chat
+  </button>
+  <section id="chatPanel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+    <header class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-2xl">
+      <h2 id="chatTitle" class="text-sm font-bold">Asistente de KPIs</h2>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-600 inline-flex items-center gap-1"><input type="checkbox" id="useLLM" class="accent-navy" disabled> Usar LLM</label>
+        <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200" aria-label="Cerrar">✕</button>
+      </div>
+    </header>
+    <div id="chatWindow" class="chat-window p-3" aria-live="polite"></div>
+    <form id="chatForm" class="p-3 border-t border-slate-200 grid gap-2" autocomplete="off">
+      <label for="chatInput" class="sr-only">Escribe tu pregunta</label>
+      <textarea id="chatInput" class="border border-slate-300 rounded-lg p-2 text-sm min-h-[60px]" placeholder="Ej.: ¿Cómo va Proyecto Aurora?" required></textarea>
+      <div class="flex items-center justify-between">
+        <small class="text-slate-500" id="chatModeHelp"></small>
+        <button class="px-4 py-2 rounded-lg bg-navy text-white font-bold" type="submit">Enviar</button>
+      </div>
+    </form>
+  </section>
 
-    // Demo con "tipeo"
+  <!-- Datos mock -->
+  <script type="application/json" id="data">
+  {
+    "updatedAt": "2025-10-16T10:10:00Z",
+    "projects": [
+      {
+        "id": "PRJ-001",
+        "name": "Proyecto Aurora",
+        "plannedDeliverables": 100,
+        "deliveredDeliverables": 62,
+        "status": "green",
+        "plannedBudget": 120000,
+        "actualSpent": 110500,
+        "weeklyDeliveries": [
+          {"week": "2025-08-25", "points": 12},
+          {"week": "2025-09-01", "points": 13},
+          {"week": "2025-09-08", "points": 16},
+          {"week": "2025-09-15", "points": 17},
+          {"week": "2025-09-22", "points": 18},
+          {"week": "2025-09-29", "points": 16},
+          {"week": "2025-10-06", "points": 14},
+          {"week": "2025-10-13", "points": 14}
+        ],
+        "milestones": [
+          {"name": "Kickoff", "dueDate": "2025-09-16", "status": "completed", "completedAt": "2025-09-15"},
+          {"name": "MVP", "dueDate": "2025-10-20", "status": "pending"},
+          {"name": "Beta", "dueDate": "2025-11-10", "status": "pending"}
+        ]
+      },
+      {
+        "id": "PRJ-002",
+        "name": "Proyecto Boreal",
+        "plannedDeliverables": 80,
+        "deliveredDeliverables": 36,
+        "status": "yellow",
+        "plannedBudget": 90000,
+        "actualSpent": 99000,
+        "weeklyDeliveries": [
+          {"week": "2025-08-25", "points": 9},
+          {"week": "2025-09-01", "points": 8},
+          {"week": "2025-09-08", "points": 7},
+          {"week": "2025-09-15", "points": 6},
+          {"week": "2025-09-22", "points": 8},
+          {"week": "2025-09-29", "points": 9},
+          {"week": "2025-10-06", "points": 10},
+          {"week": "2025-10-13", "points": 11}
+        ],
+        "milestones": [
+          {"name": "Diseño", "dueDate": "2025-09-10", "status": "completed"},
+          {"name": "Integración API", "dueDate": "2025-10-25", "status": "pending"},
+          {"name": "Piloto", "dueDate": "2025-11-05", "status": "pending"}
+        ]
+      },
+      {
+        "id": "PRJ-003",
+        "name": "Proyecto Cumbre",
+        "plannedDeliverables": 120,
+        "deliveredDeliverables": 38,
+        "status": "red",
+        "plannedBudget": 150000,
+        "actualSpent": 175000,
+        "weeklyDeliveries": [
+          {"week": "2025-08-25", "points": 5},
+          {"week": "2025-09-01", "points": 6},
+          {"week": "2025-09-08", "points": 5},
+          {"week": "2025-09-15", "points": 4},
+          {"week": "2025-09-22", "points": 3},
+          {"week": "2025-09-29", "points": 5},
+          {"week": "2025-10-06", "points": 6},
+          {"week": "2025-10-13", "points": 6}
+        ],
+        "milestones": [
+          {"name": "Levantamiento", "dueDate": "2025-09-05", "status": "completed"},
+          {"name": "Core funcional", "dueDate": "2025-10-15", "status": "pending"},
+          {"name": "Go-live", "dueDate": "2025-12-01", "status": "pending"}
+        ]
+      },
+      {
+        "id": "PRJ-004",
+        "name": "Proyecto Delta",
+        "plannedDeliverables": 60,
+        "deliveredDeliverables": 40,
+        "status": "green",
+        "plannedBudget": 70000,
+        "actualSpent": 68000,
+        "weeklyDeliveries": [
+          {"week": "2025-08-25", "points": 9},
+          {"week": "2025-09-01", "points": 10},
+          {"week": "2025-09-08", "points": 9},
+          {"week": "2025-09-15", "points": 8},
+          {"week": "2025-09-22", "points": 9},
+          {"week": "2025-09-29", "points": 9},
+          {"week": "2025-10-06", "points": 7},
+          {"week": "2025-10-13", "points": 6}
+        ],
+        "milestones": [
+          {"name": "Aprobación alcance", "dueDate": "2025-09-03", "status": "completed"},
+          {"name": "QA", "dueDate": "2025-10-28", "status": "pending"},
+          {"name": "Entrega final", "dueDate": "2025-11-20", "status": "pending"}
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <script>
+  (function(){
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+    // Load dataset
+    const raw = document.getElementById('data').textContent.trim();
+    const ds = JSON.parse(raw);
+    const projects = ds.projects || [];
+
+    // Utils
+    const fmtPct = (n) => `${(n).toFixed(1)}%`;
+    const pct = (num, den) => den > 0 ? (num/den)*100 : 0;
+    const clamp01 = (v) => Math.max(0, Math.min(100, v));
+    const sum = (arr, f = (x)=>x) => arr.reduce((a,b)=>a+f(b),0);
+    const byDateAsc = (a,b) => new Date(a) - new Date(b);
+    const nowIso = new Date().toISOString();
+
+    // Derived metrics
+    function projectProgress(p){ return pct(p.deliveredDeliverables, p.plannedDeliverables); }
+    function milestoneRate(p){ const t=p.milestones?.length||0; const c=(p.milestones||[]).filter(m=>m.status==='completed').length; return pct(c, t); }
+    function budgetDevPct(p){ return pct(p.actualSpent - p.plannedBudget, p.plannedBudget); }
+    function velocity4Weeks(p){ const recent = (p.weeklyDeliveries||[]).slice(-4); if(!recent.length) return 0; return sum(recent, x=>x.points)/recent.length; }
+    function nextMilestone(p){ const upcoming=(p.milestones||[]).filter(m=>m.status!=='completed'); upcoming.sort((a,b)=>byDateAsc(a.dueDate,b.dueDate)); return upcoming[0]||null; }
+
+    const totalPlanned = sum(projects, p=>p.plannedDeliverables);
+    const totalDelivered = sum(projects, p=>p.deliveredDeliverables);
+    const portfolioAvg = pct(totalDelivered, totalPlanned);
+
+    const statusCounts = {
+      green: projects.filter(p=>p.status==='green').length,
+      yellow: projects.filter(p=>p.status==='yellow').length,
+      red: projects.filter(p=>p.status==='red').length
+    };
+
+    // Last updated
+    const updatedAt = ds.updatedAt || nowIso;
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    if (lastUpdatedEl) {
+      const d = new Date(updatedAt);
+      lastUpdatedEl.setAttribute('datetime', d.toISOString());
+      lastUpdatedEl.textContent = d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    // Tabs
+    const tabGeneral = document.getElementById('tab-general');
+    const tabProyecto = document.getElementById('tab-proyecto');
+    const viewGeneral = document.getElementById('view-general');
+    const viewProyecto = document.getElementById('view-proyecto');
+    function showView(which){
+      const isGeneral = which==='general';
+      tabGeneral.setAttribute('aria-selected', isGeneral?'true':'false');
+      tabProyecto.setAttribute('aria-selected', isGeneral?'false':'true');
+      viewGeneral.classList.toggle('hidden', !isGeneral);
+      viewProyecto.classList.toggle('hidden', isGeneral);
+      if(!isGeneral){
+        // lazy init first project
+        if(!projectSelect.value && projects[0]){
+          projectSelect.value = projects[0].id;
+          renderProject(projects[0].id);
+        }
+      }
+    }
+    tabGeneral.addEventListener('click', ()=>showView('general'));
+    tabProyecto.addEventListener('click', ()=>showView('proyecto'));
+
+    // Portfolio KPI cards
+    document.getElementById('avgProgressLabel').textContent = fmtPct(portfolioAvg);
+    document.getElementById('avgProgressBar').style.width = clamp01(portfolioAvg)+'%';
+    document.getElementById('count-green').textContent = `${statusCounts.green} verde` + (statusCounts.green===1?'':'s');
+    document.getElementById('count-yellow').textContent = `${statusCounts.yellow} amarillo` + (statusCounts.yellow===1?'':'s');
+    document.getElementById('count-red').textContent = `${statusCounts.red} rojo` + (statusCounts.red===1?'':'s');
+
+    const portfolioVelocityVal = (function(){
+      // Sum last 4 weeks across projects by week label
+      const allWeeks = new Map();
+      projects.forEach(p=>{
+        (p.weeklyDeliveries||[]).slice(-4).forEach(w=>{
+          allWeeks.set(w.week, (allWeeks.get(w.week)||0) + (w.points||0));
+        });
+      });
+      const weeks = Array.from(allWeeks.keys()).sort(byDateAsc);
+      const values = weeks.map(w=>allWeeks.get(w));
+      const avg = values.length ? sum(values)/values.length : 0;
+      // Render chart
+      const ctx = document.getElementById('velocityChart');
+      if(ctx){ new Chart(ctx, { type:'bar', data:{ labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), datasets:[{ label:'Puntos', data: values, backgroundColor:'#0ea5e980' }] }, options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{ label:(ctx)=>`Puntos: ${ctx.parsed.y}` }}}}}); }
+      return avg;
+    })();
+    document.getElementById('portfolioVelocity').textContent = portfolioVelocityVal.toFixed(1);
+
+    // Status chart
     (function(){
-      const btn=document.getElementById('demo-btn'),out=document.getElementById('demo-out'),q=document.getElementById('demo-q');
-      if(!btn||!out||!q) return;
-      const sample=(text)=>`<div class="insite" style="border:0;background:#fff"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 21l-5-5"/><circle cx="10" cy="10" r="6"/></svg></span><strong>Respuesta</strong></div><p><strong>Proyecto:</strong> Investigación de mercado (2025-Q3)<br/><strong>Estado:</strong> En curso ✅<br/><strong>Responsable:</strong> Ana Pérez — Unidad de Innovación<br/><strong>Última actualización:</strong> 02 oct 2025 — Informe preliminar cargado.</p><div class="kpis"><div class="kpi"><span>Tiempo ahorrado</span><strong>7 min</strong></div><div class="kpi"><span>Confianza</span><strong>98%</strong></div><div class="kpi"><span>Docs relevantes</span><strong>3</strong></div></div></div>`;
-      function type(html){ out.innerHTML=''; const tmp=document.createElement('div'); tmp.innerHTML=html; const text=tmp.innerText; let i=0; out.textContent=''; const timer=setInterval(()=>{ out.textContent=text.slice(0,i+=3); if(i>=text.length){ clearInterval(timer); out.innerHTML=html; } },12); }
-      btn.addEventListener('click',()=>{ const query=q.value.trim()||'¿Cuál es el estado del proyecto de investigación de mercado?'; type(sample(query)); });
+      const ctx = document.getElementById('statusChart');
+      if(!ctx) return;
+      new Chart(ctx, { type:'doughnut', data:{ labels:['Verde','Amarillo','Rojo'], datasets:[{ data:[statusCounts.green,statusCounts.yellow,statusCounts.red], backgroundColor:['#22c55e','#f59e0b','#ef4444'] }] }, options:{ plugins:{ legend:{ position:'bottom' }}} });
     })();
 
-    // Chatbot + RAG (modo ahorro)
-    const $=(s)=>document.querySelector(s);
-    const chatWin=$('#chatWin');
-    const api={key:null,org:null};
-    const vectorStore={docs:[],vectors:[],dim:1536};
-    const cost={model:'gpt-4o-mini',embed:'text-embedding-3-small'}; // económicos
+    // Budget deviation chart
+    (function(){
+      const ctx = document.getElementById('budgetChart');
+      if(!ctx) return;
+      const labels = projects.map(p=>p.name);
+      const data = projects.map(p=>budgetDevPct(p));
+      new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Desv. %', data, backgroundColor: data.map(v=> v>0?'#ef4444aa':'#22c55eaa') }] }, options:{ plugins:{ tooltip:{ callbacks:{ label:(c)=>fmtPct(c.parsed.y) }}, legend:{display:false} }, scales:{ y:{ ticks:{ callback:(v)=>v+'%' }}}});
+    })();
 
-    function addMsg(role,html){ const wrap=document.createElement('div'); wrap.className=`msg ${role}`; const avatar=document.createElement('div'); avatar.className=role==='user'?'user-avatar':'assistant-avatar'; const bubble=document.createElement('div'); bubble.className='bubble'; bubble.innerHTML=html; wrap.append(avatar,bubble); chatWin.appendChild(wrap); chatWin.scrollTop=chatWin.scrollHeight; }
+    // Table
+    const tbody = document.getElementById('projectTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
 
-    $('#saveKey')?.addEventListener('click',()=>{ api.key=$('#apiKey').value.trim(); api.org=$('#orgId').value.trim()||null; addMsg('bot','<em>Clave configurada en memoria. Listo para usar.</em>'); });
-    $('#clearKey')?.addEventListener('click',()=>{ api.key=null; api.org=null; $('#apiKey').value=''; $('#orgId').value=''; addMsg('bot','<em>Clave eliminada de memoria.</em>'); });
+    function statusPill(status){
+      const base = 'status-pill ';
+      if(status==='green') return `<span class="${base}status-green">Verde</span>`;
+      if(status==='yellow') return `<span class="${base}status-yellow">Amarillo</span>`;
+      return `<span class="${base}status-red">Rojo</span>`;
+    }
 
-    async function embedTexts(texts){
-      if(!api.key) throw new Error('Falta API Key');
-      const chunks=[];
-      texts.forEach((t,i)=>{ const id=typeof t==='string'?`doc-${i+1}`:(t.id||`doc-${i+1}`); const title=typeof t==='string'?`Documento ${i+1}`:(t.titulo||t.title||id); const body=typeof t==='string'?t:(t.texto||t.text||JSON.stringify(t)); const size=1800; for(let o=0;o<body.length;o+=size){ chunks.push({id:`${id}#${o}`,title,text:body.slice(o,o+size)}); } });
-      const prog=$('#progBar'); if(prog) prog.style.width='0%';
-      const batched=[]; const B=100; for(let i=0;i<chunks.length;i+=B){ batched.push(chunks.slice(i,i+B)); }
-      const vectors=[];
-      for(let bi=0;bi<batched.length;bi++){
-        const batch=batched[bi];
-        const res=await fetch('https://api.openai.com/v1/embeddings',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`,...(api.org?{'OpenAI-Organization':api.org}:{})},body:JSON.stringify({model:cost.embed,input:batch.map(c=>c.text)})});
-        if(!res.ok){ const e=await res.text(); throw new Error('Error embeddings: '+e); }
-        const data=await res.json(); data.data.forEach((d,idx)=>{ vectors.push({v:new Float32Array(d.embedding),meta:batch[idx]}); });
-        if(prog) prog.style.width=Math.round(((bi+1)/batched.length)*100)+'%';
+    function formatNextMilestone(p){
+      const m = nextMilestone(p);
+      if(!m) return '<span class="text-slate-400">—</span>';
+      const d = new Date(m.dueDate).toLocaleDateString('es-ES',{year:'2-digit',month:'short',day:'2-digit'});
+      return `${m.name} · ${d}`;
+    }
+
+    function renderTable(){
+      const term = (searchInput.value||'').toLowerCase();
+      const st = statusFilter.value;
+      const rows = projects.filter(p=>{
+        const okTerm = !term || p.name.toLowerCase().includes(term);
+        const okSt = !st || p.status===st;
+        return okTerm && okSt;
+      }).map(p=>{
+        const prog = projectProgress(p);
+        const rate = milestoneRate(p);
+        const dev = budgetDevPct(p);
+        const vel = velocity4Weeks(p);
+        return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
+          <td class="px-3 py-2 font-semibold">${p.name}</td>
+          <td class="px-3 py-2">${fmtPct(prog)}</td>
+          <td class="px-3 py-2">${statusPill(p.status)}</td>
+          <td class="px-3 py-2">${fmtPct(rate)}</td>
+          <td class="px-3 py-2">${fmtPct(dev)}</td>
+          <td class="px-3 py-2">${vel.toFixed(1)}</td>
+          <td class="px-3 py-2">${formatNextMilestone(p)}</td>
+        </tr>`;
+      }).join('');
+      tbody.innerHTML = rows || `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">Sin resultados</td></tr>`;
+    }
+
+    searchInput.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+    renderTable();
+
+    // Project view
+    const projectSelect = document.getElementById('projectSelect');
+    projects.forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name; projectSelect.appendChild(opt);
+    });
+    const projectMeta = document.getElementById('projectMeta');
+
+    let projProgressChart, projBudgetChart, projVelocityChart;
+
+    function destroyChart(ch){ try{ ch && ch.destroy(); }catch{} }
+
+    function renderProject(id){
+      const p = projects.find(x=>x.id===id);
+      if(!p) return;
+      projectMeta.textContent = `${p.id} · Presupuesto plan: $${p.plannedBudget.toLocaleString('es-CO')} · Gastado: $${p.actualSpent.toLocaleString('es-CO')}`;
+
+      // KPIs
+      const prog = projectProgress(p);
+      document.getElementById('projProgressBar').style.width = clamp01(prog)+'%';
+      document.getElementById('projProgressLabel').textContent = `${fmtPct(prog)} — entregado ${p.deliveredDeliverables} de ${p.plannedDeliverables}`;
+      document.getElementById('projStatus').innerHTML = statusPill(p.status);
+      document.getElementById('projMilestoneRate').textContent = fmtPct(milestoneRate(p));
+      document.getElementById('projBudgetDev').textContent = fmtPct(budgetDevPct(p));
+
+      // Charts
+      const ctxProg = document.getElementById('projProgressChart');
+      const ctxBud = document.getElementById('projBudgetChart');
+      const ctxVel = document.getElementById('projVelocityChart');
+
+      destroyChart(projProgressChart);
+      destroyChart(projBudgetChart);
+      destroyChart(projVelocityChart);
+
+      projProgressChart = new Chart(ctxProg, {
+        type:'doughnut', data:{ labels:['Entregado','Restante'], datasets:[{ data:[p.deliveredDeliverables, Math.max(0,p.plannedDeliverables - p.deliveredDeliverables)], backgroundColor:['#22c55e','#e2e8f0'] }] }, options:{ plugins:{ legend:{ position:'bottom' } } }
+      });
+
+      projBudgetChart = new Chart(ctxBud, {
+        type:'bar', data:{ labels:['Planificado','Gastado'], datasets:[{ data:[p.plannedBudget, p.actualSpent], backgroundColor:['#0ea5e980','#ef4444aa'] }] }, options:{ plugins:{ legend:{display:false}, tooltip:{callbacks:{ label:(c)=>'$'+c.raw.toLocaleString('es-CO') }}}, scales:{ y:{ ticks:{ callback:(v)=>'$'+Number(v).toLocaleString('es-CO') }}} }
+      });
+
+      const weeks = (p.weeklyDeliveries||[]).map(w=>w.week);
+      const values = (p.weeklyDeliveries||[]).map(w=>w.points);
+      projVelocityChart = new Chart(ctxVel, {
+        type:'line', data:{ labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), datasets:[{ label:'Puntos', data: values, borderColor:'#0ea5e9', backgroundColor:'#0ea5e955', fill:true, tension:.3 }] }, options:{ plugins:{ legend:{display:false} } }
+      });
+
+      // Milestones
+      const ul = document.getElementById('milestoneList');
+      const items = (p.milestones||[]).slice().sort((a,b)=>byDateAsc(a.dueDate,b.dueDate)).map(m=>{
+        const due = new Date(m.dueDate);
+        const dueStr = due.toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'short'});
+        const st = m.status==='completed' ? '<span class="status-pill status-green">Completado</span>' : (due < new Date() ? '<span class="status-pill status-red">Vencido</span>' : '<span class="status-pill status-yellow">Pendiente</span>');
+        return `<li class="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200">`+
+          `<span class="font-medium">${m.name}</span>`+
+          `<span class="text-slate-600 text-sm">${dueStr}</span>`+
+          `${st}`+
+        `</li>`;
+      }).join('');
+      ul.innerHTML = items || '<li class="text-slate-500">Sin hitos definidos</li>';
+    }
+
+    projectSelect.addEventListener('change', (e)=> renderProject(e.target.value));
+
+    // Initialize default view
+    showView('general');
+
+    // Chatbot overlay (client-only)
+    const chatFab = document.getElementById('chatFab');
+    const chatPanel = document.getElementById('chatPanel');
+    const chatClose = document.getElementById('chatClose');
+    const chatForm = document.getElementById('chatForm');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatInput = document.getElementById('chatInput');
+    const useLLM = document.getElementById('useLLM');
+    const chatModeHelp = document.getElementById('chatModeHelp');
+
+    const hasLLM = typeof window.OPENAI_KEY === 'string' && window.OPENAI_KEY.trim().length>0;
+    if(hasLLM){ useLLM.disabled = false; useLLM.checked = true; chatModeHelp.textContent = 'Modo LLM económico activo (gpt-4o-mini).'; }
+    else { useLLM.disabled = true; useLLM.checked = false; chatModeHelp.textContent = 'Modo local (rule-based). Define window.OPENAI_KEY para habilitar LLM.'; }
+
+    function addMsg(role, html){
+      const wrap = document.createElement('div');
+      wrap.className = 'flex gap-2 my-2';
+      const bubble = document.createElement('div');
+      bubble.className = 'rounded-xl px-3 py-2 text-sm shadow border '+(role==='user'?'bg-sky-50 border-sky-100':'bg-slate-50 border-slate-200');
+      bubble.innerHTML = html;
+      wrap.appendChild(bubble);
+      chatWindow.appendChild(wrap);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function openChat(){
+      chatPanel.classList.add('open');
+      chatPanel.style.display = 'grid';
+      chatFab.setAttribute('aria-expanded','true');
+      chatPanel.setAttribute('aria-hidden','false');
+      try{ chatInput.focus(); }catch{}
+    }
+    function closeChat(){
+      chatPanel.classList.remove('open');
+      chatPanel.style.display = 'none';
+      chatFab.setAttribute('aria-expanded','false');
+      chatPanel.setAttribute('aria-hidden','true');
+    }
+    function toggleChat(){ if(chatPanel.classList.contains('open')) closeChat(); else openChat(); }
+
+    // Ensure initial hidden state and ARIA
+    closeChat();
+
+    chatFab.addEventListener('click', toggleChat);
+    chatClose.addEventListener('click', closeChat);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeChat(); });
+
+    // Local NLU helpers
+    const names = projects.map(p=>p.name.toLowerCase());
+    const idByName = new Map(projects.map(p=>[p.name.toLowerCase(), p.id]));
+
+    function findProjectInText(q){
+      const text = q.toLowerCase();
+      // Try exact include by name (longest first)
+      const sorted = names.slice().sort((a,b)=>b.length-a.length);
+      for(const nm of sorted){ if(text.includes(nm)){ return idByName.get(nm); } }
+      return null;
+    }
+
+    function answerLocal(q){
+      const t = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const pid = findProjectInText(t);
+
+      // promedio de avance (portafolio)
+      if((/promedio/.test(t) || /media/.test(t)) && /avance|progreso/.test(t)){
+        return `• Promedio ponderado de avance: <strong>${fmtPct(portfolioAvg)}</strong><br/>• Proyectos: ${projects.length} (V:${statusCounts.green} · A:${statusCounts.yellow} · R:${statusCounts.red})<br/>• Velocidad 4s: ${portfolioVelocityVal.toFixed(1)} pts/sem`;
       }
-      vectorStore.docs=chunks; vectorStore.vectors=vectors; vectorStore.dim=vectors[0]?.v?.length||1536;
-      const info=$('#embedInfo'); if(info) info.textContent=`Docs: ${chunks.length} | Vectores: ${vectors.length}`;
+
+      // proyectos en rojo
+      if(/rojo/.test(t)){
+        const reds = projects.filter(p=>p.status==='red').map(p=>p.name);
+        if(!reds.length) return '• No hay proyectos en rojo.<br/>• Sugerencia: revisa desviaciones presupuestales.<br/>• Próximos pasos: monitorear semanalmente.';
+        return `• Proyectos en rojo (${reds.length}): <strong>${reds.join(', ')}</strong><br/>• Revisa hitos y presupuesto.<br/>• Prioriza bloqueos y recursos.`;
+      }
+
+      // próximo hito (global o por proyecto)
+      if(/proximo hito|pr[oó]ximo hito/.test(t)){
+        const list = (pid? [projects.find(p=>p.id===pid)] : projects).map(p=>({ p, m: nextMilestone(p) })).filter(x=>x.m);
+        if(!list.length) return '• No hay próximos hitos en la base de datos.';
+        list.sort((a,b)=>byDateAsc(a.m.dueDate, b.m.dueDate));
+        const top = list[0];
+        const d = new Date(top.m.dueDate).toLocaleDateString('es-ES', { month:'short', day:'2-digit' });
+        return `• Próximo hito${pid?'':' del portafolio'}: <strong>${top.m.name}</strong> (${top.p.name})<br/>• Fecha objetivo: ${d}<br/>• Seguimiento: ${fmtPct(projectProgress(top.p))}`;
+      }
+
+      // ¿Cómo va Proyecto X?
+      if(/como va|c[oó]mo va|estado/.test(t) || pid){
+        const target = pid ? projects.find(p=>p.id===pid) : null;
+        if(!target) return '• Indica el nombre exacto del proyecto (ej.: "¿Cómo va Proyecto Aurora?")';
+        const prog = projectProgress(target);
+        const dev = budgetDevPct(target);
+        const vel = velocity4Weeks(target);
+        const nm = nextMilestone(target);
+        const nmTxt = nm? `${nm.name} (${new Date(nm.dueDate).toLocaleDateString('es-ES',{month:'short',day:'2-digit'})})` : '—';
+        return `• ${target.name}: ${fmtPct(prog)} · ${target.status.toUpperCase()}<br/>• Desv. presupuestal: ${fmtPct(dev)} · Velocidad 4s: ${vel.toFixed(1)}<br/>• Próximo hito: ${nmTxt}`;
+      }
+
+      // fallback
+      return '• Puedo responder: "¿Cómo va Proyecto X?", "promedio de avance", "proyectos en rojo", "próximo hito".<br/>• Usa el nombre exacto del proyecto.<br/>• También puedo mostrar métricas por proyecto.';
     }
 
-    function cosine(a,b){ let s=0,na=0,nb=0; for(let i=0;i<a.length;i++){ s+=a[i]*b[i]; na+=a[i]*a[i]; nb+=b[i]*b[i]; } return s/(Math.sqrt(na)*Math.sqrt(nb)+1e-9); }
-
-    async function retrieve(query){
-      if(!vectorStore.vectors.length) return [];
-      const er=await fetch('https://api.openai.com/v1/embeddings',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`,...(api.org?{'OpenAI-Organization':api.org}:{})},body:JSON.stringify({model:cost.embed,input:query})});
-      if(!er.ok){ const e=await er.text(); throw new Error('Error embedding query: '+e); }
-      const ed=await er.json(); const qv=new Float32Array(ed.data[0].embedding);
-      const scored=vectorStore.vectors.map(it=>({score:cosine(qv,it.v),meta:it.meta})).sort((a,b)=>b.score-a.score);
-      return scored.slice(0,6).map(s=>s.meta);
-    }
-
-    async function chat(query){
-      if(!api.key) throw new Error('Falta API Key');
-      const context=await retrieve(query);
-      const seen=new Set();
-      const compact=(context||[]).filter(c=>{const k=c.title||c.id;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,4).map(c=>({...c,text:(c.text||'').replace(/\s+/g,' ').slice(0,600)}));
-      const ctxText=compact.map(c=>`[${c.id||''}] ${c.title}:\n${c.text}`).join('\n---\n');
-      const sys='Eres el asistente de Cotrafa Social. Responde en español, ejecutivo y muy conciso (máx. 120 palabras). Usa sólo el Contexto. Si falta info, di: "No hay datos suficientes en la base de conocimiento".';
-      const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`,...(api.org?{'OpenAI-Organization':api.org}:{})},body:JSON.stringify({model:cost.model,messages:[{role:'system',content:sys},{role:'user',content:`Pregunta: ${query}\n\nContexto (fragmentos relevantes):\n${ctxText}\n\nResponde en 3 viñetas y 1 línea de próximos pasos.`}],temperature:0.1,max_tokens:250,top_p:1})});
+    async function answerLLM(q){
+      const key = (window.OPENAI_KEY||'').trim();
+      if(!key) throw new Error('Falta OPENAI_KEY');
+      const model = 'gpt-4o-mini';
+      // Compact context from dataset
+      const context = {
+        updatedAt,
+        portfolio: { avgProgress: portfolioAvg, statusCounts },
+        projects: projects.map(p=>({
+          id:p.id, name:p.name, status:p.status,
+          progress: projectProgress(p),
+          budgetDeviation: budgetDevPct(p),
+          velocity4w: velocity4Weeks(p),
+          nextMilestone: nextMilestone(p)
+        }))
+      };
+      const sys = 'Eres un analista de PMO. Responde en español, muy conciso (máx. 90 palabras), en 3 viñetas y una línea de próximos pasos. Usa solo el contexto proporcionado.';
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+key },
+        body: JSON.stringify({ model, temperature:0.1, max_tokens:220, messages:[
+          { role:'system', content: sys },
+          { role:'user', content: `Pregunta: ${q}\n\nContexto:\n${JSON.stringify(context)}` }
+        ]})
+      });
       if(!res.ok){ throw new Error(await res.text()); }
-      const data=await res.json();
-      return { answer:data.choices?.[0]?.message?.content || '(sin respuesta)', context:compact };
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || '(sin respuesta)';
     }
 
-    // Botones
-    document.getElementById('embedBtn')?.addEventListener('click', async ()=>{
+    chatForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const q = chatInput.value.trim(); if(!q) return;
+      addMsg('user', q);
+      chatInput.value='';
       try{
-        const file=document.getElementById('fileInput').files[0];
-        let texts=[];
-        if(file){ const txt=await file.text(); try{ texts=JSON.parse(txt);}catch{ texts=txt.split('\n').filter(Boolean);} }
-        const extra=document.getElementById('rawDocs').value.trim();
-        if(extra){ try{ texts=texts.concat(JSON.parse(extra)); }catch{ texts=texts.concat(extra.split('\n').filter(Boolean)); } }
-        if(!texts.length){ addMsg('bot','<em>No hay datos para indexar.</em>'); return; }
-        addMsg('bot','Creando embeddings…');
-        await embedTexts(texts);
-        addMsg('bot','<strong>Listo:</strong> base de conocimiento cargada.');
-      }catch(e){ addMsg('bot',`<span style="color:#b91c1c">${e.message}</span>`); }
+        if(useLLM.checked && hasLLM){
+          const out = await answerLLM(q);
+          addMsg('bot', out);
+        } else {
+          const out = answerLocal(q);
+          addMsg('bot', out);
+        }
+      }catch(err){ addMsg('bot', `<span class="text-red-700">${(err&&err.message)||'Error'}</span>`); }
     });
 
-    document.getElementById('sendQ')?.addEventListener('click', async ()=>{
-      const q=document.getElementById('chatQ').value.trim(); if(!q) return;
-      addMsg('user', q); document.getElementById('chatQ').value='';
-      try{
-        const {answer, context}=await chat(q);
-        const ctxHtml=context.map(c=>`<details><summary>${c.title}</summary><pre style="white-space:pre-wrap">${c.text}</pre></details>`).join('');
-        addMsg('bot', `${answer}\n\n<small style="opacity:.8">Modo ahorro: modelo ${cost.model}, contexto compacto (≤4 fragmentos, ≤600 caracteres c/u), máx. 250 tokens.</small>${ctxHtml?`<div style="margin-top:8px">${ctxHtml}</div>`:''}`);
-      }catch(e){ addMsg('bot',`<span style="color:#b91c1c">${e.message}</span>`); }
-    });
-  }
+  })();
   </script>
 </body>
 </html>
