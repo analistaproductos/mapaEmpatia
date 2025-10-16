@@ -424,23 +424,35 @@
     let ds;
     const savedData = localStorage.getItem('projectData');
     
+    console.log('Buscando datos en localStorage...', savedData);
+    
     if (savedData) {
       try {
         ds = JSON.parse(savedData);
-        console.log('Datos cargados desde localStorage:', ds);
+        console.log('✅ Datos cargados desde localStorage:', ds);
       } catch (error) {
-        console.error('Error cargando datos guardados:', error);
+        console.error('❌ Error cargando datos guardados:', error);
         // Si hay error, cargar datos mock
         const raw = document.getElementById('data').textContent.trim();
         ds = JSON.parse(raw);
+        console.log('📊 Usando datos mock por error en localStorage');
       }
     } else {
       // Cargar datos mock por defecto
       const raw = document.getElementById('data').textContent.trim();
       ds = JSON.parse(raw);
+      console.log('📊 Usando datos mock (no hay datos en localStorage)');
     }
 
     const projects = ds.projects || [];
+    console.log('Proyectos cargados:', projects.length, projects);
+
+    // Si no hay proyectos, mostrar mensaje
+    if (projects.length === 0) {
+      console.warn('⚠️ No hay proyectos cargados');
+      document.getElementById('projectTableBody').innerHTML = 
+        '<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No hay datos de proyectos. <a href="documentos.html" class="text-navy underline">Carga datos aquí</a></td></tr>';
+    }
 
     // Utils
     const fmtPct = (n) => `${(n).toFixed(1)}%`;
@@ -451,7 +463,11 @@
     const nowIso = new Date().toISOString();
 
     // Derived metrics
-    function projectProgress(p){ return pct(p.deliveredDeliverables, p.plannedDeliverables); }
+    function projectProgress(p){ 
+      const progress = pct(p.deliveredDeliverables, p.plannedDeliverables);
+      console.log(`Progreso ${p.name}:`, p.deliveredDeliverables, '/', p.plannedDeliverables, '=', progress);
+      return progress;
+    }
     function milestoneRate(p){ const t=p.milestones?.length||0; const c=(p.milestones||[]).filter(m=>m.status==='completed').length; return pct(c, t); }
     function budgetDevPct(p){ return pct(p.actualSpent - p.plannedBudget, p.plannedBudget); }
     function velocity4Weeks(p){ const recent = (p.weeklyDeliveries||[]).slice(-4); if(!recent.length) return 0; return sum(recent, x=>x.points)/recent.length; }
@@ -460,6 +476,13 @@
     const totalPlanned = sum(projects, p=>p.plannedDeliverables);
     const totalDelivered = sum(projects, p=>p.deliveredDeliverables);
     const portfolioAvg = pct(totalDelivered, totalPlanned);
+
+    console.log('Métricas calculadas:', {
+      totalPlanned,
+      totalDelivered,
+      portfolioAvg,
+      projectsCount: projects.length
+    });
 
     const statusCounts = {
       green: projects.filter(p=>p.status==='green').length,
@@ -481,6 +504,7 @@
     const tabProyecto = document.getElementById('tab-proyecto');
     const viewGeneral = document.getElementById('view-general');
     const viewProyecto = document.getElementById('view-proyecto');
+    
     function showView(which){
       const isGeneral = which==='general';
       tabGeneral.setAttribute('aria-selected', isGeneral?'true':'false');
@@ -495,49 +519,120 @@
         }
       }
     }
+    
     tabGeneral.addEventListener('click', ()=>showView('general'));
     tabProyecto.addEventListener('click', ()=>showView('proyecto'));
 
-    // Portfolio KPI cards
-    document.getElementById('avgProgressLabel').textContent = fmtPct(portfolioAvg);
-    document.getElementById('avgProgressBar').style.width = clamp01(portfolioAvg)+'%';
-    document.getElementById('count-green').textContent = `${statusCounts.green} verde` + (statusCounts.green===1?'':'s');
-    document.getElementById('count-yellow').textContent = `${statusCounts.yellow} amarillo` + (statusCounts.yellow===1?'':'s');
-    document.getElementById('count-red').textContent = `${statusCounts.red} rojo` + (statusCounts.red===1?'':'s');
+    // Portfolio KPI cards - SOLO si hay proyectos
+    if (projects.length > 0) {
+      document.getElementById('avgProgressLabel').textContent = fmtPct(portfolioAvg);
+      document.getElementById('avgProgressBar').style.width = clamp01(portfolioAvg)+'%';
+      document.getElementById('count-green').textContent = `${statusCounts.green} verde` + (statusCounts.green===1?'':'s');
+      document.getElementById('count-yellow').textContent = `${statusCounts.yellow} amarillo` + (statusCounts.yellow===1?'':'s');
+      document.getElementById('count-red').textContent = `${statusCounts.red} rojo` + (statusCounts.red===1?'':'s');
 
-    const portfolioVelocityVal = (function(){
-      // Sum last 4 weeks across projects by week label
-      const allWeeks = new Map();
-      projects.forEach(p=>{
-        (p.weeklyDeliveries||[]).slice(-4).forEach(w=>{
-          allWeeks.set(w.week, (allWeeks.get(w.week)||0) + (w.points||0));
+      const portfolioVelocityVal = (function(){
+        // Sum last 4 weeks across projects by week label
+        const allWeeks = new Map();
+        projects.forEach(p=>{
+          (p.weeklyDeliveries||[]).slice(-4).forEach(w=>{
+            allWeeks.set(w.week, (allWeeks.get(w.week)||0) + (w.points||0));
+          });
         });
-      });
-      const weeks = Array.from(allWeeks.keys()).sort(byDateAsc);
-      const values = weeks.map(w=>allWeeks.get(w));
-      const avg = values.length ? sum(values)/values.length : 0;
-      // Render chart
-      const ctx = document.getElementById('velocityChart');
-      if(ctx){ new Chart(ctx, { type:'bar', data:{ labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), datasets:[{ label:'Puntos', data: values, backgroundColor:'#0ea5e980' }] }, options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{ label:(ctx)=>`Puntos: ${ctx.parsed.y}` }}}}}); }
-      return avg;
-    })();
-    document.getElementById('portfolioVelocity').textContent = portfolioVelocityVal.toFixed(1);
+        const weeks = Array.from(allWeeks.keys()).sort(byDateAsc);
+        const values = weeks.map(w=>allWeeks.get(w));
+        const avg = values.length ? sum(values)/values.length : 0;
+        // Render chart
+        const ctx = document.getElementById('velocityChart');
+        if(ctx && values.length > 0){ 
+          new Chart(ctx, { 
+            type:'bar', 
+            data:{ 
+              labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), 
+              datasets:[{ 
+                label:'Puntos', 
+                data: values, 
+                backgroundColor:'#0ea5e980' 
+              }] 
+            }, 
+            options:{ 
+              responsive:true, 
+              plugins:{ 
+                legend:{display:false}, 
+                tooltip:{callbacks:{ label:(ctx)=>`Puntos: ${ctx.parsed.y}` }}
+              }
+            }
+          }); 
+        }
+        return avg;
+      })();
+      document.getElementById('portfolioVelocity').textContent = portfolioVelocityVal.toFixed(1);
 
-    // Status chart
-    (function(){
-      const ctx = document.getElementById('statusChart');
-      if(!ctx) return;
-      new Chart(ctx, { type:'doughnut', data:{ labels:['Verde','Amarillo','Rojo'], datasets:[{ data:[statusCounts.green,statusCounts.yellow,statusCounts.red], backgroundColor:['#22c55e','#f59e0b','#ef4444'] }] }, options:{ plugins:{ legend:{ position:'bottom' }}} });
-    })();
+      // Status chart
+      (function(){
+        const ctx = document.getElementById('statusChart');
+        if(!ctx) return;
+        new Chart(ctx, { 
+          type:'doughnut', 
+          data:{ 
+            labels:['Verde','Amarillo','Rojo'],
+            datasets:[{ 
+              data:[statusCounts.green,statusCounts.yellow,statusCounts.red], 
+              backgroundColor:['#22c55e','#f59e0b','#ef4444'] 
+            }] 
+          }, 
+          options:{ 
+            plugins:{ 
+              legend:{ position:'bottom' }
+            }
+          } 
+        });
+      })();
 
-    // Budget deviation chart
-    (function(){
-      const ctx = document.getElementById('budgetChart');
-      if(!ctx) return;
-      const labels = projects.map(p=>p.name);
-      const data = projects.map(p=>budgetDevPct(p));
-      new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Desv. %', data, backgroundColor: data.map(v=> v>0?'#ef4444aa':'#22c55eaa') }] }, options:{ plugins:{ tooltip:{ callbacks:{ label:(c)=>fmtPct(c.parsed.y) }}, legend:{display:false} }, scales:{ y:{ ticks:{ callback:(v)=>v+'%' }}}});
-    })();
+      // Budget deviation chart
+      (function(){
+        const ctx = document.getElementById('budgetChart');
+        if(!ctx) return;
+        const labels = projects.map(p=>p.name);
+        const data = projects.map(p=>budgetDevPct(p));
+        new Chart(ctx, { 
+          type:'bar', 
+          data:{ 
+            labels, 
+            datasets:[{ 
+              label:'Desv. %', 
+              data, 
+              backgroundColor: data.map(v=> v>0?'#ef4444aa':'#22c55eaa') 
+            }] 
+          }, 
+          options:{ 
+            plugins:{ 
+              tooltip:{ 
+                callbacks:{ 
+                  label:(c)=>fmtPct(c.parsed.y) 
+                }
+              }, 
+              legend:{display:false} 
+            }, 
+            scales:{ 
+              y:{ 
+                ticks:{ 
+                  callback:(v)=>v+'%' 
+                }
+              }
+            }
+          }
+        });
+      })();
+    } else {
+      // Mostrar mensajes cuando no hay datos
+      document.getElementById('avgProgressLabel').textContent = '0%';
+      document.getElementById('avgProgressBar').style.width = '0%';
+      document.getElementById('count-green').textContent = '0 verdes';
+      document.getElementById('count-yellow').textContent = '0 amarillos';
+      document.getElementById('count-red').textContent = '0 rojos';
+      document.getElementById('portfolioVelocity').textContent = '0.0';
+    }
 
     // Table
     const tbody = document.getElementById('projectTableBody');
@@ -561,47 +656,89 @@
     function renderTable(){
       const term = (searchInput.value||'').toLowerCase();
       const st = statusFilter.value;
-      const rows = projects.filter(p=>{
-        const okTerm = !term || p.name.toLowerCase().includes(term);
-        const okSt = !st || p.status===st;
-        return okTerm && okSt;
-      }).map(p=>{
-        const prog = projectProgress(p);
-        const rate = milestoneRate(p);
-        const dev = budgetDevPct(p);
-        const vel = velocity4Weeks(p);
-        return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
-          <td class="px-3 py-2 font-semibold">${p.name}</td>
-          <td class="px-3 py-2">${fmtPct(prog)}</td>
-          <td class="px-3 py-2">${statusPill(p.status)}</td>
-          <td class="px-3 py-2">${fmtPct(rate)}</td>
-          <td class="px-3 py-2">${fmtPct(dev)}</td>
-          <td class="px-3 py-2">${vel.toFixed(1)}</td>
-          <td class="px-3 py-2">${formatNextMilestone(p)}</td>
-        </tr>`;
-      }).join('');
-      tbody.innerHTML = rows || `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">Sin resultados</td></tr>`;
+      
+      let rows;
+      
+      if (projects.length === 0) {
+        rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">
+          No hay datos de proyectos. <a href="documentos.html" class="text-navy underline font-semibold">Carga datos aquí</a>
+        </td></tr>`;
+      } else {
+        const filteredProjects = projects.filter(p=>{
+          const okTerm = !term || p.name.toLowerCase().includes(term);
+          const okSt = !st || p.status===st;
+          return okTerm && okSt;
+        });
+        
+        if (filteredProjects.length === 0) {
+          rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No se encontraron proyectos con los filtros aplicados</td></tr>`;
+        } else {
+          rows = filteredProjects.map(p=>{
+            const prog = projectProgress(p);
+            const rate = milestoneRate(p);
+            const dev = budgetDevPct(p);
+            const vel = velocity4Weeks(p);
+            return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
+              <td class="px-3 py-2 font-semibold">${p.name}</td>
+              <td class="px-3 py-2">${fmtPct(prog)}</td>
+              <td class="px-3 py-2">${statusPill(p.status)}</td>
+              <td class="px-3 py-2">${fmtPct(rate)}</td>
+              <td class="px-3 py-2">${fmtPct(dev)}</td>
+              <td class="px-3 py-2">${vel.toFixed(1)}</td>
+              <td class="px-3 py-2">${formatNextMilestone(p)}</td>
+            </tr>`;
+          }).join('');
+        }
+      }
+      
+      tbody.innerHTML = rows;
     }
 
     searchInput.addEventListener('input', renderTable);
     statusFilter.addEventListener('change', renderTable);
+    
+    // Render tabla inicial
     renderTable();
 
     // Project view
     const projectSelect = document.getElementById('projectSelect');
-    projects.forEach(p=>{
+    
+    // Limpiar y poblar select de proyectos
+    projectSelect.innerHTML = '';
+    if (projects.length > 0) {
+      projects.forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = p.id; 
+        opt.textContent = p.name; 
+        projectSelect.appendChild(opt);
+      });
+    } else {
       const opt = document.createElement('option');
-      opt.value = p.id; opt.textContent = p.name; projectSelect.appendChild(opt);
-    });
+      opt.value = ''; 
+      opt.textContent = 'No hay proyectos'; 
+      opt.disabled = true;
+      projectSelect.appendChild(opt);
+    }
+    
     const projectMeta = document.getElementById('projectMeta');
 
     let projProgressChart, projBudgetChart, projVelocityChart;
 
-    function destroyChart(ch){ try{ ch && ch.destroy(); }catch{} }
+    function destroyChart(ch){ 
+      try{ 
+        ch && ch.destroy(); 
+      } catch(e) {
+        console.log('Error destruyendo chart:', e);
+      }
+    }
 
     function renderProject(id){
       const p = projects.find(x=>x.id===id);
-      if(!p) return;
+      if(!p) {
+        console.log('Proyecto no encontrado:', id);
+        return;
+      }
+      
       projectMeta.textContent = `${p.id} · Presupuesto plan: $${p.plannedBudget.toLocaleString('es-CO')} · Gastado: $${p.actualSpent.toLocaleString('es-CO')}`;
 
       // KPIs
@@ -621,18 +758,73 @@
       destroyChart(projBudgetChart);
       destroyChart(projVelocityChart);
 
+      // Progress Chart
       projProgressChart = new Chart(ctxProg, {
-        type:'doughnut', data:{ labels:['Entregado','Restante'], datasets:[{ data:[p.deliveredDeliverables, Math.max(0,p.plannedDeliverables - p.deliveredDeliverables)], backgroundColor:['#22c55e','#e2e8f0'] }] }, options:{ plugins:{ legend:{ position:'bottom' } } }
+        type:'doughnut', 
+        data:{ 
+          labels:['Entregado','Restante'], 
+          datasets:[{ 
+            data:[p.deliveredDeliverables, Math.max(0,p.plannedDeliverables - p.deliveredDeliverables)], 
+            backgroundColor:['#22c55e','#e2e8f0'] 
+          }] 
+        }, 
+        options:{ 
+          plugins:{ 
+            legend:{ position:'bottom' } 
+          } 
+        }
       });
 
+      // Budget Chart
       projBudgetChart = new Chart(ctxBud, {
-        type:'bar', data:{ labels:['Planificado','Gastado'], datasets:[{ data:[p.plannedBudget, p.actualSpent], backgroundColor:['#0ea5e980','#ef4444aa'] }] }, options:{ plugins:{ legend:{display:false}, tooltip:{callbacks:{ label:(c)=>'$'+c.raw.toLocaleString('es-CO') }}}, scales:{ y:{ ticks:{ callback:(v)=>'$'+Number(v).toLocaleString('es-CO') }}} }
+        type:'bar', 
+        data:{ 
+          labels:['Planificado','Gastado'], 
+          datasets:[{ 
+            data:[p.plannedBudget, p.actualSpent], 
+            backgroundColor:['#0ea5e980','#ef4444aa'] 
+          }] 
+        }, 
+        options:{ 
+          plugins:{ 
+            legend:{display:false}, 
+            tooltip:{
+              callbacks:{ 
+                label:(c)=>'$'+c.raw.toLocaleString('es-CO') 
+              }
+            }
+          }, 
+          scales:{ 
+            y:{ 
+              ticks:{ 
+                callback:(v)=>'$'+Number(v).toLocaleString('es-CO') 
+              }
+            }
+          } 
+        }
       });
 
+      // Velocity Chart
       const weeks = (p.weeklyDeliveries||[]).map(w=>w.week);
       const values = (p.weeklyDeliveries||[]).map(w=>w.points);
       projVelocityChart = new Chart(ctxVel, {
-        type:'line', data:{ labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), datasets:[{ label:'Puntos', data: values, borderColor:'#0ea5e9', backgroundColor:'#0ea5e955', fill:true, tension:.3 }] }, options:{ plugins:{ legend:{display:false} } }
+        type:'line', 
+        data:{ 
+          labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), 
+          datasets:[{ 
+            label:'Puntos', 
+            data: values, 
+            borderColor:'#0ea5e9', 
+            backgroundColor:'#0ea5e955', 
+            fill:true, 
+            tension:.3 
+          }] 
+        }, 
+        options:{ 
+          plugins:{ 
+            legend:{display:false} 
+          } 
+        }
       });
 
       // Milestones
@@ -640,7 +832,11 @@
       const items = (p.milestones||[]).slice().sort((a,b)=>byDateAsc(a.dueDate,b.dueDate)).map(m=>{
         const due = new Date(m.dueDate);
         const dueStr = due.toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'short'});
-        const st = m.status==='completed' ? '<span class="status-pill status-green">Completado</span>' : (due < new Date() ? '<span class="status-pill status-red">Vencido</span>' : '<span class="status-pill status-yellow">Pendiente</span>');
+        const st = m.status==='completed' ? 
+          '<span class="status-pill status-green">Completado</span>' : 
+          (due < new Date() ? 
+            '<span class="status-pill status-red">Vencido</span>' : 
+            '<span class="status-pill status-yellow">Pendiente</span>');
         return `<li class="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200">`+
           `<span class="font-medium">${m.name}</span>`+
           `<span class="text-slate-600 text-sm">${dueStr}</span>`+
@@ -650,12 +846,16 @@
       ul.innerHTML = items || '<li class="text-slate-500">Sin hitos definidos</li>';
     }
 
-    projectSelect.addEventListener('change', (e)=> renderProject(e.target.value));
+    projectSelect.addEventListener('change', (e)=> {
+      if (e.target.value && projects.length > 0) {
+        renderProject(e.target.value);
+      }
+    });
 
     // Initialize default view
     showView('general');
 
-    // Chatbot overlay (client-only)
+    // Chatbot overlay - CÓDIGO COMPLETAMENTE CORREGIDO
     const chatFab = document.getElementById('chatFab');
     const chatPanel = document.getElementById('chatPanel');
     const chatClose = document.getElementById('chatClose');
@@ -665,7 +865,7 @@
     const useLLM = document.getElementById('useLLM');
     const chatModeHelp = document.getElementById('chatModeHelp');
 
-    // Estado inicial
+    // Estado inicial del chat
     let isChatOpen = false;
     let chatInitialized = false;
 
@@ -681,7 +881,7 @@
       chatModeHelp.textContent = 'Modo local (rule-based). Define window.OPENAI_KEY para habilitar LLM.'; 
     }
 
-    // Funciones del chat
+    // Funciones del chat - CORREGIDAS
     function addMessage(role, text) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `chat-message ${role}`;
@@ -698,9 +898,11 @@
     }
 
     function openChat() {
+      console.log('Abriendo chat...');
       chatPanel.style.display = 'flex';
       chatPanel.classList.add('open');
       isChatOpen = true;
+      chatFab.setAttribute('aria-expanded', 'true');
       
       if (!chatInitialized) {
         addMessage('bot', '¡Hola! Soy tu asistente de KPIs. Puedo ayudarte con información sobre:<br>• Estado de proyectos<br>• Avances y progresos<br>• Próximos hitos<br>• Métricas del portafolio<br><br>¿En qué puedo ayudarte?');
@@ -711,12 +913,15 @@
     }
 
     function closeChat() {
+      console.log('Cerrando chat...');
       chatPanel.style.display = 'none';
       chatPanel.classList.remove('open');
       isChatOpen = false;
+      chatFab.setAttribute('aria-expanded', 'false');
     }
 
     function toggleChat() {
+      console.log('Toggle chat, estado actual:', isChatOpen);
       if (isChatOpen) {
         closeChat();
       } else {
@@ -724,16 +929,18 @@
       }
     }
 
-    // Event listeners CORREGIDOS
+    // Event listeners CORREGIDOS - usando addEventListener
     chatFab.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      console.log('Clic en chatFab');
       toggleChat();
     });
 
     chatClose.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      console.log('Clic en chatClose');
       closeChat();
     });
 
@@ -777,7 +984,7 @@
 
       // promedio de avance (portafolio)
       if((/promedio/.test(t) || /media/.test(t)) && /avance|progreso/.test(t)){
-        return `• Promedio ponderado de avance: <strong>${fmtPct(portfolioAvg)}</strong><br/>• Proyectos: ${projects.length} (V:${statusCounts.green} · A:${statusCounts.yellow} · R:${statusCounts.red})<br/>• Velocidad 4s: ${portfolioVelocityVal.toFixed(1)} pts/sem`;
+        return `• Promedio ponderado de avance: <strong>${fmtPct(portfolioAvg)}</strong><br/>• Proyectos: ${projects.length} (V:${statusCounts.green} · A:${statusCounts.yellow} · R:${statusCounts.red})<br/>• Velocidad 4s: ${portfolioVelocityVal ? portfolioVelocityVal.toFixed(1) : '0.0'} pts/sem`;
       }
 
       // proyectos en rojo
@@ -869,6 +1076,15 @@
 
     // Asegurar que el chat esté cerrado al inicio
     closeChat();
+
+    // Si hay proyectos, renderizar el primero en la vista de proyecto
+    if (projects.length > 0) {
+      renderProject(projects[0].id);
+    }
+
+    console.log('✅ Dashboard inicializado correctamente');
+    console.log('📊 Proyectos cargados:', projects.length);
+    console.log('💬 Chat configurado:', { isChatOpen, chatInitialized });
 
   })();
   </script>
