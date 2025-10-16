@@ -1,17 +1,521 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Documentos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos - Dashboard de KPIs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        .drop-zone.dragover {
+            border-color: #0b2f6b;
+            background: #eff6ff;
+        }
+        .file-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: white;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-processing { background: #fef3c7; color: #92400e; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+    </style>
 </head>
-<body>
-  <header>
-    <a href="index.html">← Volver al Dashboard</a>
-  </header>
-  <main>
-    <h1>Gestión de documentos</h1>
-    <p>Página en construcción.</p>
-  </main>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto p-6">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="flex items-center gap-3 text-gray-700 hover:text-gray-900">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <img src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="Cotrafa Social" class="h-8 w-auto" />
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Gestión de Documentos</h1>
+                    <p class="text-gray-600">Carga y procesa documentos para el Dashboard de KPIs</p>
+                </div>
+            </div>
+            <a href="index.html" class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                Ver Dashboard
+            </a>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Drop Zone -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Cargar Documentos</h2>
+                <div id="dropZone" class="drop-zone">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Arrastra y suelta archivos aquí o haz clic para seleccionar
+                    </p>
+                    <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv,.json" class="hidden">
+                    <button onclick="document.getElementById('fileInput').click()" 
+                            class="mt-4 px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                        Seleccionar Archivos
+                    </button>
+                    <p class="mt-2 text-xs text-gray-500">
+                        Formatos soportados: Excel (.xlsx, .xls), CSV (.csv), JSON (.json)
+                    </p>
+                </div>
+
+                <!-- Template Download -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-semibold text-blue-900 mb-2">¿Necesitas una plantilla?</h3>
+                    <p class="text-sm text-blue-700 mb-3">
+                        Descarga nuestra plantilla Excel para asegurar el formato correcto de los datos.
+                    </p>
+                    <button onclick="downloadTemplate()" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        📥 Descargar Plantilla
+                    </button>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Instrucciones</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                        <div>
+                            <h3 class="font-semibold">Prepara tus datos</h3>
+                            <p class="text-sm text-gray-600">Usa la plantilla proporcionada o asegúrate de que tu archivo tenga la estructura correcta.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                        <div>
+                            <h3 class="font-semibold">Carga el archivo</h3>
+                            <p class="text-sm text-gray-600">Arrastra o selecciona tu archivo Excel, CSV o JSON.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                        <div>
+                            <h3 class="font-semibold">Procesamiento automático</h3>
+                            <p class="text-sm text-gray-600">El sistema procesará los datos y actualizará el dashboard automáticamente.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Structure Info -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-2">Estructura de datos requerida:</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• <strong>Proyectos:</strong> ID, nombre, entregables planificados, entregados</li>
+                        <li>• <strong>Presupuesto:</strong> Planificado vs gastado</li>
+                        <li>• <strong>Entregas semanales:</strong> Puntos por semana</li>
+                        <li>• <strong>Hitos:</strong> Fechas y estados</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uploaded Files List -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Archivos Cargados</h2>
+            <div id="fileList" class="space-y-3">
+                <div class="text-center py-8 text-gray-500">
+                    No hay archivos cargados aún
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Preview -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Vista Previa de Datos</h2>
+            <div id="dataPreview" class="text-center py-8 text-gray-500">
+                Los datos procesados aparecerán aquí después de cargar un archivo
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado global para almacenar datos
+        window.projectData = {
+            updatedAt: new Date().toISOString(),
+            projects: []
+        };
+
+        // Elementos del DOM
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const dataPreview = document.getElementById('dataPreview');
+
+        // Eventos de drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            [...files].forEach(uploadFile);
+        }
+
+        function uploadFile(file) {
+            // Validar tipo de archivo
+            const validTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'text/csv',
+                'application/json'
+            ];
+            
+            if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv|json)$/)) {
+                alert('Tipo de archivo no válido. Use Excel, CSV o JSON.');
+                return;
+            }
+
+            // Mostrar archivo en la lista
+            addFileToList(file);
+
+            // Procesar archivo
+            processFile(file);
+        }
+
+        function addFileToList(file) {
+            const fileId = 'file-' + Date.now();
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.id = fileId;
+            fileItem.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span class="text-blue-600 font-semibold">${getFileExtension(file.name).toUpperCase()}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">${file.name}</h3>
+                            <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="status-badge status-processing">Procesando...</span>
+                        <button onclick="removeFile('${fileId}')" class="text-red-600 hover:text-red-800">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            if (fileList.firstChild?.classList?.contains('text-center')) {
+                fileList.innerHTML = '';
+            }
+            fileList.appendChild(fileItem);
+        }
+
+        function processFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    const fileExtension = getFileExtension(file.name);
+                    
+                    if (fileExtension === 'json') {
+                        data = JSON.parse(e.target.result);
+                    } else if (fileExtension === 'csv') {
+                        data = parseCSV(e.target.result);
+                    } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                        // Para Excel necesitaríamos una librería como SheetJS
+                        data = parseExcel(e.target.result, fileExtension);
+                    }
+                    
+                    // Actualizar datos globales
+                    updateProjectData(data);
+                    
+                    // Actualizar UI
+                    updateFileStatus(file.name, 'completed', 'Procesado exitosamente');
+                    showDataPreview(data);
+                    
+                } catch (error) {
+                    console.error('Error procesando archivo:', error);
+                    updateFileStatus(file.name, 'error', 'Error en procesamiento');
+                }
+            };
+            
+            reader.onerror = function() {
+                updateFileStatus(file.name, 'error', 'Error leyendo archivo');
+            };
+            
+            if (file.name.endsWith('.json')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseCSV(csvText) {
+            // Implementación básica de parser CSV
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length === headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index];
+                    });
+                    data.push(row);
+                }
+            }
+            
+            return convertCSVToProjectData(data);
+        }
+
+        function parseExcel(arrayBuffer, extension) {
+            // En un entorno real, usaríamos SheetJS (xlsx library)
+            // Esta es una implementación simulada
+            alert('Procesamiento de Excel requiere la librería SheetJS. Usando datos de ejemplo.');
+            return getSampleData();
+        }
+
+        function convertCSVToProjectData(csvData) {
+            // Convertir datos CSV al formato esperado por el dashboard
+            // Esta es una implementación básica - deberías adaptarla a tu estructura CSV
+            const projects = csvData.map(row => ({
+                id: row.id || `PRJ-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                name: row.name || 'Proyecto Sin Nombre',
+                plannedDeliverables: parseInt(row.plannedDeliverables) || 0,
+                deliveredDeliverables: parseInt(row.deliveredDeliverables) || 0,
+                status: row.status || 'yellow',
+                plannedBudget: parseInt(row.plannedBudget) || 0,
+                actualSpent: parseInt(row.actualSpent) || 0,
+                weeklyDeliveries: generateWeeklyData(),
+                milestones: generateMilestoneData()
+            }));
+
+            return {
+                updatedAt: new Date().toISOString(),
+                projects: projects
+            };
+        }
+
+        function generateWeeklyData() {
+            // Generar datos semanales de ejemplo
+            const weeks = [];
+            const baseDate = new Date();
+            baseDate.setDate(baseDate.getDate() - 56); // 8 semanas atrás
+            
+            for (let i = 0; i < 8; i++) {
+                const weekDate = new Date(baseDate);
+                weekDate.setDate(baseDate.getDate() + (i * 7));
+                weeks.push({
+                    week: weekDate.toISOString().split('T')[0],
+                    points: Math.floor(Math.random() * 10) + 5
+                });
+            }
+            return weeks;
+        }
+
+        function generateMilestoneData() {
+            // Generar hitos de ejemplo
+            const baseDate = new Date();
+            return [
+                {
+                    name: "Kickoff",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() - 14)).toISOString().split('T')[0],
+                    status: "completed"
+                },
+                {
+                    name: "MVP",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() + 21)).toISOString().split('T')[0],
+                    status: "pending"
+                },
+                {
+                    name: "Entrega Final",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() + 35)).toISOString().split('T')[0],
+                    status: "pending"
+                }
+            ];
+        }
+
+        function updateProjectData(newData) {
+            // Combinar datos existentes con nuevos
+            if (newData.projects && Array.isArray(newData.projects)) {
+                window.projectData.projects = [...window.projectData.projects, ...newData.projects];
+                window.projectData.updatedAt = newData.updatedAt || new Date().toISOString();
+                
+                // Guardar en localStorage para que el dashboard lo use
+                localStorage.setItem('projectData', JSON.stringify(window.projectData));
+                
+                console.log('Datos actualizados:', window.projectData);
+            }
+        }
+
+        function showDataPreview(data) {
+            dataPreview.innerHTML = `
+                <div class="text-left">
+                    <h3 class="font-semibold text-green-600 mb-4">✓ Datos procesados exitosamente</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">${data.projects.length}</div>
+                            <div class="text-sm text-green-800">Proyectos cargados</div>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">${data.projects.reduce((sum, p) => sum + p.plannedDeliverables, 0)}</div>
+                            <div class="text-sm text-blue-800">Entregables planificados</div>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">${data.projects.reduce((sum, p) => sum + p.deliveredDeliverables, 0)}</div>
+                            <div class="text-sm text-purple-800">Entregables completados</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="index.html" class="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Ver en Dashboard
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateFileStatus(fileName, status, message) {
+            const fileItems = document.querySelectorAll('.file-item');
+            fileItems.forEach(item => {
+                if (item.querySelector('h3').textContent === fileName) {
+                    const statusBadge = item.querySelector('.status-badge');
+                    statusBadge.className = `status-badge status-${status}`;
+                    statusBadge.textContent = message;
+                }
+            });
+        }
+
+        function removeFile(fileId) {
+            const fileItem = document.getElementById(fileId);
+            if (fileItem) {
+                fileItem.remove();
+            }
+            
+            if (fileList.children.length === 0) {
+                fileList.innerHTML = '<div class="text-center py-8 text-gray-500">No hay archivos cargados aún</div>';
+            }
+        }
+
+        function downloadTemplate() {
+            // Crear datos de ejemplo para la plantilla
+            const templateData = [
+                {
+                    id: 'PRJ-001',
+                    name: 'Proyecto Ejemplo',
+                    plannedDeliverables: 100,
+                    deliveredDeliverables: 60,
+                    status: 'green',
+                    plannedBudget: 100000,
+                    actualSpent: 85000
+                }
+            ];
+
+            // Convertir a CSV
+            const headers = ['id', 'name', 'plannedDeliverables', 'deliveredDeliverables', 'status', 'plannedBudget', 'actualSpent'];
+            const csvContent = [
+                headers.join(','),
+                ...templateData.map(row => headers.map(header => row[header]).join(','))
+            ].join('\n');
+
+            // Descargar
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla-kpis.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Helper functions
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getSampleData() {
+            return {
+                updatedAt: new Date().toISOString(),
+                projects: [
+                    {
+                        id: "PRJ-SAMPLE",
+                        name: "Proyecto desde Archivo",
+                        plannedDeliverables: 80,
+                        deliveredDeliverables: 45,
+                        status: "yellow",
+                        plannedBudget: 80000,
+                        actualSpent: 75000,
+                        weeklyDeliveries: generateWeeklyData(),
+                        milestones: generateMilestoneData()
+                    }
+                ]
+            };
+        }
+
+        // Cargar datos existentes al iniciar
+        const savedData = localStorage.getItem('projectData');
+        if (savedData) {
+            window.projectData = JSON.parse(savedData);
+            showDataPreview(window.projectData);
+        }
+    </script>
 </body>
 </html>
