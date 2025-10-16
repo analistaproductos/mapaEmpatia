@@ -357,7 +357,7 @@
             });
         });
 
-        // Funciones para datos (se mantienen iguales del código anterior)
+        // Funciones para datos
         function setupDataUpload() {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dataDropZone.addEventListener(eventName, preventDefaults, false);
@@ -427,7 +427,7 @@
             [...files].forEach(uploadDocument);
         }
 
-        // Funciones para datos (se mantienen iguales)
+        // Funciones para datos
         function uploadDataFile(file) {
             const validTypes = [
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -478,6 +478,70 @@
             dataFileList.appendChild(fileItem);
         }
 
+        function processDataFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    const fileExtension = getFileExtension(file.name);
+                    
+                    if (fileExtension === 'json') {
+                        data = JSON.parse(e.target.result);
+                    } else if (fileExtension === 'csv') {
+                        data = parseCSV(e.target.result);
+                    } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                        // Para Excel necesitaríamos una librería como SheetJS
+                        data = parseExcel(e.target.result, fileExtension);
+                    }
+                    
+                    // Actualizar datos globales
+                    updateProjectData(data);
+                    
+                    // Actualizar UI - CORREGIDO: Ahora cambia el estado a "Completado"
+                    updateDataFileStatus(file.name, 'completed', 'Procesado exitosamente');
+                    showDataPreview(data);
+                    
+                } catch (error) {
+                    console.error('Error procesando archivo:', error);
+                    updateDataFileStatus(file.name, 'error', 'Error en procesamiento');
+                }
+            };
+            
+            reader.onerror = function() {
+                updateDataFileStatus(file.name, 'error', 'Error leyendo archivo');
+            };
+            
+            if (file.name.endsWith('.json')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function updateDataFileStatus(fileName, status, message) {
+            const fileItems = document.querySelectorAll('.file-item');
+            fileItems.forEach(item => {
+                if (item.querySelector('h3').textContent === fileName) {
+                    const statusBadge = item.querySelector('.status-badge');
+                    statusBadge.className = `status-badge status-${status}`;
+                    statusBadge.textContent = message;
+                }
+            });
+        }
+
+        function removeDataFile(fileId) {
+            const fileItem = document.getElementById(fileId);
+            if (fileItem) {
+                fileItem.remove();
+            }
+            
+            if (dataFileList.children.length === 0) {
+                dataFileList.innerHTML = '<div class="text-center py-8 text-gray-500">No hay archivos de datos cargados aún</div>';
+            }
+        }
+
+        // CORREGIDO: Función para subir documentos con botón de confirmación
         function uploadDocument(file) {
             const validTypes = [
                 'application/pdf',
@@ -505,7 +569,51 @@
                 return;
             }
 
-            addDocumentToList(file, selectedCategories);
+            // Mostrar diálogo de confirmación con botón de cargar
+            showUploadConfirmation(file, selectedCategories);
+        }
+
+        // NUEVA FUNCIÓN: Mostrar confirmación de carga con botón
+        function showUploadConfirmation(file, categories) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 class="text-lg font-semibold mb-4">Confirmar carga de documento</h3>
+                    <div class="mb-4">
+                        <p class="font-medium">Archivo: ${file.name}</p>
+                        <p class="text-sm text-gray-600">Tamaño: ${formatFileSize(file.size)}</p>
+                        <p class="text-sm text-gray-600">Categorías: ${categories.join(', ')}</p>
+                    </div>
+                    <div class="flex gap-3 justify-end">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button onclick="confirmDocumentUpload('${file.name}', ${JSON.stringify(categories).replace(/"/g, '&quot;')})" 
+                                class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                            Cargar Documento
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Guardar el archivo en el modal para usarlo después
+            modal.file = file;
+            document.body.appendChild(modal);
+        }
+
+        // NUEVA FUNCIÓN: Confirmar y procesar la carga del documento
+        function confirmDocumentUpload(fileName, categoriesJson) {
+            const modal = document.querySelector('.fixed');
+            const file = modal.file;
+            const categories = JSON.parse(categoriesJson.replace(/&quot;/g, '"'));
+            
+            // Cerrar modal
+            modal.remove();
+            
+            // Proceder con la carga
+            addDocumentToList(file, categories);
         }
 
         function addDocumentToList(file, categories) {
@@ -725,9 +833,174 @@
             `).join('');
         }
 
-        // Las funciones para procesamiento de datos se mantienen iguales...
-        // [Aquí irían todas las funciones restantes del código anterior para procesar datos]
-        // processDataFile, convertCSVToProjectData, updateProjectData, showDataPreview, etc.
+        // Funciones para procesamiento de datos (se mantienen del código anterior)
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length === headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index];
+                    });
+                    data.push(row);
+                }
+            }
+            
+            return convertCSVToProjectData(data);
+        }
+
+        function parseExcel(arrayBuffer, extension) {
+            alert('Procesamiento de Excel requiere la librería SheetJS. Usando datos de ejemplo.');
+            return getSampleData();
+        }
+
+        function convertCSVToProjectData(csvData) {
+            const projects = csvData.map(row => ({
+                id: row.id || `PRJ-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                name: row.name || 'Proyecto Sin Nombre',
+                plannedDeliverables: parseInt(row.plannedDeliverables) || 0,
+                deliveredDeliverables: parseInt(row.deliveredDeliverables) || 0,
+                status: row.status || 'yellow',
+                plannedBudget: parseInt(row.plannedBudget) || 0,
+                actualSpent: parseInt(row.actualSpent) || 0,
+                weeklyDeliveries: generateWeeklyData(),
+                milestones: generateMilestoneData()
+            }));
+
+            return {
+                updatedAt: new Date().toISOString(),
+                projects: projects
+            };
+        }
+
+        function generateWeeklyData() {
+            const weeks = [];
+            const baseDate = new Date();
+            baseDate.setDate(baseDate.getDate() - 56);
+            
+            for (let i = 0; i < 8; i++) {
+                const weekDate = new Date(baseDate);
+                weekDate.setDate(baseDate.getDate() + (i * 7));
+                weeks.push({
+                    week: weekDate.toISOString().split('T')[0],
+                    points: Math.floor(Math.random() * 10) + 5
+                });
+            }
+            return weeks;
+        }
+
+        function generateMilestoneData() {
+            const baseDate = new Date();
+            return [
+                {
+                    name: "Kickoff",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() - 14)).toISOString().split('T')[0],
+                    status: "completed"
+                },
+                {
+                    name: "MVP",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() + 21)).toISOString().split('T')[0],
+                    status: "pending"
+                },
+                {
+                    name: "Entrega Final",
+                    dueDate: new Date(baseDate.setDate(baseDate.getDate() + 35)).toISOString().split('T')[0],
+                    status: "pending"
+                }
+            ];
+        }
+
+        function updateProjectData(newData) {
+            if (newData.projects && Array.isArray(newData.projects)) {
+                window.projectData.projects = [...window.projectData.projects, ...newData.projects];
+                window.projectData.updatedAt = newData.updatedAt || new Date().toISOString();
+                
+                localStorage.setItem('projectData', JSON.stringify(window.projectData));
+                
+                console.log('Datos actualizados:', window.projectData);
+            }
+        }
+
+        function showDataPreview(data) {
+            dataPreview.innerHTML = `
+                <div class="text-left">
+                    <h3 class="font-semibold text-green-600 mb-4">✓ Datos procesados exitosamente</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">${data.projects.length}</div>
+                            <div class="text-sm text-green-800">Proyectos cargados</div>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">${data.projects.reduce((sum, p) => sum + p.plannedDeliverables, 0)}</div>
+                            <div class="text-sm text-blue-800">Entregables planificados</div>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">${data.projects.reduce((sum, p) => sum + p.deliveredDeliverables, 0)}</div>
+                            <div class="text-sm text-purple-800">Entregables completados</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="index.html" class="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Ver en Dashboard
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadTemplate() {
+            const templateData = [
+                {
+                    id: 'PRJ-001',
+                    name: 'Proyecto Ejemplo',
+                    plannedDeliverables: 100,
+                    deliveredDeliverables: 60,
+                    status: 'green',
+                    plannedBudget: 100000,
+                    actualSpent: 85000
+                }
+            ];
+
+            const headers = ['id', 'name', 'plannedDeliverables', 'deliveredDeliverables', 'status', 'plannedBudget', 'actualSpent'];
+            const csvContent = [
+                headers.join(','),
+                ...templateData.map(row => headers.map(header => row[header]).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla-kpis.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function getSampleData() {
+            return {
+                updatedAt: new Date().toISOString(),
+                projects: [
+                    {
+                        id: "PRJ-SAMPLE",
+                        name: "Proyecto desde Archivo",
+                        plannedDeliverables: 80,
+                        deliveredDeliverables: 45,
+                        status: "yellow",
+                        plannedBudget: 80000,
+                        actualSpent: 75000,
+                        weeklyDeliveries: generateWeeklyData(),
+                        milestones: generateMilestoneData()
+                    }
+                ]
+            };
+        }
 
         // Helper functions
         function getFileExtension(filename) {
@@ -749,6 +1022,13 @@
         // Cargar documentos existentes al iniciar
         if (window.projectDocuments.length > 0) {
             renderDocumentsList(window.projectDocuments);
+        }
+
+        // Cargar datos existentes al iniciar
+        const savedData = localStorage.getItem('projectData');
+        if (savedData) {
+            window.projectData = JSON.parse(savedData);
+            showDataPreview(window.projectData);
         }
     </script>
 </body>
