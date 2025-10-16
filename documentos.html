@@ -511,7 +511,303 @@
             });
         });
 
-        // Funciones para carpetas
+        // FUNCIONES PARA DOCUMENTOS - CORREGIDAS
+        function setupDocumentsUpload() {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                documentsDropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                documentsDropZone.addEventListener(eventName, () => documentsDropZone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                documentsDropZone.addEventListener(eventName, () => documentsDropZone.classList.remove('dragover'), false);
+            });
+
+            documentsDropZone.addEventListener('drop', handleDocumentsDrop, false);
+            documentsFileInput.addEventListener('change', handleDocumentsFileSelect, false);
+        }
+
+        function handleDocumentsDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleDocumentsFiles(files);
+        }
+
+        function handleDocumentsFileSelect(e) {
+            const files = e.target.files;
+            handleDocumentsFiles(files);
+        }
+
+        function handleDocumentsFiles(files) {
+            [...files].forEach(uploadDocument);
+        }
+
+        // CORREGIDO: Función para subir documentos
+        function uploadDocument(file) {
+            console.log('Intentando subir documento:', file.name, file.type);
+            
+            // Verificar que hay una carpeta seleccionada
+            if (!window.currentFolderId) {
+                alert('Por favor selecciona una carpeta primero antes de subir documentos.');
+                return;
+            }
+
+            const validTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'text/plain'
+            ];
+            
+            const validExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt'];
+            const fileExtension = '.' + getFileExtension(file.name).toLowerCase();
+            
+            console.log('Validando archivo:', {
+                type: file.type,
+                extension: fileExtension,
+                isValidType: validTypes.includes(file.type),
+                isValidExtension: validExtensions.includes(fileExtension)
+            });
+            
+            if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+                alert('Tipo de documento no válido. Use PDF, Word, PowerPoint o archivos de texto.');
+                return;
+            }
+
+            // Obtener categorías seleccionadas
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedCategories.length === 0) {
+                alert('Por favor selecciona al menos una categoría para el documento.');
+                return;
+            }
+
+            // Guardar el documento pendiente y mostrar confirmación
+            window.pendingDocument = {
+                file: file,
+                categories: selectedCategories,
+                folderId: window.currentFolderId
+            };
+            
+            showUploadConfirmation(file, selectedCategories);
+        }
+
+        // CORREGIDO: Mostrar confirmación de carga
+        function showUploadConfirmation(file, categories) {
+            // Remover modal existente si hay uno
+            const existingModal = document.querySelector('.upload-confirmation-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'upload-confirmation-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 class="text-lg font-semibold mb-4">Confirmar carga de documento</h3>
+                    <div class="mb-4">
+                        <p class="font-medium">Archivo: ${file.name}</p>
+                        <p class="text-sm text-gray-600">Tamaño: ${formatFileSize(file.size)}</p>
+                        <p class="text-sm text-gray-600">Categorías: ${categories.join(', ')}</p>
+                    </div>
+                    <div class="flex gap-3 justify-end">
+                        <button id="cancelUpload" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="confirmUpload" 
+                                class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                            Cargar Documento
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+
+            // Agregar event listeners a los botones
+            document.getElementById('cancelUpload').addEventListener('click', function() {
+                modal.remove();
+                window.pendingDocument = null;
+            });
+
+            document.getElementById('confirmUpload').addEventListener('click', function() {
+                modal.remove();
+                if (window.pendingDocument) {
+                    confirmDocumentUpload();
+                }
+            });
+        }
+
+        // CORREGIDO: Confirmar y procesar la carga del documento
+        function confirmDocumentUpload() {
+            if (!window.pendingDocument) {
+                console.error('No hay documento pendiente para cargar');
+                return;
+            }
+
+            const { file, categories, folderId } = window.pendingDocument;
+            
+            // Proceder con la carga
+            addDocumentToList(file, categories, folderId);
+            window.pendingDocument = null;
+        }
+
+        function addDocumentToList(file, categories, folderId) {
+            const documentId = 'doc-' + Date.now();
+            const fileExtension = getFileExtension(file.name).toLowerCase();
+            const iconClass = getDocumentIconClass(fileExtension);
+            const iconText = getDocumentIconText(fileExtension);
+
+            const documentItem = document.createElement('div');
+            documentItem.className = 'document-card';
+            documentItem.id = documentId;
+            documentItem.innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="document-icon ${iconClass}">
+                        ${iconText}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 mb-1">${file.name}</h3>
+                        <p class="text-sm text-gray-500 mb-2">${formatFileSize(file.size)}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${categories.map(cat => `
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${cat}</span>
+                            `).join('')}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span>Subido: ${new Date().toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>${fileExtension.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="previewDocument('${documentId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                        <button onclick="downloadDocument('${documentId}')" class="p-2 text-green-600 hover:bg-green-50 rounded">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </button>
+                        <button onclick="removeDocument('${documentId}')" class="p-2 text-red-600 hover:bg-red-50 rounded">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Guardar documento en el estado global
+            const documentData = {
+                id: documentId,
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                extension: fileExtension,
+                categories: categories,
+                folderId: folderId,
+                uploadDate: new Date().toISOString(),
+                file: file
+            };
+
+            window.projectDocuments.push(documentData);
+            saveDocumentsToStorage();
+
+            // Actualizar contador de documentos en la carpeta
+            updateFolderDocumentCount(folderId);
+
+            if (documentsList.firstChild?.classList?.contains('text-center')) {
+                documentsList.innerHTML = '';
+            }
+            documentsList.appendChild(documentItem);
+
+            console.log('✅ Documento agregado exitosamente:', documentData);
+        }
+
+        function updateFolderDocumentCount(folderId) {
+            const folder = window.projectFolders.find(f => f.id === folderId);
+            if (folder) {
+                folder.documentCount = (folder.documentCount || 0) + 1;
+                saveFoldersToStorage();
+                renderFoldersList();
+                renderFolderSelection();
+            }
+        }
+
+        function previewDocument(documentId) {
+            const doc = window.projectDocuments.find(d => d.id === documentId);
+            if (doc) {
+                if (doc.extension === 'pdf') {
+                    // Para PDF, abrir en nueva pestaña
+                    const url = URL.createObjectURL(doc.file);
+                    window.open(url, '_blank');
+                } else {
+                    alert(`Vista previa no disponible para archivos ${doc.extension.toUpperCase()}. Descarga el archivo para verlo.`);
+                }
+            }
+        }
+
+        function downloadDocument(documentId) {
+            const doc = window.projectDocuments.find(d => d.id === documentId);
+            if (doc) {
+                const url = URL.createObjectURL(doc.file);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = doc.name;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function removeDocument(documentId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+                const doc = window.projectDocuments.find(d => d.id === documentId);
+                if (doc) {
+                    // Actualizar contador de la carpeta
+                    const folder = window.projectFolders.find(f => f.id === doc.folderId);
+                    if (folder && folder.documentCount > 0) {
+                        folder.documentCount--;
+                    }
+                }
+
+                window.projectDocuments = window.projectDocuments.filter(d => d.id !== documentId);
+                saveDocumentsToStorage();
+                saveFoldersToStorage();
+                
+                const docElement = document.getElementById(documentId);
+                if (docElement) {
+                    docElement.remove();
+                }
+                
+                // Actualizar vistas
+                renderFoldersList();
+                renderFolderSelection();
+                
+                // Si no hay documentos, mostrar mensaje
+                const currentFolderDocs = window.projectDocuments.filter(d => d.folderId === window.currentFolderId);
+                if (currentFolderDocs.length === 0) {
+                    documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos en esta carpeta</div>';
+                }
+            }
+        }
+
+        function saveDocumentsToStorage() {
+            localStorage.setItem('projectDocuments', JSON.stringify(window.projectDocuments));
+        }
+
+        // Funciones para carpetas (se mantienen igual)
         function createFolder() {
             const name = folderName.value.trim();
             const description = folderDescription.value.trim();
@@ -634,6 +930,57 @@
             renderDocumentsList(folderDocuments);
         }
 
+        function renderDocumentsList(documents) {
+            if (documents.length === 0) {
+                documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos en esta carpeta</div>';
+                return;
+            }
+
+            documentsList.innerHTML = documents.map(doc => `
+                <div class="document-card">
+                    <div class="flex items-start gap-4">
+                        <div class="document-icon ${getDocumentIconClass(doc.extension)}">
+                            ${getDocumentIconText(doc.extension)}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 mb-1">${doc.name}</h3>
+                            <p class="text-sm text-gray-500 mb-2">${formatFileSize(doc.size)}</p>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${doc.categories.map(cat => `
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${cat}</span>
+                                `).join('')}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span>Subido: ${new Date(doc.uploadDate).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span>${doc.extension.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="previewDocument('${doc.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                            <button onclick="downloadDocument('${doc.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </button>
+                            <button onclick="removeDocument('${doc.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function renameFolder(folderId) {
             const folder = window.projectFolders.find(f => f.id === folderId);
             if (!folder) return;
@@ -681,136 +1028,6 @@
             localStorage.setItem('projectFolders', JSON.stringify(window.projectFolders));
         }
 
-        // Funciones para datos (mantenemos las anteriores pero agregamos gestión de archivos)
-        function setupDataUpload() {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dataDropZone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dataDropZone.addEventListener(eventName, () => dataDropZone.classList.add('dragover'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dataDropZone.addEventListener(eventName, () => dataDropZone.classList.remove('dragover'), false);
-            });
-
-            dataDropZone.addEventListener('drop', handleDataDrop, false);
-            dataFileInput.addEventListener('change', handleDataFileSelect, false);
-        }
-
-        function handleDataDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleDataFiles(files);
-        }
-
-        function handleDataFileSelect(e) {
-            const files = e.target.files;
-            handleDataFiles(files);
-        }
-
-        function handleDataFiles(files) {
-            [...files].forEach(uploadDataFile);
-        }
-
-        function uploadDataFile(file) {
-            const validTypes = [
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-excel',
-                'text/csv',
-                'application/json'
-            ];
-            
-            if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv|json)$/)) {
-                alert('Tipo de archivo no válido. Use Excel, CSV o JSON.');
-                return;
-            }
-
-            addDataFileToList(file);
-            processDataFile(file);
-        }
-
-        function addDataFileToList(file) {
-            const fileId = 'data-file-' + Date.now();
-            const fileData = {
-                id: fileId,
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                uploadDate: new Date().toISOString(),
-                file: file
-            };
-
-            window.dataFiles.push(fileData);
-            saveDataFilesToStorage();
-
-            renderDataFileList();
-        }
-
-        function renderDataFileList() {
-            if (window.dataFiles.length === 0) {
-                dataFileList.innerHTML = '<div class="text-center py-8 text-gray-500">No hay archivos de datos cargados aún</div>';
-                return;
-            }
-
-            dataFileList.innerHTML = window.dataFiles.map(fileData => `
-                <div class="file-item">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span class="text-blue-600 font-semibold">${getFileExtension(fileData.name).toUpperCase()}</span>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold">${fileData.name}</h3>
-                                <p class="text-sm text-gray-500">${formatFileSize(fileData.size)} · ${new Date(fileData.uploadDate).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="removeDataFile('${fileData.id}')" class="text-red-600 hover:text-red-800">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function removeDataFile(fileId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este archivo de datos?')) {
-                window.dataFiles = window.dataFiles.filter(f => f.id !== fileId);
-                saveDataFilesToStorage();
-                renderDataFileList();
-            }
-        }
-
-        function clearAllDataFiles() {
-            if (window.dataFiles.length === 0) return;
-            
-            if (confirm('¿Estás seguro de que quieres eliminar TODOS los archivos de datos?')) {
-                window.dataFiles = [];
-                saveDataFilesToStorage();
-                renderDataFileList();
-                dataPreview.innerHTML = '<div class="text-center py-8 text-gray-500">Los datos procesados aparecerán aquí después de cargar un archivo</div>';
-            }
-        }
-
-        function saveDataFilesToStorage() {
-            localStorage.setItem('dataFiles', JSON.stringify(window.dataFiles));
-        }
-
-        // Las funciones restantes para procesamiento de datos, documentos, etc. se mantienen igual
-        // [Aquí irían processDataFile, parseCSV, updateProjectData, showDataPreview, etc.]
-
-        // Inicialización
-        setupDataUpload();
-        setupDocumentsUpload();
-        renderDataFileList();
-        renderFoldersList();
-        renderFolderSelection();
-
         // Helper functions
         function getFileExtension(filename) {
             return filename.split('.').pop().toLowerCase();
@@ -824,17 +1041,49 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
+        function getDocumentIconClass(extension) {
+            const iconMap = {
+                'pdf': 'pdf-icon',
+                'xlsx': 'excel-icon',
+                'xls': 'excel-icon',
+                'csv': 'csv-icon',
+                'json': 'json-icon',
+                'doc': 'word-icon',
+                'docx': 'word-icon',
+                'ppt': 'word-icon',
+                'pptx': 'word-icon',
+                'txt': 'default-icon'
+            };
+            return iconMap[extension] || 'default-icon';
+        }
+
+        function getDocumentIconText(extension) {
+            const textMap = {
+                'pdf': 'PDF',
+                'xlsx': 'XLS',
+                'xls': 'XLS',
+                'csv': 'CSV',
+                'json': 'JSON',
+                'doc': 'DOC',
+                'docx': 'DOC',
+                'ppt': 'PPT',
+                'pptx': 'PPT',
+                'txt': 'TXT'
+            };
+            return textMap[extension] || extension.toUpperCase().substring(0, 3);
+        }
+
         function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
         }
 
-        // Cargar datos existentes al iniciar
-        const savedData = localStorage.getItem('projectData');
-        if (savedData) {
-            window.projectData = JSON.parse(savedData);
-            showDataPreview(window.projectData);
-        }
+        // Inicialización
+        setupDocumentsUpload();
+        renderFoldersList();
+        renderFolderSelection();
+
+        console.log('✅ Sistema de documentos inicializado correctamente');
     </script>
 </body>
 </html>
