@@ -41,11 +41,31 @@
     .progress { height: 10px; background:#eef2ff; border-radius:999px; overflow:hidden; }
     .progress > span { display:block; height:100%; background:linear-gradient(90deg,#16a34a,#0ea5e9); width:0; }
     .tooltip { text-decoration: underline dotted; cursor: help; }
-    /* Chatbot overlay */
+    /* Chatbot overlay - CORREGIDO */
     .chat-fab { position: fixed; right: 16px; bottom: 16px; z-index: 10000; }
-    .chat-panel { position: fixed; right: 16px; bottom: 76px; width: 360px; max-width: calc(100vw - 24px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,.15); display: none; z-index: 10001; }
-    .chat-panel.open { display: grid; grid-template-rows: auto 1fr auto; }
-    .chat-window { overflow: auto; max-height: 50vh; }
+    .chat-panel { 
+      position: fixed; 
+      right: 16px; 
+      bottom: 76px; 
+      width: 360px; 
+      max-width: calc(100vw - 24px); 
+      background: #ffffff; 
+      border: 1px solid #e2e8f0; 
+      border-radius: 16px; 
+      box-shadow: 0 20px 40px rgba(2,6,23,.15); 
+      display: none; 
+      z-index: 10001; 
+      height: 500px; /* Altura fija para mejor visualización */
+      grid-template-rows: auto 1fr auto; /* Estructura de grid */
+    }
+    .chat-panel.open { 
+      display: grid; /* Cambiado de 'block' a 'grid' */
+    }
+    .chat-window { 
+      overflow-y: auto; 
+      max-height: 300px; /* Altura máxima ajustada */
+      padding: 12px;
+    }
   </style>
 </head>
 <body class="text-slate-900">
@@ -216,26 +236,26 @@
     </section>
   </div>
 
-  <!-- Floating Chatbot -->
-  <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500" aria-label="Abrir chatbot" aria-expanded="false">
+  <!-- Floating Chatbot - CORREGIDO -->
+  <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500 hover:bg-blue-800 transition-colors" aria-label="Abrir chatbot" aria-expanded="false">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     Chat
   </button>
-  <section id="chatPanel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+  <section id="chatPanel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chatTitle" aria-hidden="true">
     <header class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-2xl">
       <h2 id="chatTitle" class="text-sm font-bold">Asistente de KPIs</h2>
       <div class="flex items-center gap-2">
         <label class="text-xs text-slate-600 inline-flex items-center gap-1"><input type="checkbox" id="useLLM" class="accent-navy" disabled> Usar LLM</label>
-        <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200" aria-label="Cerrar">✕</button>
+        <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Cerrar">✕</button>
       </div>
     </header>
-    <div id="chatWindow" class="chat-window p-3" aria-live="polite"></div>
+    <div id="chatWindow" class="chat-window" aria-live="polite"></div>
     <form id="chatForm" class="p-3 border-t border-slate-200 grid gap-2" autocomplete="off">
       <label for="chatInput" class="sr-only">Escribe tu pregunta</label>
-      <textarea id="chatInput" class="border border-slate-300 rounded-lg p-2 text-sm min-h-[60px]" placeholder="Ej.: ¿Cómo va Proyecto Aurora?" required></textarea>
+      <textarea id="chatInput" class="border border-slate-300 rounded-lg p-2 text-sm min-h-[60px] resize-none" placeholder="Ej.: ¿Cómo va Proyecto Aurora?" required></textarea>
       <div class="flex items-center justify-between">
-        <small class="text-slate-500" id="chatModeHelp"></small>
-        <button class="px-4 py-2 rounded-lg bg-navy text-white font-bold" type="submit">Enviar</button>
+        <small class="text-slate-500 text-xs" id="chatModeHelp"></small>
+        <button class="px-4 py-2 rounded-lg bg-navy text-white font-bold hover:bg-blue-800 transition-colors" type="submit">Enviar</button>
       </div>
     </form>
   </section>
@@ -568,7 +588,7 @@
     // Initialize default view
     showView('general');
 
-    // Chatbot overlay (client-only)
+    // Chatbot overlay (client-only) - CORREGIDO
     const chatFab = document.getElementById('chatFab');
     const chatPanel = document.getElementById('chatPanel');
     const chatClose = document.getElementById('chatClose');
@@ -579,14 +599,21 @@
     const chatModeHelp = document.getElementById('chatModeHelp');
 
     const hasLLM = typeof window.OPENAI_KEY === 'string' && window.OPENAI_KEY.trim().length>0;
-    if(hasLLM){ useLLM.disabled = false; useLLM.checked = true; chatModeHelp.textContent = 'Modo LLM económico activo (gpt-4o-mini).'; }
-    else { useLLM.disabled = true; useLLM.checked = false; chatModeHelp.textContent = 'Modo local (rule-based). Define window.OPENAI_KEY para habilitar LLM.'; }
+    if(hasLLM){ 
+      useLLM.disabled = false; 
+      useLLM.checked = true; 
+      chatModeHelp.textContent = 'Modo LLM económico activo (gpt-4o-mini).'; 
+    } else { 
+      useLLM.disabled = true; 
+      useLLM.checked = false; 
+      chatModeHelp.textContent = 'Modo local (rule-based). Define window.OPENAI_KEY para habilitar LLM.'; 
+    }
 
     function addMsg(role, html){
       const wrap = document.createElement('div');
       wrap.className = 'flex gap-2 my-2';
       const bubble = document.createElement('div');
-      bubble.className = 'rounded-xl px-3 py-2 text-sm shadow border '+(role==='user'?'bg-sky-50 border-sky-100':'bg-slate-50 border-slate-200');
+      bubble.className = 'rounded-xl px-3 py-2 text-sm shadow border '+(role==='user'?'bg-sky-50 border-sky-100 ml-4':'bg-slate-50 border-slate-200 mr-4');
       bubble.innerHTML = html;
       wrap.appendChild(bubble);
       chatWindow.appendChild(wrap);
@@ -595,25 +622,35 @@
 
     function openChat(){
       chatPanel.classList.add('open');
-      chatPanel.style.display = 'grid';
       chatFab.setAttribute('aria-expanded','true');
       chatPanel.setAttribute('aria-hidden','false');
-      try{ chatInput.focus(); }catch{}
+      chatInput.focus();
     }
+    
     function closeChat(){
       chatPanel.classList.remove('open');
-      chatPanel.style.display = 'none';
       chatFab.setAttribute('aria-expanded','false');
       chatPanel.setAttribute('aria-hidden','true');
     }
-    function toggleChat(){ if(chatPanel.classList.contains('open')) closeChat(); else openChat(); }
+    
+    function toggleChat(){ 
+      if(chatPanel.classList.contains('open')) {
+        closeChat();
+      } else {
+        openChat();
+      }
+    }
 
     // Ensure initial hidden state and ARIA
     closeChat();
 
     chatFab.addEventListener('click', toggleChat);
     chatClose.addEventListener('click', closeChat);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeChat(); });
+    document.addEventListener('keydown', (e)=>{ 
+      if(e.key==='Escape' && chatPanel.classList.contains('open')) {
+        closeChat();
+      }
+    });
 
     // Local NLU helpers
     const names = projects.map(p=>p.name.toLowerCase());
@@ -623,7 +660,11 @@
       const text = q.toLowerCase();
       // Try exact include by name (longest first)
       const sorted = names.slice().sort((a,b)=>b.length-a.length);
-      for(const nm of sorted){ if(text.includes(nm)){ return idByName.get(nm); } }
+      for(const nm of sorted){ 
+        if(text.includes(nm)){ 
+          return idByName.get(nm); 
+        } 
+      }
       return null;
     }
 
@@ -700,9 +741,12 @@
 
     chatForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const q = chatInput.value.trim(); if(!q) return;
+      const q = chatInput.value.trim(); 
+      if(!q) return;
+      
       addMsg('user', q);
       chatInput.value='';
+      
       try{
         if(useLLM.checked && hasLLM){
           const out = await answerLLM(q);
@@ -711,8 +755,22 @@
           const out = answerLocal(q);
           addMsg('bot', out);
         }
-      }catch(err){ addMsg('bot', `<span class="text-red-700">${(err&&err.message)||'Error'}</span>`); }
+      }catch(err){ 
+        console.error('Chat error:', err);
+        addMsg('bot', `<span class="text-red-700">Error: ${(err&&err.message)||'Error desconocido'}</span>`); 
+      }
     });
+
+    // Add welcome message when chat opens for first time
+    let chatInitialized = false;
+    const originalOpenChat = openChat;
+    openChat = function() {
+      originalOpenChat();
+      if (!chatInitialized) {
+        addMsg('bot', '¡Hola! Soy tu asistente de KPIs. Puedo ayudarte con información sobre el estado de proyectos, avances, hitos y más. ¿En qué puedo ayudarte?');
+        chatInitialized = true;
+      }
+    };
 
   })();
   </script>
