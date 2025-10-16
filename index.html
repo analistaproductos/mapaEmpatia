@@ -41,8 +41,8 @@
     .progress > span { display:block; height:100%; background:linear-gradient(90deg,#16a34a,#0ea5e9); width:0; }
     .tooltip { text-decoration: underline dotted; cursor: help; }
     /* Chatbot overlay */
-    .chat-fab { position: fixed; right: 16px; bottom: 16px; z-index: 50; }
-    .chat-panel { position: fixed; right: 16px; bottom: 76px; width: 360px; max-width: calc(100vw - 24px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,.15); display: none; z-index: 50; }
+    .chat-fab { position: fixed; right: 16px; bottom: 16px; z-index: 10000; }
+    .chat-panel { position: fixed; right: 16px; bottom: 76px; width: 360px; max-width: calc(100vw - 24px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,.15); display: none; z-index: 10001; }
     .chat-panel.open { display: grid; grid-template-rows: auto 1fr auto; }
     .chat-window { overflow: auto; max-height: 50vh; }
   </style>
@@ -216,7 +216,7 @@
   </div>
 
   <!-- Floating Chatbot -->
-  <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500" aria-label="Abrir chatbot">
+  <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-500" aria-label="Abrir chatbot" aria-expanded="false">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     Chat
   </button>
@@ -592,9 +592,27 @@
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    chatFab.addEventListener('click', ()=>{ chatPanel.classList.toggle('open'); if(chatPanel.classList.contains('open')){ chatInput.focus(); } });
-    chatClose.addEventListener('click', ()=> chatPanel.classList.remove('open'));
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') chatPanel.classList.remove('open'); });
+    function openChat(){
+      chatPanel.classList.add('open');
+      chatPanel.style.display = 'grid';
+      chatFab.setAttribute('aria-expanded','true');
+      chatPanel.setAttribute('aria-hidden','false');
+      try{ chatInput.focus(); }catch{}
+    }
+    function closeChat(){
+      chatPanel.classList.remove('open');
+      chatPanel.style.display = 'none';
+      chatFab.setAttribute('aria-expanded','false');
+      chatPanel.setAttribute('aria-hidden','true');
+    }
+    function toggleChat(){ if(chatPanel.classList.contains('open')) closeChat(); else openChat(); }
+
+    // Ensure initial hidden state and ARIA
+    closeChat();
+
+    chatFab.addEventListener('click', toggleChat);
+    chatClose.addEventListener('click', closeChat);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeChat(); });
 
     // Local NLU helpers
     const names = projects.map(p=>p.name.toLowerCase());
