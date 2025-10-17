@@ -102,6 +102,11 @@
         .json-icon { background: #f59e0b; }
         .csv-icon { background: #8b5cf6; }
         .default-icon { background: #64748b; }
+        .history-item {
+            border-left: 3px solid #0b2f6b;
+            padding-left: 12px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -128,113 +133,204 @@
         <!-- Tabs -->
         <div class="border-b border-gray-200 mb-6">
             <nav class="flex space-x-8">
-                <button class="tab-button active" data-tab="data">Datos de Proyectos</button>
-                <button class="tab-button" data-tab="documents">Documentación</button>
+                <button class="tab-button active" data-tab="documents">Documentación</button>
+                <button class="tab-button" data-tab="projects">Estado de Proyectos</button>
                 <button class="tab-button" data-tab="folders">Carpetas</button>
             </nav>
         </div>
 
-        <!-- Data Tab -->
-        <div id="data-tab" class="tab-content active">
+        <!-- Documents Tab -->
+        <div id="documents-tab" class="tab-content active">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Drop Zone -->
+                <!-- Documents Drop Zone -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-lg font-semibold mb-4">Cargar Datos de Proyectos</h2>
-                    <div id="dataDropZone" class="drop-zone">
+                    <h2 class="text-lg font-semibold mb-4">Cargar Documentación</h2>
+                    <div id="documentsDropZone" class="drop-zone">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                         </svg>
                         <p class="mt-2 text-sm text-gray-600">
-                            Arrastra y suelta archivos de datos aquí o haz clic para seleccionar
+                            Arrastra y suelta documentos aquí o haz clic para seleccionar
                         </p>
-                        <input type="file" id="dataFileInput" multiple accept=".xlsx,.xls,.csv,.json" class="hidden">
-                        <button onclick="document.getElementById('dataFileInput').click()" 
+                        <input type="file" id="documentsFileInput" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.xlsx,.xls,.csv" class="hidden">
+                        <button onclick="document.getElementById('documentsFileInput').click()" 
                                 class="mt-4 px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
-                            Seleccionar Archivos
+                            Seleccionar Documentos
                         </button>
                         <p class="mt-2 text-xs text-gray-500">
-                            Formatos soportados: Excel (.xlsx, .xls), CSV (.csv), JSON (.json)
+                            Formatos soportados: PDF, Word, PowerPoint, Excel, CSV, Texto
                         </p>
                     </div>
 
-                    <!-- Template Download -->
+                    <!-- Project Assignment -->
                     <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <h3 class="font-semibold text-blue-900 mb-2">¿Necesitas una plantilla?</h3>
-                        <p class="text-sm text-blue-700 mb-3">
-                            Descarga nuestra plantilla Excel para asegurar el formato correcto de los datos.
+                        <h3 class="font-semibold text-blue-900 mb-3">Asignar a Proyecto</h3>
+                        <select id="projectAssignment" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                            <option value="">Seleccionar proyecto (opcional)</option>
+                        </select>
+                        <p class="text-xs text-blue-700 mt-2">
+                            Los documentos se organizarán automáticamente por proyecto
                         </p>
-                        <button onclick="downloadTemplate()" 
-                                class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                            📥 Descargar Plantilla
-                        </button>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="mt-6 p-4 bg-purple-50 rounded-lg">
+                        <h3 class="font-semibold text-purple-900 mb-3">Categorías de Documentos</h3>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="planificacion" class="rounded text-purple-600" checked>
+                                Planificación
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="diseno" class="rounded text-purple-600">
+                                Diseño
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="ejecucion" class="rounded text-purple-600">
+                                Ejecución
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="reportes" class="rounded text-purple-600" checked>
+                                Reportes
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="contratos" class="rounded text-purple-600">
+                                Contratos
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="category" value="otros" class="rounded text-purple-600">
+                                Otros
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Instructions -->
+                <!-- Documents Instructions -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-lg font-semibold mb-4">Instrucciones para Datos</h2>
+                    <h2 class="text-lg font-semibold mb-4">Gestión de Documentación</h2>
                     <div class="space-y-4">
                         <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                            <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
                             <div>
-                                <h3 class="font-semibold">Prepara tus datos</h3>
-                                <p class="text-sm text-gray-600">Usa la plantilla proporcionada o asegúrate de que tu archivo tenga la estructura correcta.</p>
+                                <h3 class="font-semibold">Carga tus documentos</h3>
+                                <p class="text-sm text-gray-600">Sube todos los archivos relacionados con tus proyectos en un solo lugar.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                            <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
                             <div>
-                                <h3 class="font-semibold">Carga el archivo</h3>
-                                <p class="text-sm text-gray-600">Arrastra o selecciona tu archivo Excel, CSV o JSON.</p>
+                                <h3 class="font-semibold">Asigna a proyectos</h3>
+                                <p class="text-sm text-gray-600">Organiza los documentos por proyecto para un acceso rápido.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                            <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
                             <div>
-                                <h3 class="font-semibold">Organiza en carpetas</h3>
-                                <p class="text-sm text-gray-600">Crea carpetas para organizar los proyectos relacionados.</p>
+                                <h3 class="font-semibold">Clasifica por categorías</h3>
+                                <p class="text-sm text-gray-600">Usa categorías para filtrar y encontrar documentos fácilmente.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Data Structure Info -->
-                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                        <h3 class="font-semibold mb-2">Estructura de datos requerida:</h3>
-                        <ul class="text-sm text-gray-600 space-y-1">
-                            <li>• <strong>Proyectos:</strong> ID, nombre, entregables planificados, entregados</li>
-                            <li>• <strong>Presupuesto:</strong> Planificado vs gastado</li>
-                            <li>• <strong>Entregas semanales:</strong> Puntos por semana</li>
-                            <li>• <strong>Hitos:</strong> Fechas y estados</li>
+                    <!-- Recommended Structure -->
+                    <div class="mt-6 p-4 bg-purple-50 rounded-lg">
+                        <h3 class="font-semibold text-purple-900 mb-2">Estructura recomendada:</h3>
+                        <ul class="text-sm text-purple-700 space-y-1">
+                            <li>• <strong>Planificación:</strong> Charter, Cronogramas, Presupuestos</li>
+                            <li>• <strong>Diseño:</strong> Especificaciones, Diagramas, Mockups</li>
+                            <li>• <strong>Ejecución:</strong> Actas de reunión, Reportes de avance</li>
+                            <li>• <strong>Reportes:</strong> Dashboards, Análisis, Métricas</li>
+                            <li>• <strong>Contratos:</strong> Acuerdos, SLA, Documentación legal</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Uploaded Data Files List -->
+            <!-- Uploaded Documents List -->
             <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold">Archivos de Datos Cargados</h2>
-                    <button onclick="clearAllDataFiles()" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
-                        🗑️ Eliminar Todos
-                    </button>
+                    <h2 class="text-lg font-semibold">Documentación General</h2>
+                    <div class="flex gap-2">
+                        <select id="projectFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Todos los proyectos</option>
+                        </select>
+                        <select id="categoryFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Todas las categorías</option>
+                            <option value="planificacion">Planificación</option>
+                            <option value="diseno">Diseño</option>
+                            <option value="ejecucion">Ejecución</option>
+                            <option value="reportes">Reportes</option>
+                            <option value="contratos">Contratos</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                        <input type="text" id="documentsSearch" placeholder="Buscar documentos..." class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
+                    </div>
                 </div>
-                <div id="dataFileList" class="space-y-3">
-                    <div class="text-center py-8 text-gray-500">
-                        No hay archivos de datos cargados aún
+                <div id="documentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="text-center py-12 text-gray-500 col-span-3">
+                        No hay documentos cargados aún
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div id="projects-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Project Instructions -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-lg font-semibold mb-4">Gestión de Proyectos</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                            <div>
+                                <h3 class="font-semibold">Crea proyectos</h3>
+                                <p class="text-sm text-gray-600">Registra nuevos proyectos con su información básica.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                            <div>
+                                <h3 class="font-semibold">Seguimiento de estado</h3>
+                                <p class="text-sm text-gray-600">Actualiza el progreso y estado de cada proyecto.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                            <div>
+                                <h3 class="font-semibold">Vincula documentación</h3>
+                                <p class="text-sm text-gray-600">Accede rápidamente a los documentos de cada proyecto.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-lg font-semibold mb-4">Resumen de Proyectos</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-700" id="totalProjects">0</div>
+                            <div class="text-sm text-blue-600">Total Proyectos</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-700" id="activeProjects">0</div>
+                            <div class="text-sm text-green-600">En Progreso</div>
+                        </div>
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-700" id="completedProjects">0</div>
+                            <div class="text-sm text-yellow-600">Completados</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-700" id="delayedProjects">0</div>
+                            <div class="text-sm text-red-600">Atrasados</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Data Preview -->
-            <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-lg font-semibold mb-4">Vista Previa de Datos</h2>
-                <div id="dataPreview" class="text-center py-8 text-gray-500">
-                    Los datos procesados aparecerán aquí después de cargar un archivo
-                </div>
-            </div>
-
             <!-- Project Status Table -->
-            <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-semibold">Estado del Proyecto</h2>
                     <button onclick="addProjectStatus()" 
@@ -250,7 +346,7 @@
                                 <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre del Proyecto</th>
                                 <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
                                 <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Avance (%)</th>
-                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Observaciones</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Documentos</th>
                                 <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Última Actualización</th>
                                 <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
                             </tr>
@@ -263,140 +359,6 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Documents Tab -->
-        <div id="documents-tab" class="tab-content hidden">
-            <!-- Folder Selection -->
-            <div class="mb-6 bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-lg font-semibold mb-4">Seleccionar Carpeta</h2>
-                <div id="folderSelection" class="flex flex-wrap gap-4">
-                    <div class="text-center py-4 text-gray-500">
-                        No hay carpetas creadas. <a href="javascript:void(0)" onclick="showTab('folders')" class="text-navy underline">Crea una carpeta primero</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Documents Content (solo se muestra cuando hay carpeta seleccionada) -->
-            <div id="documentsContent" class="hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Documents Drop Zone -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h2 class="text-lg font-semibold mb-4" id="currentFolderTitle">Cargar Documentación</h2>
-                        <div id="documentsDropZone" class="drop-zone">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                            </svg>
-                            <p class="mt-2 text-sm text-gray-600">
-                                Arrastra y suelta documentos aquí o haz clic para seleccionar
-                            </p>
-                            <input type="file" id="documentsFileInput" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.txt" class="hidden">
-                            <button onclick="document.getElementById('documentsFileInput').click()" 
-                                    class="mt-4 px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
-                                Seleccionar Documentos
-                            </button>
-                            <p class="mt-2 text-xs text-gray-500">
-                                Formatos soportados: PDF, Word (.doc, .docx), PowerPoint (.ppt, .pptx), Texto (.txt)
-                            </p>
-                        </div>
-
-                        <!-- Categories -->
-                        <div class="mt-6 p-4 bg-purple-50 rounded-lg">
-                            <h3 class="font-semibold text-purple-900 mb-3">Categorías de Documentos</h3>
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="planificacion" class="rounded text-purple-600" checked>
-                                    Planificación
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="diseno" class="rounded text-purple-600">
-                                    Diseño
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="ejecucion" class="rounded text-purple-600">
-                                    Ejecución
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="reportes" class="rounded text-purple-600" checked>
-                                    Reportes
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="contratos" class="rounded text-purple-600">
-                                    Contratos
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" name="category" value="otros" class="rounded text-purple-600">
-                                    Otros
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Documents Instructions -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h2 class="text-lg font-semibold mb-4">Gestión de Documentación</h2>
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                                <div>
-                                    <h3 class="font-semibold">Selecciona una carpeta</h3>
-                                    <p class="text-sm text-gray-600">Elige la carpeta del proyecto donde quieres guardar los documentos.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                                <div>
-                                    <h3 class="font-semibold">Organiza por categorías</h3>
-                                    <p class="text-sm text-gray-600">Clasifica los documentos según su tipo y propósito.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                                <div>
-                                    <h3 class="font-semibold">Mantén versionado</h3>
-                                    <p class="text-sm text-gray-600">Incluye números de versión en los nombres de archivo.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recommended Structure -->
-                        <div class="mt-6 p-4 bg-purple-50 rounded-lg">
-                            <h3 class="font-semibold text-purple-900 mb-2">Estructura recomendada:</h3>
-                            <ul class="text-sm text-purple-700 space-y-1">
-                                <li>• <strong>Planificación:</strong> Charter, Cronogramas, Presupuestos</li>
-                                <li>• <strong>Diseño:</strong> Especificaciones, Diagramas, Mockups</li>
-                                <li>• <strong>Ejecución:</strong> Actas de reunión, Reportes de avance</li>
-                                <li>• <strong>Reportes:</strong> Dashboards, Análisis, Métricas</li>
-                                <li>• <strong>Contratos:</strong> Acuerdos, SLA, Documentación legal</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Uploaded Documents List -->
-                <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold" id="documentsFolderTitle">Documentación</h2>
-                        <div class="flex gap-2">
-                            <select id="categoryFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                                <option value="">Todas las categorías</option>
-                                <option value="planificacion">Planificación</option>
-                                <option value="diseno">Diseño</option>
-                                <option value="ejecucion">Ejecución</option>
-                                <option value="reportes">Reportes</option>
-                                <option value="contratos">Contratos</option>
-                                <option value="otros">Otros</option>
-                            </select>
-                            <input type="text" id="documentsSearch" placeholder="Buscar documentos..." class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
-                        </div>
-                    </div>
-                    <div id="documentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="text-center py-12 text-gray-500 col-span-3">
-                            No hay documentos en esta carpeta
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -490,9 +452,11 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Proyecto *</label>
-                    <input type="text" id="projectName" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
-                           placeholder="Ej: Proyecto Aurora - Fase 1">
+                    <select id="projectName" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                        <option value="">Seleccionar proyecto existente o crear nuevo</option>
+                    </select>
+                    <input type="text" id="newProjectName" placeholder="O ingresa un nuevo nombre de proyecto" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent mt-2 hidden">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -561,6 +525,42 @@
         </div>
     </div>
 
+    <!-- Modal para ver detalles del proyecto -->
+    <div id="projectDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4" id="detailModalTitle">Detalles del Proyecto</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="col-span-2">
+                    <h4 class="font-semibold mb-3">Información General</h4>
+                    <div class="space-y-2" id="projectGeneralInfo">
+                        <!-- Información general se cargará aquí -->
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">Documentos Asociados</h4>
+                    <div id="projectDocumentsList" class="space-y-2">
+                        <!-- Lista de documentos se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold mb-3">Historial de Cambios</h4>
+                <div id="projectHistory" class="space-y-3 max-h-60 overflow-y-auto">
+                    <!-- Historial se cargará aquí -->
+                </div>
+            </div>
+            
+            <div class="flex gap-3 justify-end mt-6">
+                <button id="closeDetailModal" 
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Estado global para almacenar datos, documentos y carpetas
         window.projectData = {
@@ -571,25 +571,16 @@
 
         window.projectDocuments = JSON.parse(localStorage.getItem('projectDocuments') || '[]');
         window.projectFolders = JSON.parse(localStorage.getItem('projectFolders') || '[]');
-        window.currentFolderId = null;
         window.pendingDocument = null;
-        window.dataFiles = JSON.parse(localStorage.getItem('dataFiles') || '[]');
 
         // Elementos del DOM
-        const dataDropZone = document.getElementById('dataDropZone');
-        const dataFileInput = document.getElementById('dataFileInput');
-        const dataFileList = document.getElementById('dataFileList');
-        const dataPreview = document.getElementById('dataPreview');
-        
         const documentsDropZone = document.getElementById('documentsDropZone');
         const documentsFileInput = document.getElementById('documentsFileInput');
         const documentsList = document.getElementById('documentsList');
         const categoryFilter = document.getElementById('categoryFilter');
+        const projectFilter = document.getElementById('projectFilter');
+        const projectAssignment = document.getElementById('projectAssignment');
         const documentsSearch = document.getElementById('documentsSearch');
-        const documentsContent = document.getElementById('documentsContent');
-        const folderSelection = document.getElementById('folderSelection');
-        const currentFolderTitle = document.getElementById('currentFolderTitle');
-        const documentsFolderTitle = document.getElementById('documentsFolderTitle');
 
         const foldersList = document.getElementById('foldersList');
         const foldersCount = document.getElementById('foldersCount');
@@ -606,13 +597,14 @@
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
             document.getElementById(`${tabName}-tab`).classList.remove('hidden');
 
-            // Si es la pestaña de documentos, actualizar la selección de carpetas
+            // Actualizar según la pestaña
             if (tabName === 'documents') {
-                renderFolderSelection();
-            }
-            
-            // Si es la pestaña de carpetas, actualizar la lista
-            if (tabName === 'folders') {
+                renderDocumentsList();
+                updateProjectFilters();
+            } else if (tabName === 'projects') {
+                renderProjectStatusTable();
+                updateProjectStats();
+            } else if (tabName === 'folders') {
                 renderFoldersList();
             }
         }
@@ -659,12 +651,6 @@
 
         function uploadDocument(file) {
             console.log('Intentando subir documento:', file.name, file.type);
-            
-            // Verificar que hay una carpeta seleccionada
-            if (!window.currentFolderId) {
-                alert('Por favor selecciona una carpeta primero antes de subir documentos.');
-                return;
-            }
 
             const validTypes = [
                 'application/pdf',
@@ -672,21 +658,17 @@
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'application/vnd.ms-powerpoint',
                 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                'text/plain'
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'text/csv'
             ];
             
-            const validExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt'];
+            const validExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.csv', '.txt'];
             const fileExtension = '.' + getFileExtension(file.name).toLowerCase();
             
-            console.log('Validando archivo:', {
-                type: file.type,
-                extension: fileExtension,
-                isValidType: validTypes.includes(file.type),
-                isValidExtension: validExtensions.includes(fileExtension)
-            });
-            
             if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
-                alert('Tipo de documento no válido. Use PDF, Word, PowerPoint o archivos de texto.');
+                alert('Tipo de documento no válido. Use PDF, Word, PowerPoint, Excel, CSV o archivos de texto.');
                 return;
             }
 
@@ -699,18 +681,20 @@
                 return;
             }
 
+            // Obtener proyecto asignado
+            const assignedProject = document.getElementById('projectAssignment').value;
+
             // Guardar el documento pendiente y mostrar confirmación
             window.pendingDocument = {
                 file: file,
                 categories: selectedCategories,
-                folderId: window.currentFolderId
+                project: assignedProject
             };
             
-            showUploadConfirmation(file, selectedCategories);
+            showUploadConfirmation(file, selectedCategories, assignedProject);
         }
 
-        function showUploadConfirmation(file, categories) {
-            // Remover modal existente si hay uno
+        function showUploadConfirmation(file, categories, project) {
             const existingModal = document.querySelector('.upload-confirmation-modal');
             if (existingModal) {
                 existingModal.remove();
@@ -725,6 +709,7 @@
                         <p class="font-medium">Archivo: ${file.name}</p>
                         <p class="text-sm text-gray-600">Tamaño: ${formatFileSize(file.size)}</p>
                         <p class="text-sm text-gray-600">Categorías: ${categories.join(', ')}</p>
+                        ${project ? `<p class="text-sm text-gray-600">Proyecto: ${project}</p>` : ''}
                     </div>
                     <div class="flex gap-3 justify-end">
                         <button id="cancelUpload" 
@@ -741,7 +726,6 @@
             
             document.body.appendChild(modal);
 
-            // Agregar event listeners a los botones
             document.getElementById('cancelUpload').addEventListener('click', function() {
                 modal.remove();
                 window.pendingDocument = null;
@@ -761,14 +745,14 @@
                 return;
             }
 
-            const { file, categories, folderId } = window.pendingDocument;
+            const { file, categories, project } = window.pendingDocument;
             
             // Proceder con la carga
-            addDocumentToList(file, categories, folderId);
+            addDocumentToList(file, categories, project);
             window.pendingDocument = null;
         }
 
-        function addDocumentToList(file, categories, folderId) {
+        function addDocumentToList(file, categories, project) {
             const documentId = 'doc-' + Date.now();
             const fileExtension = getFileExtension(file.name).toLowerCase();
             const iconClass = getDocumentIconClass(fileExtension);
@@ -789,6 +773,7 @@
                             ${categories.map(cat => `
                                 <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${cat}</span>
                             `).join('')}
+                            ${project ? `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">${project}</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2 text-xs text-gray-500">
                             <span>Subido: ${new Date().toLocaleDateString()}</span>
@@ -827,16 +812,13 @@
                 type: file.type,
                 extension: fileExtension,
                 categories: categories,
-                folderId: folderId,
+                project: project,
                 uploadDate: new Date().toISOString(),
                 file: file
             };
 
             window.projectDocuments.push(documentData);
             saveDocumentsToStorage();
-
-            // Actualizar contador de documentos en la carpeta
-            updateFolderDocumentCount(folderId);
 
             if (documentsList.firstChild?.classList?.contains('text-center')) {
                 documentsList.innerHTML = '';
@@ -846,21 +828,64 @@
             console.log('✅ Documento agregado exitosamente:', documentData);
         }
 
-        function updateFolderDocumentCount(folderId) {
-            const folder = window.projectFolders.find(f => f.id === folderId);
-            if (folder) {
-                folder.documentCount = (folder.documentCount || 0) + 1;
-                saveFoldersToStorage();
-                renderFoldersList();
-                renderFolderSelection();
+        function renderDocumentsList(filteredDocuments = null) {
+            const documentsToShow = filteredDocuments || window.projectDocuments;
+            
+            if (documentsToShow.length === 0) {
+                documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos cargados aún</div>';
+                return;
             }
+
+            documentsList.innerHTML = documentsToShow.map(doc => `
+                <div class="document-card">
+                    <div class="flex items-start gap-4">
+                        <div class="document-icon ${getDocumentIconClass(doc.extension)}">
+                            ${getDocumentIconText(doc.extension)}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 mb-1">${doc.name}</h3>
+                            <p class="text-sm text-gray-500 mb-2">${formatFileSize(doc.size)}</p>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${doc.categories.map(cat => `
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${cat}</span>
+                                `).join('')}
+                                ${doc.project ? `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">${doc.project}</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span>Subido: ${new Date(doc.uploadDate).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span>${doc.extension.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="previewDocument('${doc.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                            <button onclick="downloadDocument('${doc.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </button>
+                            <button onclick="removeDocument('${doc.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function previewDocument(documentId) {
             const doc = window.projectDocuments.find(d => d.id === documentId);
             if (doc) {
                 if (doc.extension === 'pdf') {
-                    // Para PDF, abrir en nueva pestaña
                     const url = URL.createObjectURL(doc.file);
                     window.open(url, '_blank');
                 } else {
@@ -883,32 +908,17 @@
 
         function removeDocument(documentId) {
             if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
-                const doc = window.projectDocuments.find(d => d.id === documentId);
-                if (doc) {
-                    // Actualizar contador de la carpeta
-                    const folder = window.projectFolders.find(f => f.id === doc.folderId);
-                    if (folder && folder.documentCount > 0) {
-                        folder.documentCount--;
-                    }
-                }
-
                 window.projectDocuments = window.projectDocuments.filter(d => d.id !== documentId);
                 saveDocumentsToStorage();
-                saveFoldersToStorage();
                 
                 const docElement = document.getElementById(documentId);
                 if (docElement) {
                     docElement.remove();
                 }
                 
-                // Actualizar vistas
-                renderFoldersList();
-                renderFolderSelection();
-                
                 // Si no hay documentos, mostrar mensaje
-                const currentFolderDocs = window.projectDocuments.filter(d => d.folderId === window.currentFolderId);
-                if (currentFolderDocs.length === 0) {
-                    documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos en esta carpeta</div>';
+                if (window.projectDocuments.length === 0) {
+                    documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos cargados aún</div>';
                 }
             }
         }
@@ -946,6 +956,9 @@
             // Actualizar lista
             renderFoldersList();
 
+            // Actualizar filtros de proyectos
+            updateProjectFilters();
+
             // Mostrar mensaje de éxito
             alert(`✅ Carpeta "${name}" creada exitosamente`);
         }
@@ -974,14 +987,6 @@
                         </div>
                     </div>
                     <div class="flex gap-2 mt-3">
-                        <button onclick="selectFolder('${folder.id}')" 
-                                class="flex-1 px-3 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm">
-                            Abrir
-                        </button>
-                        <button onclick="renameFolder('${folder.id}')" 
-                                class="px-3 py-2 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-colors text-sm">
-                            ✏️
-                        </button>
                         <button onclick="deleteFolder('${folder.id}')" 
                                 class="px-3 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
                             🗑️
@@ -993,144 +998,17 @@
             foldersCount.textContent = window.projectFolders.length;
         }
 
-        function renderFolderSelection() {
-            if (window.projectFolders.length === 0) {
-                folderSelection.innerHTML = '<div class="text-center py-4 text-gray-500">No hay carpetas creadas. <a href="javascript:void(0)" onclick="showTab(\'folders\')" class="text-navy underline">Crea una carpeta primero</a></div>';
-                documentsContent.classList.add('hidden');
-                return;
-            }
-
-            folderSelection.innerHTML = window.projectFolders.map(folder => `
-                <div class="folder-card ${window.currentFolderId === folder.id ? 'active' : ''}" onclick="selectFolder('${folder.id}')">
-                    <div class="flex items-center gap-3">
-                        <div class="folder-icon text-lg">
-                            📁
-                        </div>
-                        <div>
-                            <h3 class="font-semibold">${folder.name}</h3>
-                            <p class="text-sm text-gray-500">${folder.documentCount || 0} documentos</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Si hay una carpeta seleccionada, mostrar el contenido
-            if (window.currentFolderId) {
-                showFolderContent(window.currentFolderId);
-            }
-        }
-
-        function selectFolder(folderId) {
-            window.currentFolderId = folderId;
-            renderFolderSelection();
-            showFolderContent(folderId);
-            showTab('documents');
-        }
-
-        function showFolderContent(folderId) {
-            const folder = window.projectFolders.find(f => f.id === folderId);
-            if (!folder) return;
-
-            currentFolderTitle.textContent = `Cargar Documentación - ${folder.name}`;
-            documentsFolderTitle.textContent = `Documentación - ${folder.name}`;
-            documentsContent.classList.remove('hidden');
-
-            // Filtrar documentos por carpeta
-            const folderDocuments = window.projectDocuments.filter(doc => doc.folderId === folderId);
-            renderDocumentsList(folderDocuments);
-        }
-
-        function renderDocumentsList(documents) {
-            if (documents.length === 0) {
-                documentsList.innerHTML = '<div class="text-center py-12 text-gray-500 col-span-3">No hay documentos en esta carpeta</div>';
-                return;
-            }
-
-            documentsList.innerHTML = documents.map(doc => `
-                <div class="document-card">
-                    <div class="flex items-start gap-4">
-                        <div class="document-icon ${getDocumentIconClass(doc.extension)}">
-                            ${getDocumentIconText(doc.extension)}
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-gray-900 mb-1">${doc.name}</h3>
-                            <p class="text-sm text-gray-500 mb-2">${formatFileSize(doc.size)}</p>
-                            <div class="flex flex-wrap gap-1 mb-3">
-                                ${doc.categories.map(cat => `
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${cat}</span>
-                                `).join('')}
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                <span>Subido: ${new Date(doc.uploadDate).toLocaleDateString()}</span>
-                                <span>•</span>
-                                <span>${doc.extension.toUpperCase()}</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="previewDocument('${doc.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                            <button onclick="downloadDocument('${doc.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                            </button>
-                            <button onclick="removeDocument('${doc.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renameFolder(folderId) {
-            const folder = window.projectFolders.find(f => f.id === folderId);
-            if (!folder) return;
-
-            const newName = prompt('Nuevo nombre para la carpeta:', folder.name);
-            if (newName && newName.trim()) {
-                folder.name = newName.trim();
-                saveFoldersToStorage();
-                renderFoldersList();
-                renderFolderSelection();
-                
-                // Si esta carpeta está seleccionada, actualizar títulos
-                if (window.currentFolderId === folderId) {
-                    showFolderContent(folderId);
-                }
-            }
-        }
-
         function deleteFolder(folderId) {
             const folder = window.projectFolders.find(f => f.id === folderId);
             if (!folder) return;
 
-            if (confirm(`¿Estás seguro de que quieres eliminar la carpeta "${folder.name}" y todos sus documentos?`)) {
-                // Eliminar documentos de esta carpeta
-                window.projectDocuments = window.projectDocuments.filter(doc => doc.folderId !== folderId);
-                
+            if (confirm(`¿Estás seguro de que quieres eliminar la carpeta "${folder.name}"?`)) {
                 // Eliminar la carpeta
                 window.projectFolders = window.projectFolders.filter(f => f.id !== folderId);
                 
                 saveFoldersToStorage();
-                saveDocumentsToStorage();
-
-                // Si la carpeta eliminada estaba seleccionada, limpiar selección
-                if (window.currentFolderId === folderId) {
-                    window.currentFolderId = null;
-                    documentsContent.classList.add('hidden');
-                }
-
                 renderFoldersList();
-                renderFolderSelection();
+                updateProjectFilters();
             }
         }
 
@@ -1142,6 +1020,9 @@
         function addProjectStatus(projectId = null) {
             const modal = document.getElementById('projectModal');
             const modalTitle = document.getElementById('modalTitle');
+            
+            // Actualizar lista de proyectos disponibles
+            updateProjectSelect();
             
             if (projectId) {
                 // Modo edición
@@ -1174,19 +1055,35 @@
             modal.classList.remove('hidden');
         }
 
+        function updateProjectSelect() {
+            const projectSelect = document.getElementById('projectName');
+            const projectOptions = window.projectFolders.map(folder => 
+                `<option value="${folder.name}">${folder.name}</option>`
+            ).join('');
+            
+            projectSelect.innerHTML = '<option value="">Seleccionar proyecto existente o crear nuevo</option>' + projectOptions;
+        }
+
         function saveProjectStatus() {
             const modal = document.getElementById('projectModal');
             const projectId = modal.dataset.editingId;
+            
+            // Obtener el nombre del proyecto (seleccionado o nuevo)
+            const selectedProject = document.getElementById('projectName').value;
+            const newProjectName = document.getElementById('newProjectName').value;
+            const projectName = selectedProject || newProjectName;
+            
             const projectData = {
                 id: projectId || 'project-' + Date.now(),
-                name: document.getElementById('projectName').value.trim(),
+                name: projectName,
                 status: document.getElementById('projectStatus').value,
                 progress: parseInt(document.getElementById('projectProgress').value) || 0,
                 observations: document.getElementById('projectObservations').value.trim(),
                 startDate: document.getElementById('projectStartDate').value,
                 endDate: document.getElementById('projectEndDate').value,
                 responsible: document.getElementById('projectResponsible').value.trim(),
-                lastUpdate: new Date().toISOString()
+                lastUpdate: new Date().toISOString(),
+                history: []
             };
             
             // Validaciones
@@ -1196,18 +1093,38 @@
             }
             
             if (projectId) {
-                // Actualizar proyecto existente
+                // Actualizar proyecto existente - mantener el historial
+                const existingProject = window.projectData.projectStatus.find(p => p.id === projectId);
+                if (existingProject) {
+                    projectData.history = existingProject.history || [];
+                }
+                
+                // Agregar entrada al historial
+                projectData.history.push({
+                    date: new Date().toISOString(),
+                    action: 'Actualización',
+                    details: `Estado cambiado a ${getStatusText(projectData.status)}, progreso: ${projectData.progress}%`,
+                    user: 'Usuario' // En una app real, esto vendría del sistema de autenticación
+                });
+                
                 const index = window.projectData.projectStatus.findIndex(p => p.id === projectId);
                 if (index !== -1) {
                     window.projectData.projectStatus[index] = projectData;
                 }
             } else {
-                // Agregar nuevo proyecto
+                // Agregar nuevo proyecto con entrada inicial en el historial
+                projectData.history.push({
+                    date: new Date().toISOString(),
+                    action: 'Creación',
+                    details: 'Proyecto creado',
+                    user: 'Usuario'
+                });
                 window.projectData.projectStatus.push(projectData);
             }
             
             saveProjectStatusToStorage();
             renderProjectStatusTable();
+            updateProjectStats();
             modal.classList.add('hidden');
             
             // Actualizar KPIs en index.html si está disponible
@@ -1219,6 +1136,7 @@
                 window.projectData.projectStatus = window.projectData.projectStatus.filter(p => p.id !== projectId);
                 saveProjectStatusToStorage();
                 renderProjectStatusTable();
+                updateProjectStats();
                 updateKPIs();
             }
         }
@@ -1237,7 +1155,11 @@
                 return;
             }
             
-            tableBody.innerHTML = window.projectData.projectStatus.map(project => `
+            tableBody.innerHTML = window.projectData.projectStatus.map(project => {
+                const projectDocuments = window.projectDocuments.filter(doc => doc.project === project.name);
+                const documentsCount = projectDocuments.length;
+                
+                return `
                 <tr class="hover:bg-gray-50">
                     <td class="border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900">
                         ${project.name}
@@ -1256,14 +1178,31 @@
                             <span class="text-sm font-medium w-8">${project.progress}%</span>
                         </div>
                     </td>
-                    <td class="border border-gray-200 px-4 py-3 text-sm text-gray-600 max-w-xs">
-                        ${project.observations || '-'}
+                    <td class="border border-gray-200 px-4 py-3 text-sm text-gray-600">
+                        <button onclick="showProjectDocuments('${project.name}')" 
+                                class="flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                            ${documentsCount} documentos
+                        </button>
                     </td>
                     <td class="border border-gray-200 px-4 py-3 text-sm text-gray-500">
                         ${new Date(project.lastUpdate).toLocaleDateString()}
                     </td>
                     <td class="border border-gray-200 px-4 py-3">
                         <div class="flex gap-2">
+                            <button onclick="showProjectDetail('${project.id}')" 
+                                    class="p-2 text-purple-600 hover:bg-purple-50 rounded" title="Ver detalles">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
                             <button onclick="addProjectStatus('${project.id}')" 
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded">
                                 ✏️
@@ -1275,7 +1214,98 @@
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+
+        function showProjectDetail(projectId) {
+            const project = window.projectData.projectStatus.find(p => p.id === projectId);
+            if (!project) return;
+
+            const modal = document.getElementById('projectDetailModal');
+            const title = document.getElementById('detailModalTitle');
+            
+            title.textContent = `Detalles - ${project.name}`;
+            
+            // Información general
+            document.getElementById('projectGeneralInfo').innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Estado</p>
+                        <p class="font-medium">${getStatusText(project.status)}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Progreso</p>
+                        <p class="font-medium">${project.progress}%</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Fecha Inicio</p>
+                        <p class="font-medium">${project.startDate || 'No especificada'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Fecha Fin Estimada</p>
+                        <p class="font-medium">${project.endDate || 'No especificada'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Responsable</p>
+                        <p class="font-medium">${project.responsible || 'No asignado'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Última Actualización</p>
+                        <p class="font-medium">${new Date(project.lastUpdate).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                ${project.observations ? `
+                    <div class="mt-4">
+                        <p class="text-sm text-gray-600">Observaciones</p>
+                        <p class="font-medium mt-1">${project.observations}</p>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Documentos asociados
+            const projectDocs = window.projectDocuments.filter(doc => doc.project === project.name);
+            document.getElementById('projectDocumentsList').innerHTML = projectDocs.length > 0 ? 
+                projectDocs.map(doc => `
+                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span class="text-sm truncate">${doc.name}</span>
+                        <button onclick="downloadDocument('${doc.id}')" class="text-blue-600 hover:text-blue-800">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                `).join('') : 
+                '<p class="text-sm text-gray-500 text-center py-4">No hay documentos asociados</p>';
+            
+            // Historial
+            document.getElementById('projectHistory').innerHTML = project.history && project.history.length > 0 ? 
+                project.history.slice().reverse().map(entry => `
+                    <div class="history-item">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium text-sm">${entry.action}</p>
+                                <p class="text-xs text-gray-600">${entry.details}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">${new Date(entry.date).toLocaleDateString()}</p>
+                                <p class="text-xs text-gray-400">${entry.user}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : 
+                '<p class="text-sm text-gray-500 text-center py-4">No hay historial disponible</p>';
+            
+            modal.classList.remove('hidden');
+        }
+
+        function showProjectDocuments(projectName) {
+            // Filtrar documentos por proyecto y cambiar a la pestaña de documentos
+            const projectDocuments = window.projectDocuments.filter(doc => doc.project === projectName);
+            document.getElementById('projectFilter').value = projectName;
+            showTab('documents');
+            renderDocumentsList(projectDocuments);
         }
 
         function getStatusClass(status) {
@@ -1308,6 +1338,36 @@
             localStorage.setItem('projectStatus', JSON.stringify(window.projectData.projectStatus));
             window.projectData.updatedAt = new Date().toISOString();
             localStorage.setItem('projectData', JSON.stringify(window.projectData));
+        }
+
+        function updateProjectStats() {
+            const total = window.projectData.projectStatus.length;
+            const active = window.projectData.projectStatus.filter(p => 
+                ['planificacion', 'desarrollo', 'pruebas', 'revision'].includes(p.status)
+            ).length;
+            const completed = window.projectData.projectStatus.filter(p => p.status === 'completado').length;
+            const delayed = window.projectData.projectStatus.filter(p => {
+                if (!p.endDate) return false;
+                const endDate = new Date(p.endDate);
+                const today = new Date();
+                return endDate < today && p.status !== 'completado';
+            }).length;
+
+            document.getElementById('totalProjects').textContent = total;
+            document.getElementById('activeProjects').textContent = active;
+            document.getElementById('completedProjects').textContent = completed;
+            document.getElementById('delayedProjects').textContent = delayed;
+        }
+
+        function updateProjectFilters() {
+            const projectNames = [...new Set(window.projectFolders.map(folder => folder.name))];
+            const projectOptions = projectNames.map(name => 
+                `<option value="${name}">${name}</option>`
+            ).join('');
+            
+            const baseOption = '<option value="">Todos los proyectos</option>';
+            document.getElementById('projectFilter').innerHTML = baseOption + projectOptions;
+            document.getElementById('projectAssignment').innerHTML = baseOption + projectOptions;
         }
 
         function updateKPIs() {
@@ -1372,42 +1432,102 @@
             e.stopPropagation();
         }
 
-        // Funciones auxiliares para datos
-        function downloadTemplate() {
-            alert('📥 Descargando plantilla de datos...');
-            // Aquí iría la lógica para descargar una plantilla Excel real
+        // Filtros y búsqueda
+        function setupFilters() {
+            // Filtro por proyecto
+            document.getElementById('projectFilter').addEventListener('change', function() {
+                applyFilters();
+            });
+            
+            // Filtro por categoría
+            document.getElementById('categoryFilter').addEventListener('change', function() {
+                applyFilters();
+            });
+            
+            // Búsqueda
+            document.getElementById('documentsSearch').addEventListener('input', function() {
+                applyFilters();
+            });
         }
 
-        function clearAllDataFiles() {
-            if (confirm('¿Estás seguro de que quieres eliminar todos los archivos de datos?')) {
-                window.dataFiles = [];
-                localStorage.setItem('dataFiles', JSON.stringify(window.dataFiles));
-                dataFileList.innerHTML = '<div class="text-center py-8 text-gray-500">No hay archivos de datos cargados aún</div>';
-                dataPreview.innerHTML = '<div class="text-center py-8 text-gray-500">Los datos procesados aparecerán aquí después de cargar un archivo</div>';
+        function applyFilters() {
+            const projectFilter = document.getElementById('projectFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const searchTerm = document.getElementById('documentsSearch').value.toLowerCase();
+            
+            let filteredDocuments = window.projectDocuments;
+            
+            // Filtrar por proyecto
+            if (projectFilter) {
+                filteredDocuments = filteredDocuments.filter(doc => doc.project === projectFilter);
             }
+            
+            // Filtrar por categoría
+            if (categoryFilter) {
+                filteredDocuments = filteredDocuments.filter(doc => 
+                    doc.categories.includes(categoryFilter)
+                );
+            }
+            
+            // Filtrar por búsqueda
+            if (searchTerm) {
+                filteredDocuments = filteredDocuments.filter(doc => 
+                    doc.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderDocumentsList(filteredDocuments);
         }
 
         // Inicialización
-        setupDocumentsUpload();
-        renderFoldersList();
-        renderFolderSelection();
-        renderProjectStatusTable();
+        function init() {
+            setupDocumentsUpload();
+            setupFilters();
+            renderFoldersList();
+            renderDocumentsList();
+            renderProjectStatusTable();
+            updateProjectStats();
+            updateProjectFilters();
 
-        // Event listeners para el modal de proyectos
-        document.getElementById('cancelProject').addEventListener('click', function() {
-            document.getElementById('projectModal').classList.add('hidden');
-        });
-
-        document.getElementById('saveProject').addEventListener('click', saveProjectStatus);
-
-        // Cerrar modal con ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
+            // Event listeners para el modal de proyectos
+            document.getElementById('cancelProject').addEventListener('click', function() {
                 document.getElementById('projectModal').classList.add('hidden');
-            }
-        });
+            });
 
-        console.log('✅ Sistema de documentos y estado de proyectos inicializado correctamente');
+            document.getElementById('saveProject').addEventListener('click', saveProjectStatus);
+
+            // Event listener para el modal de detalles
+            document.getElementById('closeDetailModal').addEventListener('click', function() {
+                document.getElementById('projectDetailModal').classList.add('hidden');
+            });
+
+            // Cerrar modales con ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.getElementById('projectModal').classList.add('hidden');
+                    document.getElementById('projectDetailModal').classList.add('hidden');
+                }
+            });
+
+            // Manejar selección de proyecto existente vs nuevo
+            document.getElementById('projectName').addEventListener('change', function() {
+                const newProjectInput = document.getElementById('newProjectName');
+                if (this.value === '') {
+                    newProjectInput.classList.remove('hidden');
+                } else {
+                    newProjectInput.classList.add('hidden');
+                }
+            });
+
+            console.log('✅ Sistema de documentos y estado de proyectos inicializado correctamente');
+        }
+
+        // Ejecutar inicialización cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
