@@ -349,7 +349,7 @@
     <header class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-2xl">
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <h2 class="text-sm font-bold">Asistente de Proyectos</h2>
+        <h2 class="text-sm font-bold">Asistente Inteligente</h2>
       </div>
       <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
     </header>
@@ -864,7 +864,7 @@
     });
 
     // =============================================
-    // CHATBOT MEJORADO - MAYOR ALCANCE
+    // CHATBOT MEJORADO - ACCESO COMPLETO AL CONTEXTO
     // =============================================
 
     const chatFab = document.getElementById('chatFab');
@@ -879,470 +879,659 @@
     let isChatOpen = false;
     let chatInitialized = false;
 
-    // Sugerencias de preguntas
+    // Sugerencias de preguntas mejoradas
     const suggestionChips = [
-      "¿Cuál es el estado general?",
-      "Proyectos atrasados",
-      "Próximos vencimientos",
-      "Estadísticas por responsable",
-      "Proyectos por estado",
-      "Avance del mes",
-      "Riesgos identificados",
-      "Recomendaciones"
+        "Estado general del portafolio",
+        "Proyectos con riesgos",
+        "Documentos pendientes",
+        "Próximos vencimientos",
+        "Análisis por responsable",
+        "Recomendaciones prioritarias",
+        "Proyectos bloqueados",
+        "Métricas de cumplimiento"
     ];
 
-    // Funciones de análisis de datos para el chatbot
-    function analyzePortfolio() {
-      if (projects.length === 0) {
-        return { message: "No hay proyectos cargados para analizar." };
-      }
-
-      const totalProjects = projects.length;
-      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / totalProjects;
-      
-      // Proyectos por estado
-      const statusCounts = {
-        planificacion: projects.filter(p => p.status === 'planificacion').length,
-        desarrollo: projects.filter(p => p.status === 'desarrollo').length,
-        pruebas: projects.filter(p => p.status === 'pruebas').length,
-        revision: projects.filter(p => p.status === 'revision').length,
-        completado: projects.filter(p => p.status === 'completado').length,
-        pausado: projects.filter(p => p.status === 'pausado').length,
-        cancelado: projects.filter(p => p.status === 'cancelado').length
-      };
-
-      // Proyectos atrasados (con fecha de fin pasada y no completados)
-      const today = new Date();
-      const delayedProjects = projects.filter(p => {
-        if (!p.endDate || p.status === 'completado') return false;
-        return new Date(p.endDate) < today;
-      });
-
-      // Próximos vencimientos (próximos 30 días)
-      const next30Days = new Date();
-      next30Days.setDate(today.getDate() + 30);
-      const upcomingDeadlines = projects.filter(p => {
-        if (!p.endDate || p.status === 'completado') return false;
-        const endDate = new Date(p.endDate);
-        return endDate > today && endDate <= next30Days;
-      });
-
-      // Proyectos con bajo avance (< 25%)
-      const lowProgressProjects = projects.filter(p => (p.progress || 0) < 25);
-
-      // Proyectos con alto avance (> 75%)
-      const highProgressProjects = projects.filter(p => (p.progress || 0) > 75);
-
-      // Responsables con más proyectos
-      const responsibleStats = {};
-      projects.forEach(p => {
-        if (p.responsible) {
-          responsibleStats[p.responsible] = (responsibleStats[p.responsible] || 0) + 1;
+    // Funciones de análisis mejoradas con acceso completo al contexto
+    function getCompleteProjectContext() {
+        console.log('🔄 Obteniendo contexto completo de proyectos...');
+        
+        // Cargar datos de proyectos desde localStorage
+        const savedProjectData = localStorage.getItem('projectData');
+        let projects = [];
+        
+        if (savedProjectData) {
+            try {
+                const data = JSON.parse(savedProjectData);
+                projects = data.projectStatus || [];
+                console.log('✅ Proyectos cargados para análisis:', projects.length);
+            } catch (error) {
+                console.error('❌ Error cargando proyectos:', error);
+            }
         }
-      });
-
-      return {
-        totalProjects,
-        avgProgress,
-        statusCounts,
-        delayedProjects: delayedProjects.length,
-        upcomingDeadlines: upcomingDeadlines.length,
-        lowProgressProjects: lowProgressProjects.length,
-        highProgressProjects: highProgressProjects.length,
-        responsibleStats,
-        delayedProjectsList: delayedProjects,
-        upcomingDeadlinesList: upcomingDeadlines,
-        lowProgressList: lowProgressProjects,
-        highProgressList: highProgressProjects
-      };
+        
+        // Cargar estados de documentos desde localStorage
+        const savedProjectStatus = localStorage.getItem('projectStatus');
+        let documentStatus = [];
+        
+        if (savedProjectStatus) {
+            try {
+                documentStatus = JSON.parse(savedProjectStatus);
+                console.log('✅ Estados de documentos cargados:', documentStatus.length);
+            } catch (error) {
+                console.error('❌ Error cargando estados de documentos:', error);
+            }
+        }
+        
+        return { projects, documentStatus };
     }
 
-    function getProjectDetails(projectName) {
-      const project = projects.find(p => 
-        p.name.toLowerCase().includes(projectName.toLowerCase()) ||
-        projectName.toLowerCase().includes(p.name.toLowerCase())
-      );
-      
-      if (!project) return null;
+    function analyzeCompletePortfolio() {
+        const { projects, documentStatus } = getCompleteProjectContext();
+        
+        if (projects.length === 0 && documentStatus.length === 0) {
+            return { 
+                message: "No hay datos de proyectos ni documentos cargados para analizar.",
+                hasData: false
+            };
+        }
 
-      return {
-        ...project,
-        isDelayed: project.endDate && new Date(project.endDate) < new Date() && project.status !== 'completado',
-        daysRemaining: project.endDate ? 
-          Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
-      };
+        // Análisis de proyectos
+        const totalProjects = projects.length;
+        const avgProgress = totalProjects > 0 ? 
+            projects.reduce((sum, p) => sum + (p.progress || 0), 0) / totalProjects : 0;
+        
+        // Proyectos por estado
+        const statusCounts = {
+            planificacion: projects.filter(p => p.status === 'planificacion').length,
+            desarrollo: projects.filter(p => p.status === 'desarrollo').length,
+            pruebas: projects.filter(p => p.status === 'pruebas').length,
+            revision: projects.filter(p => p.status === 'revision').length,
+            completado: projects.filter(p => p.status === 'completado').length,
+            pausado: projects.filter(p => p.status === 'pausado').length,
+            cancelado: projects.filter(p => p.status === 'cancelado').length
+        };
+
+        // Análisis de documentos
+        const totalDocuments = documentStatus.length;
+        const documentProgress = totalDocuments > 0 ?
+            documentStatus.reduce((sum, doc) => sum + (doc.progress || 0), 0) / totalDocuments : 0;
+        
+        // Documentos por estado
+        const documentStatusCounts = {
+            pendiente: documentStatus.filter(doc => doc.status === 'pendiente').length,
+            en_revision: documentStatus.filter(doc => doc.status === 'en_revision').length,
+            aprobado: documentStatus.filter(doc => doc.status === 'aprobado').length,
+            rechazado: documentStatus.filter(doc => doc.status === 'rechazado').length
+        };
+
+        // Proyectos atrasados
+        const today = new Date();
+        const delayedProjects = projects.filter(p => {
+            if (!p.endDate || p.status === 'completado') return false;
+            return new Date(p.endDate) < today;
+        });
+
+        // Próximos vencimientos (próximos 30 días)
+        const next30Days = new Date();
+        next30Days.setDate(today.getDate() + 30);
+        const upcomingDeadlines = projects.filter(p => {
+            if (!p.endDate || p.status === 'completado') return false;
+            const endDate = new Date(p.endDate);
+            return endDate > today && endDate <= next30Days;
+        });
+
+        // Proyectos con bajo avance (< 25%)
+        const lowProgressProjects = projects.filter(p => (p.progress || 0) < 25);
+
+        // Proyectos con alto avance (> 75%)
+        const highProgressProjects = projects.filter(p => (p.progress || 0) > 75);
+
+        // Documentos críticos (pendientes y con alta prioridad)
+        const criticalDocuments = documentStatus.filter(doc => 
+            doc.status === 'pendiente' && doc.priority === 'alta'
+        );
+
+        // Responsables con más proyectos
+        const responsibleStats = {};
+        projects.forEach(p => {
+            if (p.responsible) {
+                if (!responsibleStats[p.responsible]) {
+                    responsibleStats[p.responsible] = {
+                        count: 0,
+                        totalProgress: 0,
+                        projects: []
+                    };
+                }
+                responsibleStats[p.responsible].count++;
+                responsibleStats[p.responsible].totalProgress += p.progress || 0;
+                responsibleStats[p.responsible].projects.push(p);
+            }
+        });
+
+        // Calcular promedios por responsable
+        Object.keys(responsibleStats).forEach(responsible => {
+            responsibleStats[responsible].avgProgress = 
+                responsibleStats[responsible].totalProgress / responsibleStats[responsible].count;
+        });
+
+        return {
+            hasData: true,
+            totalProjects,
+            avgProgress,
+            statusCounts,
+            totalDocuments,
+            documentProgress,
+            documentStatusCounts,
+            delayedProjects: delayedProjects.length,
+            upcomingDeadlines: upcomingDeadlines.length,
+            lowProgressProjects: lowProgressProjects.length,
+            highProgressProjects: highProgressProjects.length,
+            criticalDocuments: criticalDocuments.length,
+            delayedProjectsList: delayedProjects,
+            upcomingDeadlinesList: upcomingDeadlines,
+            lowProgressList: lowProgressProjects,
+            highProgressList: highProgressProjects,
+            criticalDocumentsList: criticalDocuments,
+            responsibleStats,
+            projects, // Incluir proyectos completos para análisis detallado
+            documentStatus // Incluir documentos completos para análisis detallado
+        };
     }
 
-    function getResponsibleProjects(responsibleName) {
-      return projects.filter(p => 
-        p.responsible && 
-        p.responsible.toLowerCase().includes(responsibleName.toLowerCase())
-      );
+    function getProjectWithDocuments(projectName) {
+        const { projects, documentStatus } = getCompleteProjectContext();
+        
+        const project = projects.find(p => 
+            p.name.toLowerCase().includes(projectName.toLowerCase()) ||
+            projectName.toLowerCase().includes(p.name.toLowerCase())
+        );
+        
+        if (!project) return null;
+
+        // Buscar documentos asociados al proyecto
+        const associatedDocuments = documentStatus.filter(doc => 
+            doc.name && doc.name.toLowerCase().includes(project.name.toLowerCase())
+        );
+
+        const today = new Date();
+        const endDate = project.endDate ? new Date(project.endDate) : null;
+        
+        return {
+            ...project,
+            associatedDocuments,
+            documentsCount: associatedDocuments.length,
+            pendingDocuments: associatedDocuments.filter(doc => doc.status === 'pendiente').length,
+            isDelayed: endDate && endDate < today && project.status !== 'completado',
+            daysRemaining: endDate ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)) : null,
+            riskLevel: calculateProjectRisk(project, associatedDocuments)
+        };
     }
 
-    function generateRecommendations(analysis) {
-      const recommendations = [];
-      
-      if (analysis.delayedProjects > 0) {
-        recommendations.push(`• Revisar los ${analysis.delayedProjects} proyectos atrasados`);
-      }
-      
-      if (analysis.upcomingDeadlines > 0) {
-        recommendations.push(`• Priorizar los ${analysis.upcomingDeadlines} proyectos con vencimiento próximo`);
-      }
-      
-      if (analysis.lowProgressProjects > 0) {
-        recommendations.push(`• Dar seguimiento a ${analysis.lowProgressProjects} proyectos con bajo avance`);
-      }
-      
-      if (analysis.avgProgress < 50) {
-        recommendations.push(`• El avance promedio (${analysis.avgProgress.toFixed(1)}%) está por debajo del 50%, considerar ajustes`);
-      }
+    function calculateProjectRisk(project, documents) {
+        let riskScore = 0;
+        
+        // Riesgo por avance bajo
+        if (project.progress < 25) riskScore += 3;
+        else if (project.progress < 50) riskScore += 2;
+        else if (project.progress < 75) riskScore += 1;
+        
+        // Riesgo por estado
+        if (project.status === 'pausado') riskScore += 2;
+        if (project.status === 'cancelado') riskScore += 3;
+        
+        // Riesgo por documentos pendientes
+        const pendingDocs = documents.filter(doc => doc.status === 'pendiente').length;
+        riskScore += Math.min(pendingDocs, 3);
+        
+        // Riesgo por fecha
+        if (project.endDate) {
+            const daysLeft = Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) riskScore += 3;
+            else if (daysLeft < 7) riskScore += 2;
+            else if (daysLeft < 30) riskScore += 1;
+        }
+        
+        if (riskScore >= 6) return 'alto';
+        if (riskScore >= 3) return 'medio';
+        return 'bajo';
+    }
 
-      return recommendations.length > 0 ? recommendations : ["• El portafolio se encuentra en estado saludable"];
+    function generateIntelligentRecommendations(analysis) {
+        const recommendations = [];
+        
+        if (!analysis.hasData) {
+            return ["• Cargar datos de proyectos y documentos para obtener recomendaciones"];
+        }
+        
+        // Recomendaciones basadas en proyectos
+        if (analysis.delayedProjects > 0) {
+            recommendations.push(`• Revisar urgentemente los ${analysis.delayedProjects} proyectos atrasados`);
+        }
+        
+        if (analysis.upcomingDeadlines > 0) {
+            recommendations.push(`• Priorizar los ${analysis.upcomingDeadlines} proyectos con vencimiento próximo`);
+        }
+        
+        if (analysis.lowProgressProjects > 0) {
+            recommendations.push(`• Dar seguimiento a ${analysis.lowProgressProjects} proyectos con avance inferior al 25%`);
+        }
+        
+        if (analysis.avgProgress < 50) {
+            recommendations.push(`• El avance promedio (${analysis.avgProgress.toFixed(1)}%) está por debajo del 50%, considerar ajustes en la planificación`);
+        }
+
+        // Recomendaciones basadas en documentos
+        if (analysis.criticalDocuments > 0) {
+            recommendations.push(`• Atender ${analysis.criticalDocuments} documentos críticos pendientes de alta prioridad`);
+        }
+        
+        if (analysis.documentStatusCounts.pendiente > analysis.totalDocuments * 0.3) {
+            recommendations.push(`• ${analysis.documentStatusCounts.pendiente} documentos pendientes (${((analysis.documentStatusCounts.pendiente/analysis.totalDocuments)*100).toFixed(0)}%), revisar procesos de aprobación`);
+        }
+
+        // Recomendaciones por responsable
+        Object.entries(analysis.responsibleStats).forEach(([responsible, stats]) => {
+            if (stats.avgProgress < 40 && stats.count > 2) {
+                recommendations.push(`• ${responsible} tiene ${stats.count} proyectos con avance promedio bajo (${stats.avgProgress.toFixed(1)}%), considerar redistribución`);
+            }
+        });
+
+        return recommendations.length > 0 ? recommendations : ["• El portafolio se encuentra en estado saludable. Mantener el seguimiento regular."];
     }
 
     // Funciones del chat mejoradas
     function addMessage(role, text, isHtml = false) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `chat-message ${role}`;
-      
-      const bubble = document.createElement('div');
-      bubble.className = `chat-bubble ${role}`;
-      
-      if (isHtml) {
-        bubble.innerHTML = text;
-      } else {
-        bubble.textContent = text;
-      }
-      
-      messageDiv.appendChild(bubble);
-      chatWindow.appendChild(messageDiv);
-      
-      // Scroll to bottom
-      chatWindow.scrollTop = chatWindow.scrollHeight;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${role}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${role}`;
+        
+        if (isHtml) {
+            bubble.innerHTML = text;
+        } else {
+            bubble.textContent = text;
+        }
+        
+        messageDiv.appendChild(bubble);
+        chatWindow.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function showQuickStats(analysis) {
-      const statsHtml = `
-        <div class="quick-stats">
-          <div class="quick-stats-item">
-            <span>📊 Proyectos totales:</span>
-            <strong>${analysis.totalProjects}</strong>
-          </div>
-          <div class="quick-stats-item">
-            <span>📈 Avance promedio:</span>
-            <strong>${analysis.avgProgress.toFixed(1)}%</strong>
-          </div>
-          <div class="quick-stats-item">
-            <span>⚠️ Atrasados:</span>
-            <strong>${analysis.delayedProjects}</strong>
-          </div>
-          <div class="quick-stats-item">
-            <span>📅 Próximos vencimientos:</span>
-            <strong>${analysis.upcomingDeadlines}</strong>
-          </div>
-        </div>
-      `;
-      addMessage('bot', statsHtml, true);
+    function showEnhancedQuickStats(analysis) {
+        if (!analysis.hasData) {
+            addMessage('bot', "📊 No hay datos disponibles. Por favor, carga proyectos y documentos primero.");
+            return;
+        }
+
+        const statsHtml = `
+            <div class="quick-stats">
+                <div class="text-sm font-semibold mb-2 text-navy">📊 Resumen Ejecutivo</div>
+                <div class="quick-stats-item">
+                    <span>📈 Proyectos totales:</span>
+                    <strong>${analysis.totalProjects}</strong>
+                </div>
+                <div class="quick-stats-item">
+                    <span>📄 Documentos totales:</span>
+                    <strong>${analysis.totalDocuments}</strong>
+                </div>
+                <div class="quick-stats-item">
+                    <span>🎯 Avance promedio:</span>
+                    <strong>${analysis.avgProgress.toFixed(1)}%</strong>
+                </div>
+                <div class="quick-stats-item">
+                    <span>⚠️ Proyectos atrasados:</span>
+                    <strong style="color: ${analysis.delayedProjects > 0 ? '#ef4444' : '#16a34a'}">${analysis.delayedProjects}</strong>
+                </div>
+                <div class="quick-stats-item">
+                    <span>📅 Próximos vencimientos:</span>
+                    <strong>${analysis.upcomingDeadlines}</strong>
+                </div>
+                <div class="quick-stats-item">
+                    <span>🚨 Documentos críticos:</span>
+                    <strong style="color: ${analysis.criticalDocuments > 0 ? '#ef4444' : '#16a34a'}">${analysis.criticalDocuments}</strong>
+                </div>
+            </div>
+        `;
+        addMessage('bot', statsHtml, true);
     }
 
     function showSuggestions() {
-      suggestionsContainer.innerHTML = '';
-      const suggestionsDiv = document.createElement('div');
-      suggestionsDiv.className = 'suggestions';
-      
-      suggestionChips.forEach(suggestion => {
-        const chip = document.createElement('div');
-        chip.className = 'suggestion-chip';
-        chip.textContent = suggestion;
-        chip.addEventListener('click', () => {
-          chatInput.value = suggestion;
-          chatForm.dispatchEvent(new Event('submit'));
+        suggestionsContainer.innerHTML = '';
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'suggestions';
+        
+        suggestionChips.forEach(suggestion => {
+            const chip = document.createElement('div');
+            chip.className = 'suggestion-chip';
+            chip.textContent = suggestion;
+            chip.addEventListener('click', () => {
+                chatInput.value = suggestion;
+                chatForm.dispatchEvent(new Event('submit'));
+            });
+            suggestionsDiv.appendChild(chip);
         });
-        suggestionsDiv.appendChild(chip);
-      });
-      
-      suggestionsContainer.appendChild(suggestionsDiv);
+        
+        suggestionsContainer.appendChild(suggestionsDiv);
     }
 
-    function processQuestion(question) {
-      const q = question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const analysis = analyzePortfolio();
-      
-      // Estado general del portafolio
-      if (q.includes('estado general') || q.includes('cómo vamos') || q.includes('resumen')) {
-        showQuickStats(analysis);
-        const recommendations = generateRecommendations(analysis);
-        let response = `<strong>📈 Resumen del Portafolio</strong><br><br>`;
-        response += `• <strong>${analysis.totalProjects}</strong> proyectos activos<br>`;
-        response += `• <strong>${analysis.avgProgress.toFixed(1)}%</strong> avance promedio<br>`;
-        response += `• <strong>${analysis.delayedProjects}</strong> proyectos atrasados<br>`;
-        response += `• <strong>${analysis.upcomingDeadlines}</strong> vencimientos próximos<br><br>`;
-        response += `<strong>💡 Recomendaciones:</strong><br>`;
-        recommendations.forEach(rec => response += `${rec}<br>`);
-        return response;
-      }
-
-      // Proyectos atrasados
-      if (q.includes('atrasado') || q.includes('retraso') || q.includes('vencido')) {
-        if (analysis.delayedProjectsList.length === 0) {
-          return "🎉 ¡Excelente! No hay proyectos atrasados en este momento.";
-        }
+    function processEnhancedQuestion(question) {
+        const q = question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const analysis = analyzeCompletePortfolio();
         
-        let response = `<strong>⚠️ Proyectos Atrasados (${analysis.delayedProjects})</strong><br><br>`;
-        analysis.delayedProjectsList.forEach(project => {
-          response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
-          if (project.responsible) {
-            response += `  👤 ${project.responsible}<br>`;
-          }
-        });
-        return response;
-      }
-
-      // Próximos vencimientos
-      if (q.includes('próximo') || q.includes('vencimiento') || q.includes('deadline')) {
-        if (analysis.upcomingDeadlinesList.length === 0) {
-          return "📅 No hay vencimientos próximos en los próximos 30 días.";
+        if (!analysis.hasData && !q.includes('cargar') && !q.includes('datos')) {
+            return `📊 <strong>No hay datos disponibles</strong><br><br>
+            Para usar todas las funciones del asistente, necesitas:<br>
+            • <strong>Cargar proyectos</strong> en la gestión de documentos<br>
+            • <strong>Actualizar estados</strong> de proyectos y documentos<br><br>
+            <a href="documentos.html" style="color: #0b2f6b; text-decoration: underline;">Ir a Gestión de Documentos</a>`;
         }
+
+        // Estado general del portafolio
+        if (q.includes('estado general') || q.includes('cómo vamos') || q.includes('resumen') || q.includes('dashboard')) {
+            showEnhancedQuickStats(analysis);
+            const recommendations = generateIntelligentRecommendations(analysis);
+            let response = `<strong>📈 Análisis Completo del Portafolio</strong><br><br>`;
+            
+            response += `<strong>Proyectos (${analysis.totalProjects}):</strong><br>`;
+            response += `• Avance promedio: <strong>${analysis.avgProgress.toFixed(1)}%</strong><br>`;
+            response += `• Atrasados: <strong style="color: ${analysis.delayedProjects > 0 ? '#ef4444' : '#16a34a'}">${analysis.delayedProjects}</strong><br>`;
+            response += `• Próximos vencimientos: <strong>${analysis.upcomingDeadlines}</strong><br>`;
+            response += `• Bajo avance (<25%): <strong>${analysis.lowProgressProjects}</strong><br><br>`;
+            
+            response += `<strong>Documentos (${analysis.totalDocuments}):</strong><br>`;
+            response += `• Pendientes: <strong>${analysis.documentStatusCounts.pendiente || 0}</strong><br>`;
+            response += `• En revisión: <strong>${analysis.documentStatusCounts.en_revision || 0}</strong><br>`;
+            response += `• Críticos: <strong style="color: ${analysis.criticalDocuments > 0 ? '#ef4444' : '#16a34a'}">${analysis.criticalDocuments}</strong><br><br>`;
+            
+            response += `<strong>💡 Recomendaciones Prioritarias:</strong><br>`;
+            recommendations.forEach(rec => response += `${rec}<br>`);
+            return response;
+        }
+
+        // Proyectos con riesgos
+        if (q.includes('riesgo') || q.includes('problema') || q.includes('bloqueado') || q.includes('crítico')) {
+            const riskyProjects = analysis.projects.filter(p => 
+                calculateProjectRisk(p, analysis.documentStatus.filter(doc => 
+                    doc.name && doc.name.toLowerCase().includes(p.name.toLowerCase())
+                )) === 'alto'
+            );
+
+            if (riskyProjects.length === 0) {
+                return "✅ <strong>No se identificaron proyectos de alto riesgo</strong><br><br>El portafolio se encuentra en estado controlado.";
+            }
+            
+            let response = `<strong>🚨 Proyectos de Alto Riesgo (${riskyProjects.length})</strong><br><br>`;
+            riskyProjects.forEach(project => {
+                const riskDetails = getProjectWithDocuments(project.name);
+                response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
+                response += `  📍 Estado: ${project.status}<br>`;
+                if (project.responsible) {
+                    response += `  👤 Responsable: ${project.responsible}<br>`;
+                }
+                if (riskDetails.pendingDocuments > 0) {
+                    response += `  📄 Documentos pendientes: ${riskDetails.pendingDocuments}<br>`;
+                }
+                response += `<br>`;
+            });
+            return response;
+        }
+
+        // Documentos pendientes
+        if (q.includes('documento pendiente') || q.includes('documentos por aprobar') || q.includes('aprobación')) {
+            const pendingDocuments = analysis.documentStatus.filter(doc => doc.status === 'pendiente');
+            
+            if (pendingDocuments.length === 0) {
+                return "✅ <strong>No hay documentos pendientes</strong><br><br>Todos los documentos están gestionados.";
+            }
+            
+            let response = `<strong>📄 Documentos Pendientes (${pendingDocuments.length})</strong><br><br>`;
+            pendingDocuments.forEach(doc => {
+                response += `• <strong>${doc.name}</strong><br>`;
+                if (doc.progress !== undefined) {
+                    response += `  📊 Avance: ${doc.progress}%<br>`;
+                }
+                if (doc.priority) {
+                    const priorityColor = doc.priority === 'alta' ? '#ef4444' : doc.priority === 'media' ? '#f59e0b' : '#16a34a';
+                    response += `  🎯 Prioridad: <strong style="color: ${priorityColor}">${doc.priority}</strong><br>`;
+                }
+                response += `<br>`;
+            });
+            return response;
+        }
+
+        // Información específica de proyecto con documentos
+        const projectMatch = analysis.projects.find(p => 
+            q.includes(p.name.toLowerCase()) || 
+            p.name.toLowerCase().includes(q.split(' ')[0])
+        );
         
-        let response = `<strong>📅 Próximos Vencimientos (${analysis.upcomingDeadlines})</strong><br><br>`;
-        analysis.upcomingDeadlinesList.forEach(project => {
-          const daysLeft = Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24));
-          response += `• <strong>${project.name}</strong> - ${daysLeft} días<br>`;
-          response += `  📊 ${project.progress || 0}% completado<br>`;
-        });
-        return response;
-      }
+        if (projectMatch) {
+            const details = getProjectWithDocuments(projectMatch.name);
+            let response = `<strong>📋 ${details.name}</strong><br>`;
+            response += `<div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin: 8px 0;">`;
+            
+            response += `<strong>Información del Proyecto:</strong><br>`;
+            response += `• <strong>Estado:</strong> ${details.status || 'No definido'}<br>`;
+            response += `• <strong>Avance:</strong> ${details.progress || 0}%<br>`;
+            response += `• <strong>Nivel de riesgo:</strong> <span style="color: ${
+                details.riskLevel === 'alto' ? '#ef4444' : 
+                details.riskLevel === 'medio' ? '#f59e0b' : '#16a34a'
+            }">${details.riskLevel.toUpperCase()}</span><br>`;
+            
+            if (details.responsible) {
+                response += `• <strong>Responsable:</strong> ${details.responsible}<br>`;
+            }
+            if (details.startDate) {
+                response += `• <strong>Inicio:</strong> ${new Date(details.startDate).toLocaleDateString('es-ES')}<br>`;
+            }
+            if (details.endDate) {
+                const daysLeft = details.daysRemaining;
+                response += `• <strong>Fin estimado:</strong> ${new Date(details.endDate).toLocaleDateString('es-ES')}`;
+                if (daysLeft !== null) {
+                    response += details.isDelayed ? 
+                        ` <span style="color: #ef4444;">(⚠️ ${Math.abs(daysLeft)} días de retraso)</span>` :
+                        ` (📅 ${daysLeft} días restantes)`;
+                }
+                response += `<br>`;
+            }
+            if (details.observations) {
+                response += `• <strong>Observaciones:</strong> ${details.observations}<br>`;
+            }
+            
+            response += `</div>`;
+            
+            // Documentos asociados
+            if (details.associatedDocuments.length > 0) {
+                response += `<strong>Documentos Asociados (${details.documentsCount}):</strong><br>`;
+                response += `<div style="background: #f0f9ff; padding: 8px; border-radius: 6px; margin: 8px 0;">`;
+                details.associatedDocuments.forEach(doc => {
+                    const statusIcon = doc.status === 'aprobado' ? '✅' : 
+                                     doc.status === 'en_revision' ? '🔍' : 
+                                     doc.status === 'rechazado' ? '❌' : '⏳';
+                    response += `• ${statusIcon} <strong>${doc.name}</strong>`;
+                    if (doc.progress !== undefined) {
+                        response += ` - ${doc.progress}%`;
+                    }
+                    response += `<br>`;
+                });
+                response += `</div>`;
+            }
+            
+            return response;
+        }
 
-      // Información específica de proyecto
-      const projectMatch = projects.find(p => 
-        q.includes(p.name.toLowerCase()) || 
-        p.name.toLowerCase().includes(q.split(' ')[0])
-      );
-      
-      if (projectMatch) {
-        const details = getProjectDetails(projectMatch.name);
-        let response = `<strong>📋 ${details.name}</strong><br><br>`;
-        response += `• <strong>Estado:</strong> ${details.status || 'No definido'}<br>`;
-        response += `• <strong>Avance:</strong> ${details.progress || 0}%<br>`;
-        if (details.responsible) {
-          response += `• <strong>Responsable:</strong> ${details.responsible}<br>`;
-        }
-        if (details.startDate) {
-          response += `• <strong>Inicio:</strong> ${new Date(details.startDate).toLocaleDateString('es-ES')}<br>`;
-        }
-        if (details.endDate) {
-          const daysLeft = details.daysRemaining;
-          response += `• <strong>Fin estimado:</strong> ${new Date(details.endDate).toLocaleDateString('es-ES')}`;
-          if (daysLeft !== null) {
-            response += details.isDelayed ? 
-              ` <span style="color: #ef4444;">(⚠️ ${Math.abs(daysLeft)} días de retraso)</span>` :
-              ` (📅 ${daysLeft} días restantes)`;
-          }
-          response += `<br>`;
-        }
-        if (details.observations) {
-          response += `• <strong>Observaciones:</strong> ${details.observations}<br>`;
-        }
-        return response;
-      }
-
-      // Proyectos por responsable
-      const responsibleMatch = Object.keys(analysis.responsibleStats).find(name => 
-        q.includes(name.toLowerCase())
-      );
-      
-      if (responsibleMatch) {
-        const responsibleProjects = getResponsibleProjects(responsibleMatch);
-        let response = `<strong>👤 Proyectos de ${responsibleMatch}</strong><br><br>`;
-        response += `• <strong>Total proyectos:</strong> ${responsibleProjects.length}<br>`;
-        response += `• <strong>Avance promedio:</strong> ${(responsibleProjects.reduce((sum, p) => sum + (p.progress || 0), 0) / responsibleProjects.length).toFixed(1)}%<br><br>`;
+        // Proyectos por responsable con análisis completo
+        const responsibleMatch = Object.keys(analysis.responsibleStats).find(name => 
+            q.includes(name.toLowerCase())
+        );
         
-        responsibleProjects.forEach(project => {
-          response += `• <strong>${project.name}</strong> - ${project.progress || 0}% - ${project.status || 'No definido'}<br>`;
-        });
-        return response;
-      }
+        if (responsibleMatch) {
+            const responsibleData = analysis.responsibleStats[responsibleMatch];
+            let response = `<strong>👤 Análisis de ${responsibleMatch}</strong><br><br>`;
+            
+            response += `<strong>Métricas:</strong><br>`;
+            response += `• Total proyectos: <strong>${responsibleData.count}</strong><br>`;
+            response += `• Avance promedio: <strong>${responsibleData.avgProgress.toFixed(1)}%</strong><br>`;
+            response += `• Proyectos completados: <strong>${responsibleData.projects.filter(p => p.status === 'completado').length}</strong><br><br>`;
+            
+            response += `<strong>Proyectos asignados:</strong><br>`;
+            response += `<div style="max-height: 200px; overflow-y: auto;">`;
+            responsibleData.projects.forEach(project => {
+                const riskLevel = calculateProjectRisk(project, []);
+                const riskColor = riskLevel === 'alto' ? '#ef4444' : riskLevel === 'medio' ? '#f59e0b' : '#16a34a';
+                
+                response += `<div style="border-left: 3px solid ${riskColor}; padding-left: 8px; margin: 4px 0;">`;
+                response += `<strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
+                response += `<small>Estado: ${project.status} | Riesgo: <span style="color: ${riskColor}">${riskLevel}</span></small>`;
+                response += `</div>`;
+            });
+            response += `</div>`;
+            
+            return response;
+        }
 
-      // Proyectos por estado
-      if (q.includes('estado') && (q.includes('planificación') || q.includes('desarrollo') || q.includes('prueba') || q.includes('revisión') || q.includes('completado') || q.includes('pausado') || q.includes('cancelado'))) {
-        let statusType = '';
-        if (q.includes('planificación')) statusType = 'planificacion';
-        else if (q.includes('desarrollo')) statusType = 'desarrollo';
-        else if (q.includes('prueba')) statusType = 'pruebas';
-        else if (q.includes('revisión')) statusType = 'revision';
-        else if (q.includes('completado')) statusType = 'completado';
-        else if (q.includes('pausado')) statusType = 'pausado';
-        else if (q.includes('cancelado')) statusType = 'cancelado';
+        // Recomendaciones inteligentes
+        if (q.includes('recomendación') || q.includes('consejo') || q.includes('sugerencia') || q.includes('qué hacer')) {
+            const recommendations = generateIntelligentRecommendations(analysis);
+            let response = `<strong>💡 Recomendaciones Inteligentes</strong><br><br>`;
+            response += `<strong>Basado en el análisis de:</strong><br>`;
+            response += `• ${analysis.totalProjects} proyectos<br>`;
+            response += `• ${analysis.totalDocuments} documentos<br>`;
+            response += `• ${Object.keys(analysis.responsibleStats).length} responsables<br><br>`;
+            
+            response += `<strong>Acciones recomendadas:</strong><br>`;
+            recommendations.forEach((rec, index) => {
+                response += `${index + 1}. ${rec}<br>`;
+            });
+            return response;
+        }
 
-        const statusProjects = projects.filter(p => p.status === statusType);
-        const statusNames = {
-          'planificacion': 'Planificación',
-          'desarrollo': 'Desarrollo',
-          'pruebas': 'Pruebas',
-          'revision': 'Revisión',
-          'completado': 'Completado',
-          'pausado': 'Pausado',
-          'cancelado': 'Cancelado'
-        };
-
-        let response = `<strong>📊 Proyectos en ${statusNames[statusType]} (${statusProjects.length})</strong><br><br>`;
-        statusProjects.forEach(project => {
-          response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
-          if (project.responsible) {
-            response += `  👤 ${project.responsible}<br>`;
-          }
-        });
-        return response;
-      }
-
-      // Recomendaciones y riesgos
-      if (q.includes('recomendación') || q.includes('consejo') || q.includes('riesgo') || q.includes('sugerencia')) {
-        const recommendations = generateRecommendations(analysis);
-        let response = `<strong>💡 Recomendaciones para el Portafolio</strong><br><br>`;
-        recommendations.forEach(rec => response += `${rec}<br>`);
-        response += `<br><strong>📈 Métricas clave:</strong><br>`;
-        response += `• Avance promedio: ${analysis.avgProgress.toFixed(1)}%<br>`;
-        response += `• Proyectos atrasados: ${analysis.delayedProjects}<br>`;
-        response += `• Proyectos con bajo avance: ${analysis.lowProgressProjects}<br>`;
-        return response;
-      }
-
-      // Estadísticas generales
-      if (q.includes('estadística') || q.includes('métrica') || q.includes('número')) {
-        let response = `<strong>📊 Estadísticas del Portafolio</strong><br><br>`;
-        response += `• <strong>Total proyectos:</strong> ${analysis.totalProjects}<br>`;
-        response += `• <strong>Avance promedio:</strong> ${analysis.avgProgress.toFixed(1)}%<br>`;
-        response += `• <strong>Proyectos por estado:</strong><br>`;
-        Object.entries(analysis.statusCounts).forEach(([status, count]) => {
-          if (count > 0) {
-            const statusNames = {
-              'planificacion': '📋 Planificación',
-              'desarrollo': '🚀 Desarrollo',
-              'pruebas': '🧪 Pruebas',
-              'revision': '🔍 Revisión',
-              'completado': '✅ Completado',
-              'pausado': '⏸️ Pausado',
-              'cancelado': '❌ Cancelado'
-            };
-            response += `  ${statusNames[status]}: ${count}<br>`;
-          }
-        });
-        return response;
-      }
-
-      // Respuesta por defecto con sugerencias
-      return `🤖 Puedo ayudarte con:<br><br>
-      • <strong>Estado general</strong> del portafolio<br>
-      • <strong>Proyectos específicos</strong> (menciona el nombre)<br>
-      • <strong>Proyectos atrasados</strong> o próximos a vencer<br>
-      • <strong>Estadísticas por responsable</strong><br>
-      • <strong>Proyectos por estado</strong><br>
-      • <strong>Recomendaciones</strong> y análisis de riesgos<br><br>
-      ¿En qué te puedo ayudar específicamente?`;
+        // Respuesta por defecto mejorada
+        return `🤖 <strong>Asistente Inteligente de Proyectos</strong><br><br>
+        Puedo ayudarte con análisis avanzados de:<br><br>
+        
+        <strong>📊 Análisis General</strong><br>
+        • Estado completo del portafolio<br>
+        • Proyectos de alto riesgo<br>
+        • Documentos críticos pendientes<br>
+        • Métricas por responsable<br><br>
+        
+        <strong>🔍 Análisis Específico</strong><br>
+        • Información detallada de cualquier proyecto<br>
+        • Documentos asociados por proyecto<br>
+        • Niveles de riesgo calculados<br>
+        • Recomendaciones personalizadas<br><br>
+        
+        <strong>💡 Recomendaciones</strong><br>
+        • Acciones prioritarias<br>
+        • Prevención de riesgos<br>
+        • Optimización de recursos<br><br>
+        
+        <em>Menciona un proyecto, responsable o área de interés...</em>`;
     }
 
     function openChat() {
-      chatPanel.style.display = 'flex';
-      chatPanel.classList.add('open');
-      isChatOpen = true;
-      
-      if (!chatInitialized) {
-        const welcomeMessage = `👋 ¡Hola! Soy tu asistente de proyectos.<br><br>
-        Puedo proporcionarte información en tiempo real sobre:<br>
-        • Estado y avance de proyectos<br>
-        • Análisis de riesgos y recomendaciones<br>
-        • Próximos vencimientos<br>
-        • Estadísticas por responsable<br>
-        • Y mucho más...<br><br>
-        <em>Usa las sugerencias o escribe tu pregunta.</em>`;
+        chatPanel.style.display = 'flex';
+        chatPanel.classList.add('open');
+        isChatOpen = true;
         
-        addMessage('bot', welcomeMessage, true);
-        showSuggestions();
-        chatInitialized = true;
-      }
-      
-      chatInput.focus();
+        if (!chatInitialized) {
+            const welcomeMessage = `👋 <strong>¡Hola! Soy tu asistente inteligente de proyectos.</strong><br><br>
+            Tengo acceso completo a:<br>
+            • <strong>Todos los proyectos</strong> y su estado actual<br>
+            • <strong>Documentos asociados</strong> y su progreso<br>
+            • <strong>Métricas en tiempo real</strong> del portafolio<br>
+            • <strong>Análisis de riesgos</strong> automatizado<br><br>
+            <em>Usa las sugerencias o pregúntame lo que necesites saber.</em>`;
+            
+            addMessage('bot', welcomeMessage, true);
+            showSuggestions();
+            chatInitialized = true;
+        }
+        
+        chatInput.focus();
     }
 
     function closeChat() {
-      chatPanel.style.display = 'none';
-      chatPanel.classList.remove('open');
-      isChatOpen = false;
+        chatPanel.style.display = 'none';
+        chatPanel.classList.remove('open');
+        isChatOpen = false;
     }
 
     function toggleChat() {
-      if (isChatOpen) {
-        closeChat();
-      } else {
-        openChat();
-      }
+        if (isChatOpen) {
+            closeChat();
+        } else {
+            openChat();
+        }
     }
 
     // Event listeners del chat
     chatFab.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleChat();
+        e.preventDefault();
+        e.stopPropagation();
+        toggleChat();
     });
 
     chatClose.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeChat();
+        e.preventDefault();
+        e.stopPropagation();
+        closeChat();
     });
 
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && isChatOpen) {
-        closeChat();
-      }
+        if (e.key === 'Escape' && isChatOpen) {
+            closeChat();
+        }
     });
 
     chatPanel.addEventListener('click', function(e) {
-      e.stopPropagation();
+        e.stopPropagation();
     });
 
     document.addEventListener('click', function(e) {
-      if (isChatOpen && !chatPanel.contains(e.target) && e.target !== chatFab) {
-        closeChat();
-      }
+        if (isChatOpen && !chatPanel.contains(e.target) && e.target !== chatFab) {
+            closeChat();
+        }
     });
 
     chatForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const question = chatInput.value.trim();
-      
-      if (!question) return;
-      
-      // Agregar mensaje del usuario
-      addMessage('user', question);
-      chatInput.value = '';
-      
-      // Mostrar typing indicator
-      const typingIndicator = document.createElement('div');
-      typingIndicator.className = 'chat-message bot';
-      typingIndicator.innerHTML = '<div class="chat-bubble bot">💭 Analizando...</div>';
-      chatWindow.appendChild(typingIndicator);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      
-      // Procesar pregunta después de un breve delay
-      setTimeout(() => {
-        // Remover typing indicator
-        typingIndicator.remove();
+        e.preventDefault();
+        const question = chatInput.value.trim();
         
-        const answer = processQuestion(question);
-        addMessage('bot', answer, true);
-        showSuggestions();
-      }, 1000 + Math.random() * 1000); // Delay aleatorio para simular procesamiento
+        if (!question) return;
+        
+        // Agregar mensaje del usuario
+        addMessage('user', question);
+        chatInput.value = '';
+        
+        // Mostrar typing indicator
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'chat-message bot';
+        typingIndicator.innerHTML = '<div class="chat-bubble bot">💭 Analizando datos completos...</div>';
+        chatWindow.appendChild(typingIndicator);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        // Procesar pregunta después de un breve delay
+        setTimeout(() => {
+            // Remover typing indicator
+            typingIndicator.remove();
+            
+            const answer = processEnhancedQuestion(question);
+            addMessage('bot', answer, true);
+            showSuggestions();
+        }, 1500 + Math.random() * 1000);
     });
 
     // Escuchar cambios en localStorage para actualizar en tiempo real
     window.addEventListener('storage', function(e) {
-      if (e.key === 'projectStatus' || e.key === 'projectData') {
-        console.log('🔄 Datos actualizados desde otra pestaña');
-        loadProjectData();
-      }
+        if (e.key === 'projectStatus' || e.key === 'projectData') {
+            console.log('🔄 Datos actualizados desde otra pestaña');
+            loadProjectData();
+        }
     });
 
     // También verificar cambios periódicamente
