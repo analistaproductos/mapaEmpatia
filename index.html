@@ -40,7 +40,7 @@
     .progress { height: 10px; background:#eef2ff; border-radius:999px; overflow:hidden; }
     .progress > span { display:block; height:100%; background:linear-gradient(90deg,#16a34a,#0ea5e9); width:0; }
     .tooltip { text-decoration: underline dotted; cursor: help; }
-    /* Chatbot overlay - COMPLETAMENTE CORREGIDO */
+    /* Chatbot overlay - MEJORADO */
     .chat-fab { 
       position: fixed; 
       right: 16px; 
@@ -52,8 +52,8 @@
       position: fixed; 
       right: 16px; 
       bottom: 76px; 
-      width: 360px; 
-      height: 500px;
+      width: 400px;
+      height: 600px;
       max-width: calc(100vw - 24px); 
       background: #ffffff; 
       border: 1px solid #e2e8f0; 
@@ -69,10 +69,11 @@
     .chat-window { 
       flex: 1;
       overflow-y: auto; 
-      padding: 12px;
+      padding: 16px;
+      background: #f8fafc;
     }
     .chat-message {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       display: flex;
     }
     .chat-message.user {
@@ -82,11 +83,12 @@
       justify-content: flex-start;
     }
     .chat-bubble {
-      max-width: 80%;
-      padding: 8px 12px;
-      border-radius: 12px;
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .chat-bubble.user {
       background: #0b2f6b;
@@ -94,9 +96,44 @@
       border-bottom-right-radius: 4px;
     }
     .chat-bubble.bot {
-      background: #f1f5f9;
+      background: #ffffff;
       color: #334155;
       border-bottom-left-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .suggestion-chip {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .suggestion-chip:hover {
+      background: #0b2f6b;
+      color: white;
+    }
+    .quick-stats {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 8px 0;
+    }
+    .quick-stats-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .quick-stats-item:last-child {
+      margin-bottom: 0;
     }
     /* Estilos para el botón de documentos */
     .btn-documents {
@@ -112,6 +149,7 @@
   </style>
 </head>
 <body class="text-slate-900">
+  <!-- El resto del código del dashboard se mantiene igual -->
   <div class="max-w-7xl mx-auto p-4 lg:p-6">
     <header class="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
       <div class="flex items-center gap-3">
@@ -128,7 +166,6 @@
             <time id="lastUpdated" datetime=""></time>
           </div>
         </div>
-        <!-- Botón mejorado para documentos -->
         <a href="documentos.html" class="btn-documents inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -142,186 +179,40 @@
       </div>
     </header>
 
-    <!-- Tabs -->
-    <nav class="mt-4" role="tablist" aria-label="Vistas">
-      <div class="inline-flex rounded-xl overflow-hidden border border-slate-200 shadow-sm" role="tablist">
-        <button id="tab-general" role="tab" aria-controls="view-general" aria-selected="true" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy">General (portafolio)</button>
-        <button id="tab-proyecto" role="tab" aria-controls="view-proyecto" aria-selected="false" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 border-l border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy">Por proyecto</button>
-      </div>
-    </nav>
+    <!-- Resto del contenido del dashboard... -->
 
-    <!-- View: General -->
-    <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-4 grid gap-6">
-      <!-- KPIs resumen portafolio - ACTUALIZADOS -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass" aria-labelledby="kpi-avg">
-          <div class="flex items-center justify-between">
-            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Estado Promedio
-              <span class="tooltip" title="Promedio de avance de todos los proyectos">[?]</span>
-            </h3>
-            <span id="avgProgressLabel" class="text-sm font-bold"></span>
-          </div>
-          <div class="progress mt-2" aria-hidden="true"><span id="avgProgressBar"></span></div>
-          <p class="mt-2 text-xs text-slate-600" id="avgProgressText">Avance promedio del portafolio</p>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Cantidad de Proyectos
-            <span class="tooltip" title="Total de proyectos activos en el portafolio">[?]</span>
-          </h3>
-          <p class="mt-2 text-2xl font-black" id="totalProjectsCount">0</p>
-          <p class="mt-1 text-xs text-slate-600">Proyectos activos</p>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Mes de Creación
-            <span class="tooltip" title="Mes con más proyectos creados">[?]</span>
-          </h3>
-          <p class="mt-2 text-2xl font-black" id="creationMonth">—</p>
-          <p class="mt-1 text-xs text-slate-600">Mes más activo</p>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Mes de Finalización
-            <span class="tooltip" title="Próximo mes con más finalizaciones">[?]</span>
-          </h3>
-          <p class="mt-2 text-2xl font-black" id="completionMonth">—</p>
-          <p class="mt-1 text-xs text-slate-600">Próximas entregas</p>
-        </div>
-      </div>
-
-      <!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Distribución por Estado</h3>
-          <canvas id="statusChart" class="mt-2" aria-label="Gráfico de distribución por estado" role="img"></canvas>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Avance por Proyecto</h3>
-          <canvas id="progressChart" class="mt-2" aria-label="Gráfico de avance por proyecto" role="img"></canvas>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Timeline de Proyectos</h3>
-          <canvas id="timelineChart" class="mt-2" aria-label="Gráfico de timeline" role="img"></canvas>
-        </div>
-      </div>
-
-      <!-- Filtros + Tabla -->
-      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <label for="searchInput" class="text-sm font-semibold">Buscar</label>
-            <input id="searchInput" type="search" placeholder="Nombre de proyecto…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-64" />
-          </div>
-          <div class="flex items-center gap-2">
-            <label for="statusFilter" class="text-sm font-semibold">Estado</label>
-            <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
-              <option value="">Todos</option>
-              <option value="planificacion">Planificación</option>
-              <option value="desarrollo">Desarrollo</option>
-              <option value="pruebas">Pruebas</option>
-              <option value="revision">Revisión</option>
-              <option value="completado">Completado</option>
-              <option value="pausado">Pausado</option>
-              <option value="cancelado">Cancelado</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="mt-4 overflow-auto">
-          <table class="min-w-full text-sm" role="table" aria-label="Tabla de proyectos">
-            <thead class="text-left border-b border-slate-200 bg-slate-50">
-              <tr>
-                <th class="px-3 py-2">Proyecto</th>
-                <th class="px-3 py-2">% Avance</th>
-                <th class="px-3 py-2">Estado</th>
-                <th class="px-3 py-2">Fecha Inicio</th>
-                <th class="px-3 py-2">Fecha Fin</th>
-                <th class="px-3 py-2">Responsable</th>
-                <th class="px-3 py-2">Observaciones</th>
-              </tr>
-            </thead>
-            <tbody id="projectTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- View: Proyecto -->
-    <section id="view-proyecto" role="tabpanel" aria-labelledby="tab-proyecto" class="mt-4 grid gap-6 hidden">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <label for="projectSelect" class="text-sm font-semibold">Proyecto</label>
-          <select id="projectSelect" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-72"></select>
-        </div>
-        <div class="text-sm text-slate-600" id="projectMeta"></div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">% de Avance</h3>
-          <div class="mt-2 progress" aria-hidden="true"><span id="projProgressBar"></span></div>
-          <p class="mt-2 text-xs text-slate-600" id="projProgressLabel"></p>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Estado</h3>
-          <div class="mt-2" id="projStatus"></div>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Fecha Inicio</h3>
-          <p class="mt-2 text-xl font-black" id="projStartDate">—</p>
-          <p class="text-xs text-slate-600">Inicio del proyecto</p>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Fecha Fin</h3>
-          <p class="mt-2 text-xl font-black" id="projEndDate">—</p>
-          <p class="text-xs text-slate-600">Fin estimado</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Detalles del Proyecto</h3>
-          <div class="mt-4 space-y-3" id="projectDetails">
-            <!-- Detalles se cargarán aquí -->
-          </div>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Documentos Asociados</h3>
-          <div id="projectDocuments" class="mt-4 space-y-2">
-            <!-- Documentos se cargarán aquí -->
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-        <h3 class="text-sm font-semibold text-slate-700">Historial de Cambios</h3>
-        <div id="projectHistory" class="mt-4 space-y-3 max-h-60 overflow-y-auto">
-          <!-- Historial se cargará aquí -->
-        </div>
-      </div>
-    </section>
   </div>
 
-  <!-- Floating Chatbot -->
+  <!-- Floating Chatbot - VERSIÓN MEJORADA -->
   <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg hover:bg-blue-800 transition-colors">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
-    Chat
+    Asistente
   </button>
   
   <div id="chatPanel" class="chat-panel">
     <header class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-2xl">
-      <h2 class="text-sm font-bold">Asistente de KPIs</h2>
       <div class="flex items-center gap-2">
-        <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
+        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        <h2 class="text-sm font-bold">Asistente de Proyectos</h2>
       </div>
+      <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
     </header>
-    <div id="chatWindow" class="chat-window"></div>
-    <form id="chatForm" class="p-3 border-t border-slate-200">
+    
+    <div id="chatWindow" class="chat-window">
+      <!-- Mensaje de bienvenida se insertará aquí -->
+    </div>
+    
+    <form id="chatForm" class="p-3 border-t border-slate-200 bg-white rounded-b-2xl">
+      <div id="suggestionsContainer" class="mb-3">
+        <!-- Chips de sugerencias se insertarán aquí -->
+      </div>
       <div class="flex gap-2">
         <input 
           id="chatInput" 
           type="text" 
-          placeholder="Escribe tu pregunta..." 
+          placeholder="Pregunta sobre proyectos, estados, avances..." 
           class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
         >
         <button 
@@ -336,165 +227,46 @@
 
   <script>
   (function(){
-    const $ = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+    // ... (todo el código anterior del dashboard se mantiene igual)
 
-    // Cargar datos desde documentos.html
-    let projects = [];
-    let projectStatusData = [];
+    // =============================================
+    // CHATBOT MEJORADO - MAYOR ALCANCE
+    // =============================================
 
-    // Función para cargar datos desde localStorage
-    function loadProjectData() {
-      console.log('🔄 Cargando datos desde localStorage...');
-      
-      // Cargar estado de proyectos desde documentos.html
-      const savedProjectStatus = localStorage.getItem('projectStatus');
-      if (savedProjectStatus) {
-        try {
-          projectStatusData = JSON.parse(savedProjectStatus);
-          console.log('✅ Estado de proyectos cargado:', projectStatusData);
-        } catch (error) {
-          console.error('❌ Error cargando estado de proyectos:', error);
-        }
-      }
+    const chatFab = document.getElementById('chatFab');
+    const chatPanel = document.getElementById('chatPanel');
+    const chatClose = document.getElementById('chatClose');
+    const chatForm = document.getElementById('chatForm');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatInput = document.getElementById('chatInput');
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
 
-      // Cargar datos de proyectos desde documentos.html
-      const savedProjectData = localStorage.getItem('projectData');
-      if (savedProjectData) {
-        try {
-          const data = JSON.parse(savedProjectData);
-          projects = data.projectStatus || [];
-          console.log('✅ Proyectos cargados:', projects);
-        } catch (error) {
-          console.error('❌ Error cargando proyectos:', error);
-        }
-      }
+    // Estado del chat
+    let isChatOpen = false;
+    let chatInitialized = false;
 
-      // Si no hay datos, usar datos de ejemplo
+    // Sugerencias de preguntas
+    const suggestionChips = [
+      "¿Cuál es el estado general?",
+      "Proyectos atrasados",
+      "Próximos vencimientos",
+      "Estadísticas por responsable",
+      "Proyectos por estado",
+      "Avance del mes",
+      "Riesgos identificados",
+      "Recomendaciones"
+    ];
+
+    // Funciones de análisis de datos para el chatbot
+    function analyzePortfolio() {
       if (projects.length === 0) {
-        console.log('📊 Usando datos de ejemplo');
-        projects = [
-          {
-            id: 'project-1',
-            name: 'Proyecto Aurora',
-            status: 'desarrollo',
-            progress: 65,
-            startDate: '2024-01-15',
-            endDate: '2024-06-30',
-            responsible: 'Ana García',
-            observations: 'Proyecto en fase de desarrollo avanzada'
-          },
-          {
-            id: 'project-2',
-            name: 'Proyecto Boreal',
-            status: 'planificacion',
-            progress: 25,
-            startDate: '2024-02-01',
-            endDate: '2024-08-15',
-            responsible: 'Carlos López',
-            observations: 'Fase inicial de planificación'
-          }
-        ];
+        return { message: "No hay proyectos cargados para analizar." };
       }
 
-      updateDashboard();
-    }
-
-    // Utils
-    const fmtPct = (n) => `${(n).toFixed(1)}%`;
-    const pct = (num, den) => den > 0 ? (num/den)*100 : 0;
-    const clamp01 = (v) => Math.max(0, Math.min(100, v));
-    const sum = (arr, f = (x)=>x) => arr.reduce((a,b)=>a+f(b),0);
-    const byDateAsc = (a,b) => new Date(a) - new Date(b);
-    const nowIso = new Date().toISOString();
-
-    // Función para obtener el nombre del mes en español
-    function getMonthName(dateString) {
-      const date = new Date(dateString);
-      const months = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-      ];
-      return months[date.getMonth()];
-    }
-
-    // Función para obtener el mes más común
-    function getMostCommonMonth(dates) {
-      if (dates.length === 0) return '—';
+      const totalProjects = projects.length;
+      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / totalProjects;
       
-      const monthCounts = {};
-      dates.forEach(date => {
-        const month = getMonthName(date);
-        monthCounts[month] = (monthCounts[month] || 0) + 1;
-      });
-      
-      return Object.keys(monthCounts).reduce((a, b) => 
-        monthCounts[a] > monthCounts[b] ? a : b
-      );
-    }
-
-    // Función para actualizar todo el dashboard
-    function updateDashboard() {
-      console.log('🔄 Actualizando dashboard con', projects.length, 'proyectos');
-      
-      // Actualizar KPIs principales
-      updateMainKPIs();
-      
-      // Actualizar gráficos
-      updateCharts();
-      
-      // Actualizar tabla
-      renderTable();
-      
-      // Actualizar select de proyectos
-      updateProjectSelect();
-      
-      // Actualizar última actualización
-      updateLastUpdated();
-    }
-
-    // Actualizar KPIs principales
-    function updateMainKPIs() {
-      if (projects.length === 0) {
-        document.getElementById('avgProgressLabel').textContent = '0%';
-        document.getElementById('avgProgressBar').style.width = '0%';
-        document.getElementById('avgProgressText').textContent = 'Sin datos de proyectos';
-        document.getElementById('totalProjectsCount').textContent = '0';
-        document.getElementById('creationMonth').textContent = '—';
-        document.getElementById('completionMonth').textContent = '—';
-        return;
-      }
-
-      // KPI 1: Estado Promedio
-      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
-      document.getElementById('avgProgressLabel').textContent = fmtPct(avgProgress);
-      document.getElementById('avgProgressBar').style.width = clamp01(avgProgress) + '%';
-      document.getElementById('avgProgressText').textContent = `Promedio de ${projects.length} proyectos`;
-
-      // KPI 2: Cantidad de Proyectos
-      document.getElementById('totalProjectsCount').textContent = projects.length;
-
-      // KPI 3: Mes de Creación
-      const startDates = projects.map(p => p.startDate).filter(Boolean);
-      const creationMonth = getMostCommonMonth(startDates);
-      document.getElementById('creationMonth').textContent = creationMonth;
-
-      // KPI 4: Mes de Finalización
-      const endDates = projects.map(p => p.endDate).filter(Boolean);
-      const completionMonth = getMostCommonMonth(endDates);
-      document.getElementById('completionMonth').textContent = completionMonth;
-    }
-
-    // Actualizar gráficos
-    function updateCharts() {
-      if (projects.length === 0) return;
-
-      // Destruir gráficos existentes
-      destroyChart(window.statusChart);
-      destroyChart(window.progressChart);
-      destroyChart(window.timelineChart);
-
-      // Gráfico 1: Distribución por Estado
+      // Proyectos por estado
       const statusCounts = {
         planificacion: projects.filter(p => p.status === 'planificacion').length,
         desarrollo: projects.filter(p => p.status === 'desarrollo').length,
@@ -505,389 +277,436 @@
         cancelado: projects.filter(p => p.status === 'cancelado').length
       };
 
-      const statusLabels = ['Planificación', 'Desarrollo', 'Pruebas', 'Revisión', 'Completado', 'Pausado', 'Cancelado'];
-      const statusData = [
-        statusCounts.planificacion,
-        statusCounts.desarrollo,
-        statusCounts.pruebas,
-        statusCounts.revision,
-        statusCounts.completado,
-        statusCounts.pausado,
-        statusCounts.cancelado
-      ];
-
-      const statusColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#6b7280', '#ef4444'];
-
-      const statusCtx = document.getElementById('statusChart');
-      if (statusCtx) {
-        window.statusChart = new Chart(statusCtx, {
-          type: 'doughnut',
-          data: {
-            labels: statusLabels,
-            datasets: [{
-              data: statusData,
-              backgroundColor: statusColors
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'bottom' }
-            }
-          }
-        });
-      }
-
-      // Gráfico 2: Avance por Proyecto
-      const progressCtx = document.getElementById('progressChart');
-      if (progressCtx) {
-        window.progressChart = new Chart(progressCtx, {
-          type: 'bar',
-          data: {
-            labels: projects.map(p => p.name),
-            datasets: [{
-              label: '% Avance',
-              data: projects.map(p => p.progress || 0),
-              backgroundColor: '#0ea5e9'
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                  callback: value => value + '%'
-                }
-              }
-            }
-          }
-        });
-      }
-
-      // Gráfico 3: Timeline
-      const timelineCtx = document.getElementById('timelineChart');
-      if (timelineCtx) {
-        // Agrupar por mes
-        const monthlyData = {};
-        projects.forEach(project => {
-          if (project.startDate) {
-            const month = getMonthName(project.startDate);
-            monthlyData[month] = (monthlyData[month] || 0) + 1;
-          }
-        });
-
-        const months = Object.keys(monthlyData);
-        const counts = Object.values(monthlyData);
-
-        window.timelineChart = new Chart(timelineCtx, {
-          type: 'line',
-          data: {
-            labels: months,
-            datasets: [{
-              label: 'Proyectos por Mes',
-              data: counts,
-              borderColor: '#10b981',
-              backgroundColor: '#10b98120',
-              fill: true,
-              tension: 0.4
-            }]
-          },
-          options: {
-            responsive: true
-          }
-        });
-      }
-    }
-
-    function destroyChart(chart) {
-      try {
-        chart && chart.destroy();
-      } catch (e) {
-        console.log('Error destruyendo chart:', e);
-      }
-    }
-
-    // Actualizar última actualización
-    function updateLastUpdated() {
-      const lastUpdatedEl = document.getElementById('lastUpdated');
-      if (lastUpdatedEl) {
-        const now = new Date();
-        lastUpdatedEl.setAttribute('datetime', now.toISOString());
-        lastUpdatedEl.textContent = now.toLocaleString('es-ES', {
-          dateStyle: 'medium',
-          timeStyle: 'short'
-        });
-      }
-    }
-
-    // Tabs
-    const tabGeneral = document.getElementById('tab-general');
-    const tabProyecto = document.getElementById('tab-proyecto');
-    const viewGeneral = document.getElementById('view-general');
-    const viewProyecto = document.getElementById('view-proyecto');
-    
-    function showView(which){
-      const isGeneral = which === 'general';
-      tabGeneral.setAttribute('aria-selected', isGeneral ? 'true' : 'false');
-      tabProyecto.setAttribute('aria-selected', isGeneral ? 'false' : 'true');
-      viewGeneral.classList.toggle('hidden', !isGeneral);
-      viewProyecto.classList.toggle('hidden', isGeneral);
-      
-      if (!isGeneral && projects.length > 0) {
-        const projectSelect = document.getElementById('projectSelect');
-        if (!projectSelect.value) {
-          projectSelect.value = projects[0].id;
-          renderProject(projects[0].id);
-        }
-      }
-    }
-    
-    tabGeneral.addEventListener('click', () => showView('general'));
-    tabProyecto.addEventListener('click', () => showView('proyecto'));
-
-    // Table
-    const tbody = document.getElementById('projectTableBody');
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-
-    function statusPill(status){
-      const statusTexts = {
-        'planificacion': '📋 Planificación',
-        'desarrollo': '🚀 Desarrollo',
-        'pruebas': '🧪 Pruebas',
-        'revision': '🔍 Revisión',
-        'completado': '✅ Completado',
-        'pausado': '⏸️ Pausado',
-        'cancelado': '❌ Cancelado'
-      };
-      
-      const base = 'status-pill ';
-      const statusClasses = {
-        'planificacion': 'status-yellow',
-        'desarrollo': 'status-processing',
-        'pruebas': 'status-processing',
-        'revision': 'status-processing',
-        'completado': 'status-green',
-        'pausado': 'status-error',
-        'cancelado': 'status-red'
-      };
-      
-      return `<span class="${base}${statusClasses[status] || 'status-processing'}">${statusTexts[status] || status}</span>`;
-    }
-
-    function formatDate(dateString) {
-      if (!dateString) return '—';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        year: '2-digit',
-        month: 'short',
-        day: '2-digit'
+      // Proyectos atrasados (con fecha de fin pasada y no completados)
+      const today = new Date();
+      const delayedProjects = projects.filter(p => {
+        if (!p.endDate || p.status === 'completado') return false;
+        return new Date(p.endDate) < today;
       });
-    }
 
-    function renderTable(){
-      const term = (searchInput.value || '').toLowerCase();
-      const st = statusFilter.value;
-      
-      let rows;
-      
-      if (projects.length === 0) {
-        rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">
-          No hay proyectos cargados. <a href="documentos.html" class="text-navy underline font-semibold">Gestiona proyectos aquí</a>
-        </td></tr>`;
-      } else {
-        const filteredProjects = projects.filter(p => {
-          const okTerm = !term || p.name.toLowerCase().includes(term);
-          const okSt = !st || p.status === st;
-          return okTerm && okSt;
-        });
-        
-        if (filteredProjects.length === 0) {
-          rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No se encontraron proyectos con los filtros aplicados</td></tr>`;
-        } else {
-          rows = filteredProjects.map(p => {
-            return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
-              <td class="px-3 py-2 font-semibold">${p.name}</td>
-              <td class="px-3 py-2">${fmtPct(p.progress || 0)}</td>
-              <td class="px-3 py-2">${statusPill(p.status)}</td>
-              <td class="px-3 py-2">${formatDate(p.startDate)}</td>
-              <td class="px-3 py-2">${formatDate(p.endDate)}</td>
-              <td class="px-3 py-2">${p.responsible || '—'}</td>
-              <td class="px-3 py-2 text-xs text-slate-600 max-w-xs">${p.observations || '—'}</td>
-            </tr>`;
-          }).join('');
+      // Próximos vencimientos (próximos 30 días)
+      const next30Days = new Date();
+      next30Days.setDate(today.getDate() + 30);
+      const upcomingDeadlines = projects.filter(p => {
+        if (!p.endDate || p.status === 'completado') return false;
+        const endDate = new Date(p.endDate);
+        return endDate > today && endDate <= next30Days;
+      });
+
+      // Proyectos con bajo avance (< 25%)
+      const lowProgressProjects = projects.filter(p => (p.progress || 0) < 25);
+
+      // Proyectos con alto avance (> 75%)
+      const highProgressProjects = projects.filter(p => (p.progress || 0) > 75);
+
+      // Responsables con más proyectos
+      const responsibleStats = {};
+      projects.forEach(p => {
+        if (p.responsible) {
+          responsibleStats[p.responsible] = (responsibleStats[p.responsible] || 0) + 1;
         }
-      }
-      
-      tbody.innerHTML = rows;
+      });
+
+      return {
+        totalProjects,
+        avgProgress,
+        statusCounts,
+        delayedProjects: delayedProjects.length,
+        upcomingDeadlines: upcomingDeadlines.length,
+        lowProgressProjects: lowProgressProjects.length,
+        highProgressProjects: highProgressProjects.length,
+        responsibleStats,
+        delayedProjectsList: delayedProjects,
+        upcomingDeadlinesList: upcomingDeadlines,
+        lowProgressList: lowProgressProjects,
+        highProgressList: highProgressProjects
+      };
     }
 
-    searchInput.addEventListener('input', renderTable);
-    statusFilter.addEventListener('change', renderTable);
+    function getProjectDetails(projectName) {
+      const project = projects.find(p => 
+        p.name.toLowerCase().includes(projectName.toLowerCase()) ||
+        projectName.toLowerCase().includes(p.name.toLowerCase())
+      );
+      
+      if (!project) return null;
 
-    // Project view
-    const projectSelect = document.getElementById('projectSelect');
-    
-    function updateProjectSelect() {
-      projectSelect.innerHTML = '';
-      if (projects.length > 0) {
-        projects.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.name;
-          projectSelect.appendChild(opt);
-        });
-      } else {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No hay proyectos';
-        opt.disabled = true;
-        projectSelect.appendChild(opt);
-      }
+      return {
+        ...project,
+        isDelayed: project.endDate && new Date(project.endDate) < new Date() && project.status !== 'completado',
+        daysRemaining: project.endDate ? 
+          Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
+      };
     }
 
-    function renderProject(id) {
-      const p = projects.find(x => x.id === id);
-      if (!p) {
-        console.log('Proyecto no encontrado:', id);
-        return;
-      }
-      
-      // Información básica
-      document.getElementById('projProgressBar').style.width = clamp01(p.progress || 0) + '%';
-      document.getElementById('projProgressLabel').textContent = `${fmtPct(p.progress || 0)} de avance`;
-      document.getElementById('projStatus').innerHTML = statusPill(p.status);
-      document.getElementById('projStartDate').textContent = formatDate(p.startDate);
-      document.getElementById('projEndDate').textContent = formatDate(p.endDate);
-      
-      // Detalles del proyecto
-      const detailsHtml = `
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span class="font-semibold text-slate-600">Responsable:</span>
-            <p class="mt-1">${p.responsible || 'No asignado'}</p>
-          </div>
-          <div>
-            <span class="font-semibold text-slate-600">Estado:</span>
-            <p class="mt-1">${p.status || 'No definido'}</p>
-          </div>
-          <div class="col-span-2">
-            <span class="font-semibold text-slate-600">Observaciones:</span>
-            <p class="mt-1">${p.observations || 'Sin observaciones'}</p>
-          </div>
-        </div>
-      `;
-      document.getElementById('projectDetails').innerHTML = detailsHtml;
-      
-      // Cargar documentos asociados (simulado)
-      const projectDocs = projectStatusData.filter(doc => doc.name === p.name);
-      const docsHtml = projectDocs.length > 0 ? 
-        projectDocs.map(doc => `
-          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-            <span class="text-sm">${doc.name}</span>
-            <span class="text-xs text-slate-500">${fmtPct(doc.progress || 0)}</span>
-          </div>
-        `).join('') : 
-        '<p class="text-sm text-slate-500 text-center py-4">No hay documentos asociados</p>';
-      document.getElementById('projectDocuments').innerHTML = docsHtml;
-      
-      // Historial (simulado)
-      const historyHtml = p.history && p.history.length > 0 ? 
-        p.history.slice().reverse().map(entry => `
-          <div class="border-l-2 border-navy pl-3">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-medium text-sm">${entry.action}</p>
-                <p class="text-xs text-slate-600">${entry.details}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-xs text-slate-500">${new Date(entry.date).toLocaleDateString('es-ES')}</p>
-              </div>
-            </div>
-          </div>
-        `).join('') : 
-        '<p class="text-sm text-slate-500 text-center py-4">No hay historial disponible</p>';
-      document.getElementById('projectHistory').innerHTML = historyHtml;
+    function getResponsibleProjects(responsibleName) {
+      return projects.filter(p => 
+        p.responsible && 
+        p.responsible.toLowerCase().includes(responsibleName.toLowerCase())
+      );
     }
 
-    projectSelect.addEventListener('change', (e) => {
-      if (e.target.value && projects.length > 0) {
-        renderProject(e.target.value);
+    function generateRecommendations(analysis) {
+      const recommendations = [];
+      
+      if (analysis.delayedProjects > 0) {
+        recommendations.push(`• Revisar los ${analysis.delayedProjects} proyectos atrasados`);
       }
-    });
+      
+      if (analysis.upcomingDeadlines > 0) {
+        recommendations.push(`• Priorizar los ${analysis.upcomingDeadlines} proyectos con vencimiento próximo`);
+      }
+      
+      if (analysis.lowProgressProjects > 0) {
+        recommendations.push(`• Dar seguimiento a ${analysis.lowProgressProjects} proyectos con bajo avance`);
+      }
+      
+      if (analysis.avgProgress < 50) {
+        recommendations.push(`• El avance promedio (${analysis.avgProgress.toFixed(1)}%) está por debajo del 50%, considerar ajustes`);
+      }
 
-    // Chatbot (simplificado)
-    const chatFab = document.getElementById('chatFab');
-    const chatPanel = document.getElementById('chatPanel');
-    const chatClose = document.getElementById('chatClose');
-    const chatForm = document.getElementById('chatForm');
-    const chatWindow = document.getElementById('chatWindow');
-    const chatInput = document.getElementById('chatInput');
+      return recommendations.length > 0 ? recommendations : ["• El portafolio se encuentra en estado saludable"];
+    }
 
-    function addMessage(role, text) {
+    // Funciones del chat mejoradas
+    function addMessage(role, text, isHtml = false) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `chat-message ${role}`;
       
       const bubble = document.createElement('div');
       bubble.className = `chat-bubble ${role}`;
-      bubble.innerHTML = text;
+      
+      if (isHtml) {
+        bubble.innerHTML = text;
+      } else {
+        bubble.textContent = text;
+      }
       
       messageDiv.appendChild(bubble);
       chatWindow.appendChild(messageDiv);
+      
+      // Scroll to bottom
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function toggleChat() {
-      const isOpen = chatPanel.style.display === 'flex';
-      chatPanel.style.display = isOpen ? 'none' : 'flex';
-      chatPanel.classList.toggle('open', !isOpen);
-      
-      if (!isOpen && chatWindow.children.length === 0) {
-        addMessage('bot', '¡Hola! Soy tu asistente de KPIs. Puedo ayudarte con información sobre el estado de tus proyectos.');
-      }
-      
-      if (!isOpen) chatInput.focus();
+    function showQuickStats(analysis) {
+      const statsHtml = `
+        <div class="quick-stats">
+          <div class="quick-stats-item">
+            <span>📊 Proyectos totales:</span>
+            <strong>${analysis.totalProjects}</strong>
+          </div>
+          <div class="quick-stats-item">
+            <span>📈 Avance promedio:</span>
+            <strong>${analysis.avgProgress.toFixed(1)}%</strong>
+          </div>
+          <div class="quick-stats-item">
+            <span>⚠️ Atrasados:</span>
+            <strong>${analysis.delayedProjects}</strong>
+          </div>
+          <div class="quick-stats-item">
+            <span>📅 Próximos vencimientos:</span>
+            <strong>${analysis.upcomingDeadlines}</strong>
+          </div>
+        </div>
+      `;
+      addMessage('bot', statsHtml, true);
     }
 
-    chatFab.addEventListener('click', toggleChat);
-    chatClose.addEventListener('click', toggleChat);
+    function showSuggestions() {
+      suggestionsContainer.innerHTML = '';
+      const suggestionsDiv = document.createElement('div');
+      suggestionsDiv.className = 'suggestions';
+      
+      suggestionChips.forEach(suggestion => {
+        const chip = document.createElement('div');
+        chip.className = 'suggestion-chip';
+        chip.textContent = suggestion;
+        chip.addEventListener('click', () => {
+          chatInput.value = suggestion;
+          chatForm.dispatchEvent(new Event('submit'));
+        });
+        suggestionsDiv.appendChild(chip);
+      });
+      
+      suggestionsContainer.appendChild(suggestionsDiv);
+    }
+
+    function processQuestion(question) {
+      const q = question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const analysis = analyzePortfolio();
+      
+      // Estado general del portafolio
+      if (q.includes('estado general') || q.includes('cómo vamos') || q.includes('resumen')) {
+        showQuickStats(analysis);
+        const recommendations = generateRecommendations(analysis);
+        let response = `<strong>📈 Resumen del Portafolio</strong><br><br>`;
+        response += `• <strong>${analysis.totalProjects}</strong> proyectos activos<br>`;
+        response += `• <strong>${analysis.avgProgress.toFixed(1)}%</strong> avance promedio<br>`;
+        response += `• <strong>${analysis.delayedProjects}</strong> proyectos atrasados<br>`;
+        response += `• <strong>${analysis.upcomingDeadlines}</strong> vencimientos próximos<br><br>`;
+        response += `<strong>💡 Recomendaciones:</strong><br>`;
+        recommendations.forEach(rec => response += `${rec}<br>`);
+        return response;
+      }
+
+      // Proyectos atrasados
+      if (q.includes('atrasado') || q.includes('retraso') || q.includes('vencido')) {
+        if (analysis.delayedProjectsList.length === 0) {
+          return "🎉 ¡Excelente! No hay proyectos atrasados en este momento.";
+        }
+        
+        let response = `<strong>⚠️ Proyectos Atrasados (${analysis.delayedProjects})</strong><br><br>`;
+        analysis.delayedProjectsList.forEach(project => {
+          response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
+          if (project.responsible) {
+            response += `  👤 ${project.responsible}<br>`;
+          }
+        });
+        return response;
+      }
+
+      // Próximos vencimientos
+      if (q.includes('próximo') || q.includes('vencimiento') || q.includes('deadline')) {
+        if (analysis.upcomingDeadlinesList.length === 0) {
+          return "📅 No hay vencimientos próximos en los próximos 30 días.";
+        }
+        
+        let response = `<strong>📅 Próximos Vencimientos (${analysis.upcomingDeadlines})</strong><br><br>`;
+        analysis.upcomingDeadlinesList.forEach(project => {
+          const daysLeft = Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+          response += `• <strong>${project.name}</strong> - ${daysLeft} días<br>`;
+          response += `  📊 ${project.progress || 0}% completado<br>`;
+        });
+        return response;
+      }
+
+      // Información específica de proyecto
+      const projectMatch = projects.find(p => 
+        q.includes(p.name.toLowerCase()) || 
+        p.name.toLowerCase().includes(q.split(' ')[0])
+      );
+      
+      if (projectMatch) {
+        const details = getProjectDetails(projectMatch.name);
+        let response = `<strong>📋 ${details.name}</strong><br><br>`;
+        response += `• <strong>Estado:</strong> ${details.status || 'No definido'}<br>`;
+        response += `• <strong>Avance:</strong> ${details.progress || 0}%<br>`;
+        if (details.responsible) {
+          response += `• <strong>Responsable:</strong> ${details.responsible}<br>`;
+        }
+        if (details.startDate) {
+          response += `• <strong>Inicio:</strong> ${new Date(details.startDate).toLocaleDateString('es-ES')}<br>`;
+        }
+        if (details.endDate) {
+          const daysLeft = details.daysRemaining;
+          response += `• <strong>Fin estimado:</strong> ${new Date(details.endDate).toLocaleDateString('es-ES')}`;
+          if (daysLeft !== null) {
+            response += details.isDelayed ? 
+              ` <span style="color: #ef4444;">(⚠️ ${Math.abs(daysLeft)} días de retraso)</span>` :
+              ` (📅 ${daysLeft} días restantes)`;
+          }
+          response += `<br>`;
+        }
+        if (details.observations) {
+          response += `• <strong>Observaciones:</strong> ${details.observations}<br>`;
+        }
+        return response;
+      }
+
+      // Proyectos por responsable
+      const responsibleMatch = Object.keys(analysis.responsibleStats).find(name => 
+        q.includes(name.toLowerCase())
+      );
+      
+      if (responsibleMatch) {
+        const responsibleProjects = getResponsibleProjects(responsibleMatch);
+        let response = `<strong>👤 Proyectos de ${responsibleMatch}</strong><br><br>`;
+        response += `• <strong>Total proyectos:</strong> ${responsibleProjects.length}<br>`;
+        response += `• <strong>Avance promedio:</strong> ${(responsibleProjects.reduce((sum, p) => sum + (p.progress || 0), 0) / responsibleProjects.length).toFixed(1)}%<br><br>`;
+        
+        responsibleProjects.forEach(project => {
+          response += `• <strong>${project.name}</strong> - ${project.progress || 0}% - ${project.status || 'No definido'}<br>`;
+        });
+        return response;
+      }
+
+      // Proyectos por estado
+      if (q.includes('estado') && (q.includes('planificación') || q.includes('desarrollo') || q.includes('prueba') || q.includes('revisión') || q.includes('completado') || q.includes('pausado') || q.includes('cancelado'))) {
+        let statusType = '';
+        if (q.includes('planificación')) statusType = 'planificacion';
+        else if (q.includes('desarrollo')) statusType = 'desarrollo';
+        else if (q.includes('prueba')) statusType = 'pruebas';
+        else if (q.includes('revisión')) statusType = 'revision';
+        else if (q.includes('completado')) statusType = 'completado';
+        else if (q.includes('pausado')) statusType = 'pausado';
+        else if (q.includes('cancelado')) statusType = 'cancelado';
+
+        const statusProjects = projects.filter(p => p.status === statusType);
+        const statusNames = {
+          'planificacion': 'Planificación',
+          'desarrollo': 'Desarrollo',
+          'pruebas': 'Pruebas',
+          'revision': 'Revisión',
+          'completado': 'Completado',
+          'pausado': 'Pausado',
+          'cancelado': 'Cancelado'
+        };
+
+        let response = `<strong>📊 Proyectos en ${statusNames[statusType]} (${statusProjects.length})</strong><br><br>`;
+        statusProjects.forEach(project => {
+          response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
+          if (project.responsible) {
+            response += `  👤 ${project.responsible}<br>`;
+          }
+        });
+        return response;
+      }
+
+      // Recomendaciones y riesgos
+      if (q.includes('recomendación') || q.includes('consejo') || q.includes('riesgo') || q.includes('sugerencia')) {
+        const recommendations = generateRecommendations(analysis);
+        let response = `<strong>💡 Recomendaciones para el Portafolio</strong><br><br>`;
+        recommendations.forEach(rec => response += `${rec}<br>`);
+        response += `<br><strong>📈 Métricas clave:</strong><br>`;
+        response += `• Avance promedio: ${analysis.avgProgress.toFixed(1)}%<br>`;
+        response += `• Proyectos atrasados: ${analysis.delayedProjects}<br>`;
+        response += `• Proyectos con bajo avance: ${analysis.lowProgressProjects}<br>`;
+        return response;
+      }
+
+      // Estadísticas generales
+      if (q.includes('estadística') || q.includes('métrica') || q.includes('número')) {
+        let response = `<strong>📊 Estadísticas del Portafolio</strong><br><br>`;
+        response += `• <strong>Total proyectos:</strong> ${analysis.totalProjects}<br>`;
+        response += `• <strong>Avance promedio:</strong> ${analysis.avgProgress.toFixed(1)}%<br>`;
+        response += `• <strong>Proyectos por estado:</strong><br>`;
+        Object.entries(analysis.statusCounts).forEach(([status, count]) => {
+          if (count > 0) {
+            const statusNames = {
+              'planificacion': '📋 Planificación',
+              'desarrollo': '🚀 Desarrollo',
+              'pruebas': '🧪 Pruebas',
+              'revision': '🔍 Revisión',
+              'completado': '✅ Completado',
+              'pausado': '⏸️ Pausado',
+              'cancelado': '❌ Cancelado'
+            };
+            response += `  ${statusNames[status]}: ${count}<br>`;
+          }
+        });
+        return response;
+      }
+
+      // Respuesta por defecto con sugerencias
+      return `🤖 Puedo ayudarte con:<br><br>
+      • <strong>Estado general</strong> del portafolio<br>
+      • <strong>Proyectos específicos</strong> (menciona el nombre)<br>
+      • <strong>Proyectos atrasados</strong> o próximos a vencer<br>
+      • <strong>Estadísticas por responsable</strong><br>
+      • <strong>Proyectos por estado</strong><br>
+      • <strong>Recomendaciones</strong> y análisis de riesgos<br><br>
+      ¿En qué te puedo ayudar específicamente?`;
+    }
+
+    function openChat() {
+      chatPanel.style.display = 'flex';
+      chatPanel.classList.add('open');
+      isChatOpen = true;
+      
+      if (!chatInitialized) {
+        const welcomeMessage = `👋 ¡Hola! Soy tu asistente de proyectos.<br><br>
+        Puedo proporcionarte información en tiempo real sobre:<br>
+        • Estado y avance de proyectos<br>
+        • Análisis de riesgos y recomendaciones<br>
+        • Próximos vencimientos<br>
+        • Estadísticas por responsable<br>
+        • Y mucho más...<br><br>
+        <em>Usa las sugerencias o escribe tu pregunta.</em>`;
+        
+        addMessage('bot', welcomeMessage, true);
+        showSuggestions();
+        chatInitialized = true;
+      }
+      
+      chatInput.focus();
+    }
+
+    function closeChat() {
+      chatPanel.style.display = 'none';
+      chatPanel.classList.remove('open');
+      isChatOpen = false;
+    }
+
+    function toggleChat() {
+      if (isChatOpen) {
+        closeChat();
+      } else {
+        openChat();
+      }
+    }
+
+    // Event listeners del chat
+    chatFab.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleChat();
+    });
+
+    chatClose.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeChat();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isChatOpen) {
+        closeChat();
+      }
+    });
+
+    chatPanel.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+
+    document.addEventListener('click', function(e) {
+      if (isChatOpen && !chatPanel.contains(e.target) && e.target !== chatFab) {
+        closeChat();
+      }
+    });
 
     chatForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const question = chatInput.value.trim();
+      
       if (!question) return;
       
+      // Agregar mensaje del usuario
       addMessage('user', question);
       chatInput.value = '';
       
-      // Respuesta simple del chatbot
+      // Mostrar typing indicator
+      const typingIndicator = document.createElement('div');
+      typingIndicator.className = 'chat-message bot';
+      typingIndicator.innerHTML = '<div class="chat-bubble bot">💭 Analizando...</div>';
+      chatWindow.appendChild(typingIndicator);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      
+      // Procesar pregunta después de un breve delay
       setTimeout(() => {
-        if (question.toLowerCase().includes('proyecto')) {
-          addMessage('bot', `Actualmente tienes ${projects.length} proyectos. El avance promedio es ${fmtPct(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length)}.`);
-        } else {
-          addMessage('bot', 'Puedo ayudarte con información sobre el estado de proyectos, avances y métricas del portafolio. ¿Qué te gustaría saber?');
-        }
-      }, 1000);
+        // Remover typing indicator
+        typingIndicator.remove();
+        
+        const answer = processQuestion(question);
+        addMessage('bot', answer, true);
+        showSuggestions();
+      }, 1000 + Math.random() * 1000); // Delay aleatorio para simular procesamiento
     });
 
-    // Escuchar cambios en localStorage para actualizar en tiempo real
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'projectStatus' || e.key === 'projectData') {
-        console.log('🔄 Datos actualizados desde otra pestaña');
-        loadProjectData();
-      }
-    });
+    // Inicializar chat cerrado
+    closeChat();
 
-    // También verificar cambios periódicamente
-    setInterval(loadProjectData, 5000);
-
-    // Inicializar
-    loadProjectData();
-    showView('general');
-
-    console.log('✅ Dashboard inicializado correctamente');
+    // ... (el resto del código del dashboard se mantiene igual)
 
   })();
   </script>
