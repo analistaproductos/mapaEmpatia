@@ -820,12 +820,30 @@
             window.projectDocuments.push(documentData);
             saveDocumentsToStorage();
 
+            // ACTUALIZAR CONTADOR DE DOCUMENTOS EN CARPETAS
+            updateFolderDocumentCount(project);
+
             if (documentsList.firstChild?.classList?.contains('text-center')) {
                 documentsList.innerHTML = '';
             }
             documentsList.appendChild(documentItem);
 
             console.log('✅ Documento agregado exitosamente:', documentData);
+        }
+
+        // FUNCIÓN CORREGIDA: Actualizar contador de documentos en carpetas
+        function updateFolderDocumentCount(projectName) {
+            if (!projectName) return;
+            
+            // Encontrar la carpeta con el nombre del proyecto
+            const folder = window.projectFolders.find(f => f.name === projectName);
+            if (folder) {
+                // Contar documentos asociados a este proyecto
+                const documentCount = window.projectDocuments.filter(doc => doc.project === projectName).length;
+                folder.documentCount = documentCount;
+                saveFoldersToStorage();
+                renderFoldersList(); // Actualizar la vista
+            }
         }
 
         function renderDocumentsList(filteredDocuments = null) {
@@ -908,8 +926,15 @@
 
         function removeDocument(documentId) {
             if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+                const doc = window.projectDocuments.find(d => d.id === documentId);
+                
                 window.projectDocuments = window.projectDocuments.filter(d => d.id !== documentId);
                 saveDocumentsToStorage();
+                
+                // ACTUALIZAR CONTADOR DE DOCUMENTOS EN CARPETAS AL ELIMINAR
+                if (doc && doc.project) {
+                    updateFolderDocumentCount(doc.project);
+                }
                 
                 const docElement = document.getElementById(documentId);
                 if (docElement) {
@@ -943,7 +968,7 @@
                 name: name,
                 description: description,
                 createdAt: new Date().toISOString(),
-                documentCount: 0
+                documentCount: 0 // Inicializar en 0
             };
 
             window.projectFolders.push(newFolder);
@@ -970,7 +995,12 @@
                 return;
             }
 
-            foldersList.innerHTML = window.projectFolders.map(folder => `
+            foldersList.innerHTML = window.projectFolders.map(folder => {
+                // ACTUALIZAR CONTADOR ACTUAL AL RENDERIZAR
+                const actualDocumentCount = window.projectDocuments.filter(doc => doc.project === folder.name).length;
+                folder.documentCount = actualDocumentCount; // Sincronizar con la realidad
+                
+                return `
                 <div class="folder-card">
                     <div class="flex items-start gap-4">
                         <div class="folder-icon">
@@ -993,9 +1023,12 @@
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
 
             foldersCount.textContent = window.projectFolders.length;
+            
+            // Guardar cambios en el contador
+            saveFoldersToStorage();
         }
 
         function deleteFolder(folderId) {
