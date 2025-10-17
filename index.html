@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <a href="documentos.html">Documentos</a>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard de KPIs — Portafolio de Proyectos</title>
@@ -99,6 +98,17 @@
       color: #334155;
       border-bottom-left-radius: 4px;
     }
+    /* Estilos para el botón de documentos */
+    .btn-documents {
+      background: linear-gradient(135deg, #0b2f6b 0%, #1e40af 100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(11, 47, 107, 0.2);
+    }
+    .btn-documents:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 47, 107, 0.3);
+      background: linear-gradient(135deg, #1e40af 0%, #0b2f6b 100%);
+    }
   </style>
 </head>
 <body class="text-slate-900">
@@ -111,11 +121,24 @@
           <p class="text-sm text-slate-600">Portafolio de proyectos — Vista ejecutiva</p>
         </div>
       </div>
-      <div class="text-right text-sm text-slate-600">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
-          <span class="font-semibold">Última actualización</span>
-          <time id="lastUpdated" datetime=""></time>
+      <div class="flex items-center gap-4">
+        <div class="text-right text-sm text-slate-600">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+            <span class="font-semibold">Última actualización</span>
+            <time id="lastUpdated" datetime=""></time>
+          </div>
         </div>
+        <!-- Botón mejorado para documentos -->
+        <a href="documentos.html" class="btn-documents inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Gestión de Documentos
+        </a>
       </div>
     </header>
 
