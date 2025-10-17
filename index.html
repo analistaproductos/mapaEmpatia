@@ -149,7 +149,6 @@
   </style>
 </head>
 <body class="text-slate-900">
-  <!-- El resto del código del dashboard se mantiene igual -->
   <div class="max-w-7xl mx-auto p-4 lg:p-6">
     <header class="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
       <div class="flex items-center gap-3">
@@ -166,6 +165,7 @@
             <time id="lastUpdated" datetime=""></time>
           </div>
         </div>
+        <!-- Botón mejorado para documentos -->
         <a href="documentos.html" class="btn-documents inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -179,8 +179,162 @@
       </div>
     </header>
 
-    <!-- Resto del contenido del dashboard... -->
+    <!-- Tabs -->
+    <nav class="mt-4" role="tablist" aria-label="Vistas">
+      <div class="inline-flex rounded-xl overflow-hidden border border-slate-200 shadow-sm" role="tablist">
+        <button id="tab-general" role="tab" aria-controls="view-general" aria-selected="true" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy">General (portafolio)</button>
+        <button id="tab-proyecto" role="tab" aria-controls="view-proyecto" aria-selected="false" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 border-l border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy">Por proyecto</button>
+      </div>
+    </nav>
 
+    <!-- View: General -->
+    <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-4 grid gap-6">
+      <!-- KPIs resumen portafolio - ACTUALIZADOS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass" aria-labelledby="kpi-avg">
+          <div class="flex items-center justify-between">
+            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Estado Promedio
+              <span class="tooltip" title="Promedio de avance de todos los proyectos">[?]</span>
+            </h3>
+            <span id="avgProgressLabel" class="text-sm font-bold"></span>
+          </div>
+          <div class="progress mt-2" aria-hidden="true"><span id="avgProgressBar"></span></div>
+          <p class="mt-2 text-xs text-slate-600" id="avgProgressText">Avance promedio del portafolio</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Cantidad de Proyectos
+            <span class="tooltip" title="Total de proyectos activos en el portafolio">[?]</span>
+          </h3>
+          <p class="mt-2 text-2xl font-black" id="totalProjectsCount">0</p>
+          <p class="mt-1 text-xs text-slate-600">Proyectos activos</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Mes de Creación
+            <span class="tooltip" title="Mes con más proyectos creados">[?]</span>
+          </h3>
+          <p class="mt-2 text-2xl font-black" id="creationMonth">—</p>
+          <p class="mt-1 text-xs text-slate-600">Mes más activo</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Mes de Finalización
+            <span class="tooltip" title="Próximo mes con más finalizaciones">[?]</span>
+          </h3>
+          <p class="mt-2 text-2xl font-black" id="completionMonth">—</p>
+          <p class="mt-1 text-xs text-slate-600">Próximas entregas</p>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Distribución por Estado</h3>
+          <canvas id="statusChart" class="mt-2" aria-label="Gráfico de distribución por estado" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Avance por Proyecto</h3>
+          <canvas id="progressChart" class="mt-2" aria-label="Gráfico de avance por proyecto" role="img"></canvas>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Timeline de Proyectos</h3>
+          <canvas id="timelineChart" class="mt-2" aria-label="Gráfico de timeline" role="img"></canvas>
+        </div>
+      </div>
+
+      <!-- Filtros + Tabla -->
+      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <label for="searchInput" class="text-sm font-semibold">Buscar</label>
+            <input id="searchInput" type="search" placeholder="Nombre de proyecto…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-64" />
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="statusFilter" class="text-sm font-semibold">Estado</label>
+            <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <option value="">Todos</option>
+              <option value="planificacion">Planificación</option>
+              <option value="desarrollo">Desarrollo</option>
+              <option value="pruebas">Pruebas</option>
+              <option value="revision">Revisión</option>
+              <option value="completado">Completado</option>
+              <option value="pausado">Pausado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-auto">
+          <table class="min-w-full text-sm" role="table" aria-label="Tabla de proyectos">
+            <thead class="text-left border-b border-slate-200 bg-slate-50">
+              <tr>
+                <th class="px-3 py-2">Proyecto</th>
+                <th class="px-3 py-2">% Avance</th>
+                <th class="px-3 py-2">Estado</th>
+                <th class="px-3 py-2">Fecha Inicio</th>
+                <th class="px-3 py-2">Fecha Fin</th>
+                <th class="px-3 py-2">Responsable</th>
+                <th class="px-3 py-2">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody id="projectTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Proyecto -->
+    <section id="view-proyecto" role="tabpanel" aria-labelledby="tab-proyecto" class="mt-4 grid gap-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <label for="projectSelect" class="text-sm font-semibold">Proyecto</label>
+          <select id="projectSelect" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-72"></select>
+        </div>
+        <div class="text-sm text-slate-600" id="projectMeta"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">% de Avance</h3>
+          <div class="mt-2 progress" aria-hidden="true"><span id="projProgressBar"></span></div>
+          <p class="mt-2 text-xs text-slate-600" id="projProgressLabel"></p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Estado</h3>
+          <div class="mt-2" id="projStatus"></div>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Fecha Inicio</h3>
+          <p class="mt-2 text-xl font-black" id="projStartDate">—</p>
+          <p class="text-xs text-slate-600">Inicio del proyecto</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Fecha Fin</h3>
+          <p class="mt-2 text-xl font-black" id="projEndDate">—</p>
+          <p class="text-xs text-slate-600">Fin estimado</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Detalles del Proyecto</h3>
+          <div class="mt-4 space-y-3" id="projectDetails">
+            <!-- Detalles se cargarán aquí -->
+          </div>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Documentos Asociados</h3>
+          <div id="projectDocuments" class="mt-4 space-y-2">
+            <!-- Documentos se cargarán aquí -->
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <h3 class="text-sm font-semibold text-slate-700">Historial de Cambios</h3>
+        <div id="projectHistory" class="mt-4 space-y-3 max-h-60 overflow-y-auto">
+          <!-- Historial se cargará aquí -->
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- Floating Chatbot - VERSIÓN MEJORADA -->
@@ -227,7 +381,487 @@
 
   <script>
   (function(){
-    // ... (todo el código anterior del dashboard se mantiene igual)
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+    // Cargar datos desde documentos.html
+    let projects = [];
+    let projectStatusData = [];
+
+    // Función para cargar datos desde localStorage
+    function loadProjectData() {
+      console.log('🔄 Cargando datos desde localStorage...');
+      
+      // Cargar estado de proyectos desde documentos.html
+      const savedProjectStatus = localStorage.getItem('projectStatus');
+      if (savedProjectStatus) {
+        try {
+          projectStatusData = JSON.parse(savedProjectStatus);
+          console.log('✅ Estado de proyectos cargado:', projectStatusData);
+        } catch (error) {
+          console.error('❌ Error cargando estado de proyectos:', error);
+        }
+      }
+
+      // Cargar datos de proyectos desde documentos.html
+      const savedProjectData = localStorage.getItem('projectData');
+      if (savedProjectData) {
+        try {
+          const data = JSON.parse(savedProjectData);
+          projects = data.projectStatus || [];
+          console.log('✅ Proyectos cargados:', projects);
+        } catch (error) {
+          console.error('❌ Error cargando proyectos:', error);
+        }
+      }
+
+      // Si no hay datos, usar datos de ejemplo
+      if (projects.length === 0) {
+        console.log('📊 Usando datos de ejemplo');
+        projects = [
+          {
+            id: 'project-1',
+            name: 'Proyecto Aurora',
+            status: 'desarrollo',
+            progress: 65,
+            startDate: '2024-01-15',
+            endDate: '2024-06-30',
+            responsible: 'Ana García',
+            observations: 'Proyecto en fase de desarrollo avanzada'
+          },
+          {
+            id: 'project-2',
+            name: 'Proyecto Boreal',
+            status: 'planificacion',
+            progress: 25,
+            startDate: '2024-02-01',
+            endDate: '2024-08-15',
+            responsible: 'Carlos López',
+            observations: 'Fase inicial de planificación'
+          }
+        ];
+      }
+
+      updateDashboard();
+    }
+
+    // Utils
+    const fmtPct = (n) => `${(n).toFixed(1)}%`;
+    const pct = (num, den) => den > 0 ? (num/den)*100 : 0;
+    const clamp01 = (v) => Math.max(0, Math.min(100, v));
+    const sum = (arr, f = (x)=>x) => arr.reduce((a,b)=>a+f(b),0);
+    const byDateAsc = (a,b) => new Date(a) - new Date(b);
+    const nowIso = new Date().toISOString();
+
+    // Función para obtener el nombre del mes en español
+    function getMonthName(dateString) {
+      const date = new Date(dateString);
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      return months[date.getMonth()];
+    }
+
+    // Función para obtener el mes más común
+    function getMostCommonMonth(dates) {
+      if (dates.length === 0) return '—';
+      
+      const monthCounts = {};
+      dates.forEach(date => {
+        const month = getMonthName(date);
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      });
+      
+      return Object.keys(monthCounts).reduce((a, b) => 
+        monthCounts[a] > monthCounts[b] ? a : b
+      );
+    }
+
+    // Función para actualizar todo el dashboard
+    function updateDashboard() {
+      console.log('🔄 Actualizando dashboard con', projects.length, 'proyectos');
+      
+      // Actualizar KPIs principales
+      updateMainKPIs();
+      
+      // Actualizar gráficos
+      updateCharts();
+      
+      // Actualizar tabla
+      renderTable();
+      
+      // Actualizar select de proyectos
+      updateProjectSelect();
+      
+      // Actualizar última actualización
+      updateLastUpdated();
+    }
+
+    // Actualizar KPIs principales
+    function updateMainKPIs() {
+      if (projects.length === 0) {
+        document.getElementById('avgProgressLabel').textContent = '0%';
+        document.getElementById('avgProgressBar').style.width = '0%';
+        document.getElementById('avgProgressText').textContent = 'Sin datos de proyectos';
+        document.getElementById('totalProjectsCount').textContent = '0';
+        document.getElementById('creationMonth').textContent = '—';
+        document.getElementById('completionMonth').textContent = '—';
+        return;
+      }
+
+      // KPI 1: Estado Promedio
+      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
+      document.getElementById('avgProgressLabel').textContent = fmtPct(avgProgress);
+      document.getElementById('avgProgressBar').style.width = clamp01(avgProgress) + '%';
+      document.getElementById('avgProgressText').textContent = `Promedio de ${projects.length} proyectos`;
+
+      // KPI 2: Cantidad de Proyectos
+      document.getElementById('totalProjectsCount').textContent = projects.length;
+
+      // KPI 3: Mes de Creación
+      const startDates = projects.map(p => p.startDate).filter(Boolean);
+      const creationMonth = getMostCommonMonth(startDates);
+      document.getElementById('creationMonth').textContent = creationMonth;
+
+      // KPI 4: Mes de Finalización
+      const endDates = projects.map(p => p.endDate).filter(Boolean);
+      const completionMonth = getMostCommonMonth(endDates);
+      document.getElementById('completionMonth').textContent = completionMonth;
+    }
+
+    // Actualizar gráficos
+    function updateCharts() {
+      if (projects.length === 0) return;
+
+      // Destruir gráficos existentes
+      destroyChart(window.statusChart);
+      destroyChart(window.progressChart);
+      destroyChart(window.timelineChart);
+
+      // Gráfico 1: Distribución por Estado
+      const statusCounts = {
+        planificacion: projects.filter(p => p.status === 'planificacion').length,
+        desarrollo: projects.filter(p => p.status === 'desarrollo').length,
+        pruebas: projects.filter(p => p.status === 'pruebas').length,
+        revision: projects.filter(p => p.status === 'revision').length,
+        completado: projects.filter(p => p.status === 'completado').length,
+        pausado: projects.filter(p => p.status === 'pausado').length,
+        cancelado: projects.filter(p => p.status === 'cancelado').length
+      };
+
+      const statusLabels = ['Planificación', 'Desarrollo', 'Pruebas', 'Revisión', 'Completado', 'Pausado', 'Cancelado'];
+      const statusData = [
+        statusCounts.planificacion,
+        statusCounts.desarrollo,
+        statusCounts.pruebas,
+        statusCounts.revision,
+        statusCounts.completado,
+        statusCounts.pausado,
+        statusCounts.cancelado
+      ];
+
+      const statusColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#6b7280', '#ef4444'];
+
+      const statusCtx = document.getElementById('statusChart');
+      if (statusCtx) {
+        window.statusChart = new Chart(statusCtx, {
+          type: 'doughnut',
+          data: {
+            labels: statusLabels,
+            datasets: [{
+              data: statusData,
+              backgroundColor: statusColors
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+
+      // Gráfico 2: Avance por Proyecto
+      const progressCtx = document.getElementById('progressChart');
+      if (progressCtx) {
+        window.progressChart = new Chart(progressCtx, {
+          type: 'bar',
+          data: {
+            labels: projects.map(p => p.name),
+            datasets: [{
+              label: '% Avance',
+              data: projects.map(p => p.progress || 0),
+              backgroundColor: '#0ea5e9'
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: value => value + '%'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Gráfico 3: Timeline
+      const timelineCtx = document.getElementById('timelineChart');
+      if (timelineCtx) {
+        // Agrupar por mes
+        const monthlyData = {};
+        projects.forEach(project => {
+          if (project.startDate) {
+            const month = getMonthName(project.startDate);
+            monthlyData[month] = (monthlyData[month] || 0) + 1;
+          }
+        });
+
+        const months = Object.keys(monthlyData);
+        const counts = Object.values(monthlyData);
+
+        window.timelineChart = new Chart(timelineCtx, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Proyectos por Mes',
+              data: counts,
+              borderColor: '#10b981',
+              backgroundColor: '#10b98120',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true
+          }
+        });
+      }
+    }
+
+    function destroyChart(chart) {
+      try {
+        chart && chart.destroy();
+      } catch (e) {
+        console.log('Error destruyendo chart:', e);
+      }
+    }
+
+    // Actualizar última actualización
+    function updateLastUpdated() {
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      if (lastUpdatedEl) {
+        const now = new Date();
+        lastUpdatedEl.setAttribute('datetime', now.toISOString());
+        lastUpdatedEl.textContent = now.toLocaleString('es-ES', {
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        });
+      }
+    }
+
+    // Tabs
+    const tabGeneral = document.getElementById('tab-general');
+    const tabProyecto = document.getElementById('tab-proyecto');
+    const viewGeneral = document.getElementById('view-general');
+    const viewProyecto = document.getElementById('view-proyecto');
+    
+    function showView(which){
+      const isGeneral = which === 'general';
+      tabGeneral.setAttribute('aria-selected', isGeneral ? 'true' : 'false');
+      tabProyecto.setAttribute('aria-selected', isGeneral ? 'false' : 'true');
+      viewGeneral.classList.toggle('hidden', !isGeneral);
+      viewProyecto.classList.toggle('hidden', isGeneral);
+      
+      if (!isGeneral && projects.length > 0) {
+        const projectSelect = document.getElementById('projectSelect');
+        if (!projectSelect.value) {
+          projectSelect.value = projects[0].id;
+          renderProject(projects[0].id);
+        }
+      }
+    }
+    
+    tabGeneral.addEventListener('click', () => showView('general'));
+    tabProyecto.addEventListener('click', () => showView('proyecto'));
+
+    // Table
+    const tbody = document.getElementById('projectTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function statusPill(status){
+      const statusTexts = {
+        'planificacion': '📋 Planificación',
+        'desarrollo': '🚀 Desarrollo',
+        'pruebas': '🧪 Pruebas',
+        'revision': '🔍 Revisión',
+        'completado': '✅ Completado',
+        'pausado': '⏸️ Pausado',
+        'cancelado': '❌ Cancelado'
+      };
+      
+      const base = 'status-pill ';
+      const statusClasses = {
+        'planificacion': 'status-yellow',
+        'desarrollo': 'status-processing',
+        'pruebas': 'status-processing',
+        'revision': 'status-processing',
+        'completado': 'status-green',
+        'pausado': 'status-error',
+        'cancelado': 'status-red'
+      };
+      
+      return `<span class="${base}${statusClasses[status] || 'status-processing'}">${statusTexts[status] || status}</span>`;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '—';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        year: '2-digit',
+        month: 'short',
+        day: '2-digit'
+      });
+    }
+
+    function renderTable(){
+      const term = (searchInput.value || '').toLowerCase();
+      const st = statusFilter.value;
+      
+      let rows;
+      
+      if (projects.length === 0) {
+        rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">
+          No hay proyectos cargados. <a href="documentos.html" class="text-navy underline font-semibold">Gestiona proyectos aquí</a>
+        </td></tr>`;
+      } else {
+        const filteredProjects = projects.filter(p => {
+          const okTerm = !term || p.name.toLowerCase().includes(term);
+          const okSt = !st || p.status === st;
+          return okTerm && okSt;
+        });
+        
+        if (filteredProjects.length === 0) {
+          rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No se encontraron proyectos con los filtros aplicados</td></tr>`;
+        } else {
+          rows = filteredProjects.map(p => {
+            return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
+              <td class="px-3 py-2 font-semibold">${p.name}</td>
+              <td class="px-3 py-2">${fmtPct(p.progress || 0)}</td>
+              <td class="px-3 py-2">${statusPill(p.status)}</td>
+              <td class="px-3 py-2">${formatDate(p.startDate)}</td>
+              <td class="px-3 py-2">${formatDate(p.endDate)}</td>
+              <td class="px-3 py-2">${p.responsible || '—'}</td>
+              <td class="px-3 py-2 text-xs text-slate-600 max-w-xs">${p.observations || '—'}</td>
+            </tr>`;
+          }).join('');
+        }
+      }
+      
+      tbody.innerHTML = rows;
+    }
+
+    searchInput.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+
+    // Project view
+    const projectSelect = document.getElementById('projectSelect');
+    
+    function updateProjectSelect() {
+      projectSelect.innerHTML = '';
+      if (projects.length > 0) {
+        projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name;
+          projectSelect.appendChild(opt);
+        });
+      } else {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No hay proyectos';
+        opt.disabled = true;
+        projectSelect.appendChild(opt);
+      }
+    }
+
+    function renderProject(id) {
+      const p = projects.find(x => x.id === id);
+      if (!p) {
+        console.log('Proyecto no encontrado:', id);
+        return;
+      }
+      
+      // Información básica
+      document.getElementById('projProgressBar').style.width = clamp01(p.progress || 0) + '%';
+      document.getElementById('projProgressLabel').textContent = `${fmtPct(p.progress || 0)} de avance`;
+      document.getElementById('projStatus').innerHTML = statusPill(p.status);
+      document.getElementById('projStartDate').textContent = formatDate(p.startDate);
+      document.getElementById('projEndDate').textContent = formatDate(p.endDate);
+      
+      // Detalles del proyecto
+      const detailsHtml = `
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="font-semibold text-slate-600">Responsable:</span>
+            <p class="mt-1">${p.responsible || 'No asignado'}</p>
+          </div>
+          <div>
+            <span class="font-semibold text-slate-600">Estado:</span>
+            <p class="mt-1">${p.status || 'No definido'}</p>
+          </div>
+          <div class="col-span-2">
+            <span class="font-semibold text-slate-600">Observaciones:</span>
+            <p class="mt-1">${p.observations || 'Sin observaciones'}</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('projectDetails').innerHTML = detailsHtml;
+      
+      // Cargar documentos asociados (simulado)
+      const projectDocs = projectStatusData.filter(doc => doc.name === p.name);
+      const docsHtml = projectDocs.length > 0 ? 
+        projectDocs.map(doc => `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+            <span class="text-sm">${doc.name}</span>
+            <span class="text-xs text-slate-500">${fmtPct(doc.progress || 0)}</span>
+          </div>
+        `).join('') : 
+        '<p class="text-sm text-slate-500 text-center py-4">No hay documentos asociados</p>';
+      document.getElementById('projectDocuments').innerHTML = docsHtml;
+      
+      // Historial (simulado)
+      const historyHtml = p.history && p.history.length > 0 ? 
+        p.history.slice().reverse().map(entry => `
+          <div class="border-l-2 border-navy pl-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium text-sm">${entry.action}</p>
+                <p class="text-xs text-slate-600">${entry.details}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-500">${new Date(entry.date).toLocaleDateString('es-ES')}</p>
+              </div>
+            </div>
+          </div>
+        `).join('') : 
+        '<p class="text-sm text-slate-500 text-center py-4">No hay historial disponible</p>';
+      document.getElementById('projectHistory').innerHTML = historyHtml;
+    }
+
+    projectSelect.addEventListener('change', (e) => {
+      if (e.target.value && projects.length > 0) {
+        renderProject(e.target.value);
+      }
+    });
 
     // =============================================
     // CHATBOT MEJORADO - MAYOR ALCANCE
@@ -703,10 +1337,23 @@
       }, 1000 + Math.random() * 1000); // Delay aleatorio para simular procesamiento
     });
 
-    // Inicializar chat cerrado
+    // Escuchar cambios en localStorage para actualizar en tiempo real
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'projectStatus' || e.key === 'projectData') {
+        console.log('🔄 Datos actualizados desde otra pestaña');
+        loadProjectData();
+      }
+    });
+
+    // También verificar cambios periódicamente
+    setInterval(loadProjectData, 5000);
+
+    // Inicializar
+    loadProjectData();
+    showView('general');
     closeChat();
 
-    // ... (el resto del código del dashboard se mantiene igual)
+    console.log('✅ Dashboard inicializado correctamente');
 
   })();
   </script>
