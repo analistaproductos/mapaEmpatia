@@ -232,6 +232,39 @@
                     Los datos procesados aparecerán aquí después de cargar un archivo
                 </div>
             </div>
+
+            <!-- Project Status Table -->
+            <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">Estado del Proyecto</h2>
+                    <button onclick="addProjectStatus()" 
+                            class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors text-sm">
+                        ➕ Agregar Proyecto
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre del Proyecto</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Avance (%)</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Observaciones</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Última Actualización</th>
+                                <th class="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectStatusTable">
+                            <tr>
+                                <td colspan="6" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                    No hay proyectos registrados. Haz clic en "Agregar Proyecto" para comenzar.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Documents Tab -->
@@ -449,11 +482,91 @@
         </div>
     </div>
 
+    <!-- Modal para agregar/editar proyecto -->
+    <div id="projectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4" id="modalTitle">Agregar Proyecto</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Proyecto *</label>
+                    <input type="text" id="projectName" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
+                           placeholder="Ej: Proyecto Aurora - Fase 1">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado *</label>
+                        <select id="projectStatus" 
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                            <option value="">Seleccionar estado</option>
+                            <option value="planificacion">📋 En Planificación</option>
+                            <option value="desarrollo">🚀 En Desarrollo</option>
+                            <option value="pruebas">🧪 En Pruebas</option>
+                            <option value="revision">🔍 En Revisión</option>
+                            <option value="completado">✅ Completado</option>
+                            <option value="pausado">⏸️ Pausado</option>
+                            <option value="cancelado">❌ Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Avance (%) *</label>
+                        <input type="number" id="projectProgress" min="0" max="100" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
+                               placeholder="0-100">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+                    <textarea id="projectObservations" rows="4"
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
+                              placeholder="Descripción del estado actual, próximos pasos, riesgos..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                        <input type="date" id="projectStartDate" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin Estimada</label>
+                        <input type="date" id="projectEndDate" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
+                    <input type="text" id="projectResponsible" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent"
+                           placeholder="Nombre del responsable">
+                </div>
+            </div>
+            
+            <div class="flex gap-3 justify-end mt-6">
+                <button id="cancelProject" 
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button id="saveProject" 
+                        class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+                    Guardar Proyecto
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Estado global para almacenar datos, documentos y carpetas
         window.projectData = {
             updatedAt: new Date().toISOString(),
-            projects: []
+            projects: [],
+            projectStatus: JSON.parse(localStorage.getItem('projectStatus') || '[]')
         };
 
         window.projectDocuments = JSON.parse(localStorage.getItem('projectDocuments') || '[]');
@@ -511,7 +624,7 @@
             });
         });
 
-        // FUNCIONES PARA DOCUMENTOS - CORREGIDAS
+        // FUNCIONES PARA DOCUMENTOS
         function setupDocumentsUpload() {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 documentsDropZone.addEventListener(eventName, preventDefaults, false);
@@ -544,7 +657,6 @@
             [...files].forEach(uploadDocument);
         }
 
-        // CORREGIDO: Función para subir documentos
         function uploadDocument(file) {
             console.log('Intentando subir documento:', file.name, file.type);
             
@@ -597,7 +709,6 @@
             showUploadConfirmation(file, selectedCategories);
         }
 
-        // CORREGIDO: Mostrar confirmación de carga
         function showUploadConfirmation(file, categories) {
             // Remover modal existente si hay uno
             const existingModal = document.querySelector('.upload-confirmation-modal');
@@ -644,7 +755,6 @@
             });
         }
 
-        // CORREGIDO: Confirmar y procesar la carga del documento
         function confirmDocumentUpload() {
             if (!window.pendingDocument) {
                 console.error('No hay documento pendiente para cargar');
@@ -807,7 +917,7 @@
             localStorage.setItem('projectDocuments', JSON.stringify(window.projectDocuments));
         }
 
-        // Funciones para carpetas (se mantienen igual)
+        // Funciones para carpetas
         function createFolder() {
             const name = folderName.value.trim();
             const description = folderDescription.value.trim();
@@ -1028,6 +1138,190 @@
             localStorage.setItem('projectFolders', JSON.stringify(window.projectFolders));
         }
 
+        // Funciones para la tabla de estado del proyecto
+        function addProjectStatus(projectId = null) {
+            const modal = document.getElementById('projectModal');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (projectId) {
+                // Modo edición
+                modalTitle.textContent = 'Editar Proyecto';
+                const project = window.projectData.projectStatus.find(p => p.id === projectId);
+                if (project) {
+                    document.getElementById('projectName').value = project.name;
+                    document.getElementById('projectStatus').value = project.status;
+                    document.getElementById('projectProgress').value = project.progress;
+                    document.getElementById('projectObservations').value = project.observations || '';
+                    document.getElementById('projectStartDate').value = project.startDate || '';
+                    document.getElementById('projectEndDate').value = project.endDate || '';
+                    document.getElementById('projectResponsible').value = project.responsible || '';
+                }
+            } else {
+                // Modo nuevo
+                modalTitle.textContent = 'Agregar Proyecto';
+                // Limpiar formulario
+                document.getElementById('projectName').value = '';
+                document.getElementById('projectStatus').value = '';
+                document.getElementById('projectProgress').value = '';
+                document.getElementById('projectObservations').value = '';
+                document.getElementById('projectStartDate').value = '';
+                document.getElementById('projectEndDate').value = '';
+                document.getElementById('projectResponsible').value = '';
+            }
+            
+            // Guardar el ID del proyecto que se está editando
+            modal.dataset.editingId = projectId || '';
+            modal.classList.remove('hidden');
+        }
+
+        function saveProjectStatus() {
+            const modal = document.getElementById('projectModal');
+            const projectId = modal.dataset.editingId;
+            const projectData = {
+                id: projectId || 'project-' + Date.now(),
+                name: document.getElementById('projectName').value.trim(),
+                status: document.getElementById('projectStatus').value,
+                progress: parseInt(document.getElementById('projectProgress').value) || 0,
+                observations: document.getElementById('projectObservations').value.trim(),
+                startDate: document.getElementById('projectStartDate').value,
+                endDate: document.getElementById('projectEndDate').value,
+                responsible: document.getElementById('projectResponsible').value.trim(),
+                lastUpdate: new Date().toISOString()
+            };
+            
+            // Validaciones
+            if (!projectData.name || !projectData.status || projectData.progress === '') {
+                alert('Por favor completa los campos obligatorios: Nombre, Estado y Avance');
+                return;
+            }
+            
+            if (projectId) {
+                // Actualizar proyecto existente
+                const index = window.projectData.projectStatus.findIndex(p => p.id === projectId);
+                if (index !== -1) {
+                    window.projectData.projectStatus[index] = projectData;
+                }
+            } else {
+                // Agregar nuevo proyecto
+                window.projectData.projectStatus.push(projectData);
+            }
+            
+            saveProjectStatusToStorage();
+            renderProjectStatusTable();
+            modal.classList.add('hidden');
+            
+            // Actualizar KPIs en index.html si está disponible
+            updateKPIs();
+        }
+
+        function deleteProjectStatus(projectId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este proyecto?')) {
+                window.projectData.projectStatus = window.projectData.projectStatus.filter(p => p.id !== projectId);
+                saveProjectStatusToStorage();
+                renderProjectStatusTable();
+                updateKPIs();
+            }
+        }
+
+        function renderProjectStatusTable() {
+            const tableBody = document.getElementById('projectStatusTable');
+            
+            if (window.projectData.projectStatus.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                            No hay proyectos registrados. Haz clic en "Agregar Proyecto" para comenzar.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = window.projectData.projectStatus.map(project => `
+                <tr class="hover:bg-gray-50">
+                    <td class="border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900">
+                        ${project.name}
+                    </td>
+                    <td class="border border-gray-200 px-4 py-3">
+                        <span class="status-badge ${getStatusClass(project.status)}">
+                            ${getStatusText(project.status)}
+                        </span>
+                    </td>
+                    <td class="border border-gray-200 px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full" 
+                                     style="width: ${project.progress}%"></div>
+                            </div>
+                            <span class="text-sm font-medium w-8">${project.progress}%</span>
+                        </div>
+                    </td>
+                    <td class="border border-gray-200 px-4 py-3 text-sm text-gray-600 max-w-xs">
+                        ${project.observations || '-'}
+                    </td>
+                    <td class="border border-gray-200 px-4 py-3 text-sm text-gray-500">
+                        ${new Date(project.lastUpdate).toLocaleDateString()}
+                    </td>
+                    <td class="border border-gray-200 px-4 py-3">
+                        <div class="flex gap-2">
+                            <button onclick="addProjectStatus('${project.id}')" 
+                                    class="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                                ✏️
+                            </button>
+                            <button onclick="deleteProjectStatus('${project.id}')" 
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'planificacion': 'status-processing',
+                'desarrollo': 'status-processing',
+                'pruebas': 'status-processing',
+                'revision': 'status-processing',
+                'completado': 'status-completed',
+                'pausado': 'status-error',
+                'cancelado': 'status-error'
+            };
+            return statusClasses[status] || 'status-processing';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'planificacion': '📋 En Planificación',
+                'desarrollo': '🚀 En Desarrollo',
+                'pruebas': '🧪 En Pruebas',
+                'revision': '🔍 En Revisión',
+                'completado': '✅ Completado',
+                'pausado': '⏸️ Pausado',
+                'cancelado': '❌ Cancelado'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function saveProjectStatusToStorage() {
+            localStorage.setItem('projectStatus', JSON.stringify(window.projectData.projectStatus));
+            window.projectData.updatedAt = new Date().toISOString();
+            localStorage.setItem('projectData', JSON.stringify(window.projectData));
+        }
+
+        function updateKPIs() {
+            // Esta función se conectará con index.html para actualizar los KPIs
+            if (typeof window.updateDashboard === 'function') {
+                window.updateDashboard();
+            }
+            
+            // Disparar evento personalizado para que index.html escuche
+            window.dispatchEvent(new CustomEvent('projectDataUpdated', {
+                detail: window.projectData
+            }));
+        }
+
         // Helper functions
         function getFileExtension(filename) {
             return filename.split('.').pop().toLowerCase();
@@ -1078,12 +1372,42 @@
             e.stopPropagation();
         }
 
+        // Funciones auxiliares para datos
+        function downloadTemplate() {
+            alert('📥 Descargando plantilla de datos...');
+            // Aquí iría la lógica para descargar una plantilla Excel real
+        }
+
+        function clearAllDataFiles() {
+            if (confirm('¿Estás seguro de que quieres eliminar todos los archivos de datos?')) {
+                window.dataFiles = [];
+                localStorage.setItem('dataFiles', JSON.stringify(window.dataFiles));
+                dataFileList.innerHTML = '<div class="text-center py-8 text-gray-500">No hay archivos de datos cargados aún</div>';
+                dataPreview.innerHTML = '<div class="text-center py-8 text-gray-500">Los datos procesados aparecerán aquí después de cargar un archivo</div>';
+            }
+        }
+
         // Inicialización
         setupDocumentsUpload();
         renderFoldersList();
         renderFolderSelection();
+        renderProjectStatusTable();
 
-        console.log('✅ Sistema de documentos inicializado correctamente');
+        // Event listeners para el modal de proyectos
+        document.getElementById('cancelProject').addEventListener('click', function() {
+            document.getElementById('projectModal').classList.add('hidden');
+        });
+
+        document.getElementById('saveProject').addEventListener('click', saveProjectStatus);
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('projectModal').classList.add('hidden');
+            }
+        });
+
+        console.log('✅ Sistema de documentos y estado de proyectos inicializado correctamente');
     </script>
 </body>
 </html>
