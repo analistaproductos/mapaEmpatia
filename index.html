@@ -152,52 +152,54 @@
 
     <!-- View: General -->
     <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-4 grid gap-6">
-      <!-- KPIs resumen portafolio -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- KPIs resumen portafolio - ACTUALIZADOS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass" aria-labelledby="kpi-avg">
           <div class="flex items-center justify-between">
-            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Promedio ponderado de avance
-              <span class="tooltip" title="Fórmula: (Σ entregado) / (Σ planificado) × 100">[?]</span>
+            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Estado Promedio
+              <span class="tooltip" title="Promedio de avance de todos los proyectos">[?]</span>
             </h3>
             <span id="avgProgressLabel" class="text-sm font-bold"></span>
           </div>
           <div class="progress mt-2" aria-hidden="true"><span id="avgProgressBar"></span></div>
-          <p class="mt-2 text-xs text-slate-600">Avance = entregado/planificado (ponderado por alcance planificado)</p>
+          <p class="mt-2 text-xs text-slate-600" id="avgProgressText">Avance promedio del portafolio</p>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Estado del portafolio
-            <span class="tooltip" title="Estados reportados por proyecto: verde/amarillo/rojo">[?]</span>
+          <h3 class="text-sm font-semibold text-slate-700">Cantidad de Proyectos
+            <span class="tooltip" title="Total de proyectos activos en el portafolio">[?]</span>
           </h3>
-          <div class="mt-2 flex gap-2 text-xs">
-            <span id="count-green" class="status-pill status-green" aria-label="Proyectos en verde"></span>
-            <span id="count-yellow" class="status-pill status-yellow" aria-label="Proyectos en amarillo"></span>
-            <span id="count-red" class="status-pill status-red" aria-label="Proyectos en rojo"></span>
-          </div>
+          <p class="mt-2 text-2xl font-black" id="totalProjectsCount">0</p>
+          <p class="mt-1 text-xs text-slate-600">Proyectos activos</p>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Velocidad 4 semanas (portafolio)
-            <span class="tooltip" title="Fórmula: promedio de entregas semanales (Σ puntos) en 4 semanas">[?]</span>
+          <h3 class="text-sm font-semibold text-slate-700">Mes de Creación
+            <span class="tooltip" title="Mes con más proyectos creados">[?]</span>
           </h3>
-          <p class="mt-2 text-2xl font-black" id="portfolioVelocity">—</p>
-          <p class="mt-1 text-xs text-slate-600">Puntos/semana (promedio 4 semanas)</p>
+          <p class="mt-2 text-2xl font-black" id="creationMonth">—</p>
+          <p class="mt-1 text-xs text-slate-600">Mes más activo</p>
+        </div>
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">Mes de Finalización
+            <span class="tooltip" title="Próximo mes con más finalizaciones">[?]</span>
+          </h3>
+          <p class="mt-2 text-2xl font-black" id="completionMonth">—</p>
+          <p class="mt-1 text-xs text-slate-600">Próximas entregas</p>
         </div>
       </div>
 
       <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Distribución por estado</h3>
+          <h3 class="text-sm font-semibold text-slate-700">Distribución por Estado</h3>
           <canvas id="statusChart" class="mt-2" aria-label="Gráfico de distribución por estado" role="img"></canvas>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Desviación presupuestal por proyecto
-            <span class="tooltip" title="Fórmula: (gastado − planificado) / planificado × 100">[?]</span>
-          </h3>
-          <canvas id="budgetChart" class="mt-2" aria-label="Gráfico de desviación presupuestal" role="img"></canvas>
+          <h3 class="text-sm font-semibold text-slate-700">Avance por Proyecto</h3>
+          <canvas id="progressChart" class="mt-2" aria-label="Gráfico de avance por proyecto" role="img"></canvas>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Entregas por semana (últimas 4) — Portafolio</h3>
-          <canvas id="velocityChart" class="mt-2" aria-label="Gráfico de velocidad 4 semanas" role="img"></canvas>
+          <h3 class="text-sm font-semibold text-slate-700">Timeline de Proyectos</h3>
+          <canvas id="timelineChart" class="mt-2" aria-label="Gráfico de timeline" role="img"></canvas>
         </div>
       </div>
 
@@ -212,9 +214,13 @@
             <label for="statusFilter" class="text-sm font-semibold">Estado</label>
             <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
               <option value="">Todos</option>
-              <option value="green">Verde</option>
-              <option value="yellow">Amarillo</option>
-              <option value="red">Rojo</option>
+              <option value="planificacion">Planificación</option>
+              <option value="desarrollo">Desarrollo</option>
+              <option value="pruebas">Pruebas</option>
+              <option value="revision">Revisión</option>
+              <option value="completado">Completado</option>
+              <option value="pausado">Pausado</option>
+              <option value="cancelado">Cancelado</option>
             </select>
           </div>
         </div>
@@ -224,12 +230,12 @@
             <thead class="text-left border-b border-slate-200 bg-slate-50">
               <tr>
                 <th class="px-3 py-2">Proyecto</th>
-                <th class="px-3 py-2">% avance <span class="tooltip" title="entregado/planificado × 100">[?]</span></th>
+                <th class="px-3 py-2">% Avance</th>
                 <th class="px-3 py-2">Estado</th>
-                <th class="px-3 py-2">Cumpl. hitos <span class="tooltip" title="hitos cumplidos/planificados × 100">[?]</span></th>
-                <th class="px-3 py-2">Desv. presupuestal <span class="tooltip" title="(gastado − planificado)/planificado × 100">[?]</span></th>
-                <th class="px-3 py-2">Velocidad 4s <span class="tooltip" title="promedio (puntos/semana) en 4 semanas">[?]</span></th>
-                <th class="px-3 py-2">Próximo hito</th>
+                <th class="px-3 py-2">Fecha Inicio</th>
+                <th class="px-3 py-2">Fecha Fin</th>
+                <th class="px-3 py-2">Responsable</th>
+                <th class="px-3 py-2">Observaciones</th>
               </tr>
             </thead>
             <tbody id="projectTableBody"></tbody>
@@ -248,9 +254,9 @@
         <div class="text-sm text-slate-600" id="projectMeta"></div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass md:col-span-2">
-          <h3 class="text-sm font-semibold text-slate-700">% de avance</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700">% de Avance</h3>
           <div class="mt-2 progress" aria-hidden="true"><span id="projProgressBar"></span></div>
           <p class="mt-2 text-xs text-slate-600" id="projProgressLabel"></p>
         </div>
@@ -259,40 +265,42 @@
           <div class="mt-2" id="projStatus"></div>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Cumplimiento de hitos</h3>
-          <p class="mt-2 text-xl font-black" id="projMilestoneRate">—</p>
-          <p class="text-xs text-slate-600">Hitos cumplidos / planificados</p>
+          <h3 class="text-sm font-semibold text-slate-700">Fecha Inicio</h3>
+          <p class="mt-2 text-xl font-black" id="projStartDate">—</p>
+          <p class="text-xs text-slate-600">Inicio del proyecto</p>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Desviación presupuestal</h3>
-          <p class="mt-2 text-xl font-black" id="projBudgetDev">—</p>
-          <p class="text-xs text-slate-600">(gastado − planificado) / planificado</p>
+          <h3 class="text-sm font-semibold text-slate-700">Fecha Fin</h3>
+          <p class="mt-2 text-xl font-black" id="projEndDate">—</p>
+          <p class="text-xs text-slate-600">Fin estimado</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Progreso</h3>
-          <canvas id="projProgressChart" class="mt-2" aria-label="Gráfico de progreso" role="img"></canvas>
+          <h3 class="text-sm font-semibold text-slate-700">Detalles del Proyecto</h3>
+          <div class="mt-4 space-y-3" id="projectDetails">
+            <!-- Detalles se cargarán aquí -->
+          </div>
         </div>
         <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Presupuesto</h3>
-          <canvas id="projBudgetChart" class="mt-2" aria-label="Gráfico de presupuesto" role="img"></canvas>
-        </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Velocidad (8 semanas)</h3>
-          <canvas id="projVelocityChart" class="mt-2" aria-label="Gráfico de velocidad" role="img"></canvas>
+          <h3 class="text-sm font-semibold text-slate-700">Documentos Asociados</h3>
+          <div id="projectDocuments" class="mt-4 space-y-2">
+            <!-- Documentos se cargarán aquí -->
+          </div>
         </div>
       </div>
 
       <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-        <h3 class="text-sm font-semibold text-slate-700">Hitos y próximos entregables</h3>
-        <ul id="milestoneList" class="mt-2 grid gap-2"></ul>
+        <h3 class="text-sm font-semibold text-slate-700">Historial de Cambios</h3>
+        <div id="projectHistory" class="mt-4 space-y-3 max-h-60 overflow-y-auto">
+          <!-- Historial se cargará aquí -->
+        </div>
       </div>
     </section>
   </div>
 
-  <!-- Floating Chatbot - VERSIÓN COMPLETAMENTE CORREGIDA -->
+  <!-- Floating Chatbot -->
   <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg hover:bg-blue-800 transition-colors">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -304,10 +312,6 @@
     <header class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-2xl">
       <h2 class="text-sm font-bold">Asistente de KPIs</h2>
       <div class="flex items-center gap-2">
-        <label class="text-xs text-slate-600 inline-flex items-center gap-1">
-          <input type="checkbox" id="useLLM" class="accent-navy" disabled> 
-          Usar LLM
-        </label>
         <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
       </div>
     </header>
@@ -327,154 +331,73 @@
           Enviar
         </button>
       </div>
-      <div class="mt-2">
-        <small class="text-slate-500 text-xs" id="chatModeHelp"></small>
-      </div>
     </form>
   </div>
-
-  <!-- Datos mock -->
-  <script type="application/json" id="data">
-  {
-    "updatedAt": "2025-10-16T10:10:00Z",
-    "projects": [
-      {
-        "id": "PRJ-001",
-        "name": "Proyecto Aurora",
-        "plannedDeliverables": 100,
-        "deliveredDeliverables": 62,
-        "status": "green",
-        "plannedBudget": 120000,
-        "actualSpent": 110500,
-        "weeklyDeliveries": [
-          {"week": "2025-08-25", "points": 12},
-          {"week": "2025-09-01", "points": 13},
-          {"week": "2025-09-08", "points": 16},
-          {"week": "2025-09-15", "points": 17},
-          {"week": "2025-09-22", "points": 18},
-          {"week": "2025-09-29", "points": 16},
-          {"week": "2025-10-06", "points": 14},
-          {"week": "2025-10-13", "points": 14}
-        ],
-        "milestones": [
-          {"name": "Kickoff", "dueDate": "2025-09-16", "status": "completed", "completedAt": "2025-09-15"},
-          {"name": "MVP", "dueDate": "2025-10-20", "status": "pending"},
-          {"name": "Beta", "dueDate": "2025-11-10", "status": "pending"}
-        ]
-      },
-      {
-        "id": "PRJ-002",
-        "name": "Proyecto Boreal",
-        "plannedDeliverables": 80,
-        "deliveredDeliverables": 36,
-        "status": "yellow",
-        "plannedBudget": 90000,
-        "actualSpent": 99000,
-        "weeklyDeliveries": [
-          {"week": "2025-08-25", "points": 9},
-          {"week": "2025-09-01", "points": 8},
-          {"week": "2025-09-08", "points": 7},
-          {"week": "2025-09-15", "points": 6},
-          {"week": "2025-09-22", "points": 8},
-          {"week": "2025-09-29", "points": 9},
-          {"week": "2025-10-06", "points": 10},
-          {"week": "2025-10-13", "points": 11}
-        ],
-        "milestones": [
-          {"name": "Diseño", "dueDate": "2025-09-10", "status": "completed"},
-          {"name": "Integración API", "dueDate": "2025-10-25", "status": "pending"},
-          {"name": "Piloto", "dueDate": "2025-11-05", "status": "pending"}
-        ]
-      },
-      {
-        "id": "PRJ-003",
-        "name": "Proyecto Cumbre",
-        "plannedDeliverables": 120,
-        "deliveredDeliverables": 38,
-        "status": "red",
-        "plannedBudget": 150000,
-        "actualSpent": 175000,
-        "weeklyDeliveries": [
-          {"week": "2025-08-25", "points": 5},
-          {"week": "2025-09-01", "points": 6},
-          {"week": "2025-09-08", "points": 5},
-          {"week": "2025-09-15", "points": 4},
-          {"week": "2025-09-22", "points": 3},
-          {"week": "2025-09-29", "points": 5},
-          {"week": "2025-10-06", "points": 6},
-          {"week": "2025-10-13", "points": 6}
-        ],
-        "milestones": [
-          {"name": "Levantamiento", "dueDate": "2025-09-05", "status": "completed"},
-          {"name": "Core funcional", "dueDate": "2025-10-15", "status": "pending"},
-          {"name": "Go-live", "dueDate": "2025-12-01", "status": "pending"}
-        ]
-      },
-      {
-        "id": "PRJ-004",
-        "name": "Proyecto Delta",
-        "plannedDeliverables": 60,
-        "deliveredDeliverables": 40,
-        "status": "green",
-        "plannedBudget": 70000,
-        "actualSpent": 68000,
-        "weeklyDeliveries": [
-          {"week": "2025-08-25", "points": 9},
-          {"week": "2025-09-01", "points": 10},
-          {"week": "2025-09-08", "points": 9},
-          {"week": "2025-09-15", "points": 8},
-          {"week": "2025-09-22", "points": 9},
-          {"week": "2025-09-29", "points": 9},
-          {"week": "2025-10-06", "points": 7},
-          {"week": "2025-10-13", "points": 6}
-        ],
-        "milestones": [
-          {"name": "Aprobación alcance", "dueDate": "2025-09-03", "status": "completed"},
-          {"name": "QA", "dueDate": "2025-10-28", "status": "pending"},
-          {"name": "Entrega final", "dueDate": "2025-11-20", "status": "pending"}
-        ]
-      }
-    ]
-  }
-  </script>
 
   <script>
   (function(){
     const $ = (s, r=document) => r.querySelector(s);
     const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-    // Cargar dataset - PRIMERO intentar desde localStorage, luego usar datos mock
-    let ds;
-    const savedData = localStorage.getItem('projectData');
-    
-    console.log('Buscando datos en localStorage...', savedData);
-    
-    if (savedData) {
-      try {
-        ds = JSON.parse(savedData);
-        console.log('✅ Datos cargados desde localStorage:', ds);
-      } catch (error) {
-        console.error('❌ Error cargando datos guardados:', error);
-        // Si hay error, cargar datos mock
-        const raw = document.getElementById('data').textContent.trim();
-        ds = JSON.parse(raw);
-        console.log('📊 Usando datos mock por error en localStorage');
+    // Cargar datos desde documentos.html
+    let projects = [];
+    let projectStatusData = [];
+
+    // Función para cargar datos desde localStorage
+    function loadProjectData() {
+      console.log('🔄 Cargando datos desde localStorage...');
+      
+      // Cargar estado de proyectos desde documentos.html
+      const savedProjectStatus = localStorage.getItem('projectStatus');
+      if (savedProjectStatus) {
+        try {
+          projectStatusData = JSON.parse(savedProjectStatus);
+          console.log('✅ Estado de proyectos cargado:', projectStatusData);
+        } catch (error) {
+          console.error('❌ Error cargando estado de proyectos:', error);
+        }
       }
-    } else {
-      // Cargar datos mock por defecto
-      const raw = document.getElementById('data').textContent.trim();
-      ds = JSON.parse(raw);
-      console.log('📊 Usando datos mock (no hay datos en localStorage)');
-    }
 
-    const projects = ds.projects || [];
-    console.log('Proyectos cargados:', projects.length, projects);
+      // Cargar datos de proyectos desde documentos.html
+      const savedProjectData = localStorage.getItem('projectData');
+      if (savedProjectData) {
+        try {
+          const data = JSON.parse(savedProjectData);
+          projects = data.projectStatus || [];
+          console.log('✅ Proyectos cargados:', projects);
+        } catch (error) {
+          console.error('❌ Error cargando proyectos:', error);
+        }
+      }
 
-    // Si no hay proyectos, mostrar mensaje
-    if (projects.length === 0) {
-      console.warn('⚠️ No hay proyectos cargados');
-      document.getElementById('projectTableBody').innerHTML = 
-        '<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No hay datos de proyectos. <a href="documentos.html" class="text-navy underline">Carga datos aquí</a></td></tr>';
+      // Si no hay datos, usar datos de ejemplo
+      if (projects.length === 0) {
+        console.log('📊 Usando datos de ejemplo');
+        projects = [
+          {
+            id: 'project-1',
+            name: 'Proyecto Aurora',
+            status: 'desarrollo',
+            progress: 65,
+            startDate: '2024-01-15',
+            endDate: '2024-06-30',
+            responsible: 'Ana García',
+            observations: 'Proyecto en fase de desarrollo avanzada'
+          },
+          {
+            id: 'project-2',
+            name: 'Proyecto Boreal',
+            status: 'planificacion',
+            progress: 25,
+            startDate: '2024-02-01',
+            endDate: '2024-08-15',
+            responsible: 'Carlos López',
+            observations: 'Fase inicial de planificación'
+          }
+        ];
+      }
+
+      updateDashboard();
     }
 
     // Utils
@@ -485,41 +408,218 @@
     const byDateAsc = (a,b) => new Date(a) - new Date(b);
     const nowIso = new Date().toISOString();
 
-    // Derived metrics
-    function projectProgress(p){ 
-      const progress = pct(p.deliveredDeliverables, p.plannedDeliverables);
-      console.log(`Progreso ${p.name}:`, p.deliveredDeliverables, '/', p.plannedDeliverables, '=', progress);
-      return progress;
+    // Función para obtener el nombre del mes en español
+    function getMonthName(dateString) {
+      const date = new Date(dateString);
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      return months[date.getMonth()];
     }
-    function milestoneRate(p){ const t=p.milestones?.length||0; const c=(p.milestones||[]).filter(m=>m.status==='completed').length; return pct(c, t); }
-    function budgetDevPct(p){ return pct(p.actualSpent - p.plannedBudget, p.plannedBudget); }
-    function velocity4Weeks(p){ const recent = (p.weeklyDeliveries||[]).slice(-4); if(!recent.length) return 0; return sum(recent, x=>x.points)/recent.length; }
-    function nextMilestone(p){ const upcoming=(p.milestones||[]).filter(m=>m.status!=='completed'); upcoming.sort((a,b)=>byDateAsc(a.dueDate,b.dueDate)); return upcoming[0]||null; }
 
-    const totalPlanned = sum(projects, p=>p.plannedDeliverables);
-    const totalDelivered = sum(projects, p=>p.deliveredDeliverables);
-    const portfolioAvg = pct(totalDelivered, totalPlanned);
+    // Función para obtener el mes más común
+    function getMostCommonMonth(dates) {
+      if (dates.length === 0) return '—';
+      
+      const monthCounts = {};
+      dates.forEach(date => {
+        const month = getMonthName(date);
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      });
+      
+      return Object.keys(monthCounts).reduce((a, b) => 
+        monthCounts[a] > monthCounts[b] ? a : b
+      );
+    }
 
-    console.log('Métricas calculadas:', {
-      totalPlanned,
-      totalDelivered,
-      portfolioAvg,
-      projectsCount: projects.length
-    });
+    // Función para actualizar todo el dashboard
+    function updateDashboard() {
+      console.log('🔄 Actualizando dashboard con', projects.length, 'proyectos');
+      
+      // Actualizar KPIs principales
+      updateMainKPIs();
+      
+      // Actualizar gráficos
+      updateCharts();
+      
+      // Actualizar tabla
+      renderTable();
+      
+      // Actualizar select de proyectos
+      updateProjectSelect();
+      
+      // Actualizar última actualización
+      updateLastUpdated();
+    }
 
-    const statusCounts = {
-      green: projects.filter(p=>p.status==='green').length,
-      yellow: projects.filter(p=>p.status==='yellow').length,
-      red: projects.filter(p=>p.status==='red').length
-    };
+    // Actualizar KPIs principales
+    function updateMainKPIs() {
+      if (projects.length === 0) {
+        document.getElementById('avgProgressLabel').textContent = '0%';
+        document.getElementById('avgProgressBar').style.width = '0%';
+        document.getElementById('avgProgressText').textContent = 'Sin datos de proyectos';
+        document.getElementById('totalProjectsCount').textContent = '0';
+        document.getElementById('creationMonth').textContent = '—';
+        document.getElementById('completionMonth').textContent = '—';
+        return;
+      }
 
-    // Last updated
-    const updatedAt = ds.updatedAt || nowIso;
-    const lastUpdatedEl = document.getElementById('lastUpdated');
-    if (lastUpdatedEl) {
-      const d = new Date(updatedAt);
-      lastUpdatedEl.setAttribute('datetime', d.toISOString());
-      lastUpdatedEl.textContent = d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
+      // KPI 1: Estado Promedio
+      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
+      document.getElementById('avgProgressLabel').textContent = fmtPct(avgProgress);
+      document.getElementById('avgProgressBar').style.width = clamp01(avgProgress) + '%';
+      document.getElementById('avgProgressText').textContent = `Promedio de ${projects.length} proyectos`;
+
+      // KPI 2: Cantidad de Proyectos
+      document.getElementById('totalProjectsCount').textContent = projects.length;
+
+      // KPI 3: Mes de Creación
+      const startDates = projects.map(p => p.startDate).filter(Boolean);
+      const creationMonth = getMostCommonMonth(startDates);
+      document.getElementById('creationMonth').textContent = creationMonth;
+
+      // KPI 4: Mes de Finalización
+      const endDates = projects.map(p => p.endDate).filter(Boolean);
+      const completionMonth = getMostCommonMonth(endDates);
+      document.getElementById('completionMonth').textContent = completionMonth;
+    }
+
+    // Actualizar gráficos
+    function updateCharts() {
+      if (projects.length === 0) return;
+
+      // Destruir gráficos existentes
+      destroyChart(window.statusChart);
+      destroyChart(window.progressChart);
+      destroyChart(window.timelineChart);
+
+      // Gráfico 1: Distribución por Estado
+      const statusCounts = {
+        planificacion: projects.filter(p => p.status === 'planificacion').length,
+        desarrollo: projects.filter(p => p.status === 'desarrollo').length,
+        pruebas: projects.filter(p => p.status === 'pruebas').length,
+        revision: projects.filter(p => p.status === 'revision').length,
+        completado: projects.filter(p => p.status === 'completado').length,
+        pausado: projects.filter(p => p.status === 'pausado').length,
+        cancelado: projects.filter(p => p.status === 'cancelado').length
+      };
+
+      const statusLabels = ['Planificación', 'Desarrollo', 'Pruebas', 'Revisión', 'Completado', 'Pausado', 'Cancelado'];
+      const statusData = [
+        statusCounts.planificacion,
+        statusCounts.desarrollo,
+        statusCounts.pruebas,
+        statusCounts.revision,
+        statusCounts.completado,
+        statusCounts.pausado,
+        statusCounts.cancelado
+      ];
+
+      const statusColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#6b7280', '#ef4444'];
+
+      const statusCtx = document.getElementById('statusChart');
+      if (statusCtx) {
+        window.statusChart = new Chart(statusCtx, {
+          type: 'doughnut',
+          data: {
+            labels: statusLabels,
+            datasets: [{
+              data: statusData,
+              backgroundColor: statusColors
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+
+      // Gráfico 2: Avance por Proyecto
+      const progressCtx = document.getElementById('progressChart');
+      if (progressCtx) {
+        window.progressChart = new Chart(progressCtx, {
+          type: 'bar',
+          data: {
+            labels: projects.map(p => p.name),
+            datasets: [{
+              label: '% Avance',
+              data: projects.map(p => p.progress || 0),
+              backgroundColor: '#0ea5e9'
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: value => value + '%'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Gráfico 3: Timeline
+      const timelineCtx = document.getElementById('timelineChart');
+      if (timelineCtx) {
+        // Agrupar por mes
+        const monthlyData = {};
+        projects.forEach(project => {
+          if (project.startDate) {
+            const month = getMonthName(project.startDate);
+            monthlyData[month] = (monthlyData[month] || 0) + 1;
+          }
+        });
+
+        const months = Object.keys(monthlyData);
+        const counts = Object.values(monthlyData);
+
+        window.timelineChart = new Chart(timelineCtx, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Proyectos por Mes',
+              data: counts,
+              borderColor: '#10b981',
+              backgroundColor: '#10b98120',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true
+          }
+        });
+      }
+    }
+
+    function destroyChart(chart) {
+      try {
+        chart && chart.destroy();
+      } catch (e) {
+        console.log('Error destruyendo chart:', e);
+      }
+    }
+
+    // Actualizar última actualización
+    function updateLastUpdated() {
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      if (lastUpdatedEl) {
+        const now = new Date();
+        lastUpdatedEl.setAttribute('datetime', now.toISOString());
+        lastUpdatedEl.textContent = now.toLocaleString('es-ES', {
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        });
+      }
     }
 
     // Tabs
@@ -529,133 +629,23 @@
     const viewProyecto = document.getElementById('view-proyecto');
     
     function showView(which){
-      const isGeneral = which==='general';
-      tabGeneral.setAttribute('aria-selected', isGeneral?'true':'false');
-      tabProyecto.setAttribute('aria-selected', isGeneral?'false':'true');
+      const isGeneral = which === 'general';
+      tabGeneral.setAttribute('aria-selected', isGeneral ? 'true' : 'false');
+      tabProyecto.setAttribute('aria-selected', isGeneral ? 'false' : 'true');
       viewGeneral.classList.toggle('hidden', !isGeneral);
       viewProyecto.classList.toggle('hidden', isGeneral);
-      if(!isGeneral){
-        // lazy init first project
-        if(!projectSelect.value && projects[0]){
+      
+      if (!isGeneral && projects.length > 0) {
+        const projectSelect = document.getElementById('projectSelect');
+        if (!projectSelect.value) {
           projectSelect.value = projects[0].id;
           renderProject(projects[0].id);
         }
       }
     }
     
-    tabGeneral.addEventListener('click', ()=>showView('general'));
-    tabProyecto.addEventListener('click', ()=>showView('proyecto'));
-
-    // Portfolio KPI cards - SOLO si hay proyectos
-    if (projects.length > 0) {
-      document.getElementById('avgProgressLabel').textContent = fmtPct(portfolioAvg);
-      document.getElementById('avgProgressBar').style.width = clamp01(portfolioAvg)+'%';
-      document.getElementById('count-green').textContent = `${statusCounts.green} verde` + (statusCounts.green===1?'':'s');
-      document.getElementById('count-yellow').textContent = `${statusCounts.yellow} amarillo` + (statusCounts.yellow===1?'':'s');
-      document.getElementById('count-red').textContent = `${statusCounts.red} rojo` + (statusCounts.red===1?'':'s');
-
-      const portfolioVelocityVal = (function(){
-        // Sum last 4 weeks across projects by week label
-        const allWeeks = new Map();
-        projects.forEach(p=>{
-          (p.weeklyDeliveries||[]).slice(-4).forEach(w=>{
-            allWeeks.set(w.week, (allWeeks.get(w.week)||0) + (w.points||0));
-          });
-        });
-        const weeks = Array.from(allWeeks.keys()).sort(byDateAsc);
-        const values = weeks.map(w=>allWeeks.get(w));
-        const avg = values.length ? sum(values)/values.length : 0;
-        // Render chart
-        const ctx = document.getElementById('velocityChart');
-        if(ctx && values.length > 0){ 
-          new Chart(ctx, { 
-            type:'bar', 
-            data:{ 
-              labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), 
-              datasets:[{ 
-                label:'Puntos', 
-                data: values, 
-                backgroundColor:'#0ea5e980' 
-              }] 
-            }, 
-            options:{ 
-              responsive:true, 
-              plugins:{ 
-                legend:{display:false}, 
-                tooltip:{callbacks:{ label:(ctx)=>`Puntos: ${ctx.parsed.y}` }}
-              }
-            }
-          }); 
-        }
-        return avg;
-      })();
-      document.getElementById('portfolioVelocity').textContent = portfolioVelocityVal.toFixed(1);
-
-      // Status chart
-      (function(){
-        const ctx = document.getElementById('statusChart');
-        if(!ctx) return;
-        new Chart(ctx, { 
-          type:'doughnut', 
-          data:{ 
-            labels:['Verde','Amarillo','Rojo'],
-            datasets:[{ 
-              data:[statusCounts.green,statusCounts.yellow,statusCounts.red], 
-              backgroundColor:['#22c55e','#f59e0b','#ef4444'] 
-            }] 
-          }, 
-          options:{ 
-            plugins:{ 
-              legend:{ position:'bottom' }
-            }
-          } 
-        });
-      })();
-
-      // Budget deviation chart
-      (function(){
-        const ctx = document.getElementById('budgetChart');
-        if(!ctx) return;
-        const labels = projects.map(p=>p.name);
-        const data = projects.map(p=>budgetDevPct(p));
-        new Chart(ctx, { 
-          type:'bar', 
-          data:{ 
-            labels, 
-            datasets:[{ 
-              label:'Desv. %', 
-              data, 
-              backgroundColor: data.map(v=> v>0?'#ef4444aa':'#22c55eaa') 
-            }] 
-          }, 
-          options:{ 
-            plugins:{ 
-              tooltip:{ 
-                callbacks:{ 
-                  label:(c)=>fmtPct(c.parsed.y) 
-                }
-              }, 
-              legend:{display:false} 
-            }, 
-            scales:{ 
-              y:{ 
-                ticks:{ 
-                  callback:(v)=>v+'%' 
-                }
-              }
-            }
-          }
-        });
-      })();
-    } else {
-      // Mostrar mensajes cuando no hay datos
-      document.getElementById('avgProgressLabel').textContent = '0%';
-      document.getElementById('avgProgressBar').style.width = '0%';
-      document.getElementById('count-green').textContent = '0 verdes';
-      document.getElementById('count-yellow').textContent = '0 amarillos';
-      document.getElementById('count-red').textContent = '0 rojos';
-      document.getElementById('portfolioVelocity').textContent = '0.0';
-    }
+    tabGeneral.addEventListener('click', () => showView('general'));
+    tabProyecto.addEventListener('click', () => showView('proyecto'));
 
     // Table
     const tbody = document.getElementById('projectTableBody');
@@ -663,52 +653,69 @@
     const statusFilter = document.getElementById('statusFilter');
 
     function statusPill(status){
+      const statusTexts = {
+        'planificacion': '📋 Planificación',
+        'desarrollo': '🚀 Desarrollo',
+        'pruebas': '🧪 Pruebas',
+        'revision': '🔍 Revisión',
+        'completado': '✅ Completado',
+        'pausado': '⏸️ Pausado',
+        'cancelado': '❌ Cancelado'
+      };
+      
       const base = 'status-pill ';
-      if(status==='green') return `<span class="${base}status-green">Verde</span>`;
-      if(status==='yellow') return `<span class="${base}status-yellow">Amarillo</span>`;
-      return `<span class="${base}status-red">Rojo</span>`;
+      const statusClasses = {
+        'planificacion': 'status-yellow',
+        'desarrollo': 'status-processing',
+        'pruebas': 'status-processing',
+        'revision': 'status-processing',
+        'completado': 'status-green',
+        'pausado': 'status-error',
+        'cancelado': 'status-red'
+      };
+      
+      return `<span class="${base}${statusClasses[status] || 'status-processing'}">${statusTexts[status] || status}</span>`;
     }
 
-    function formatNextMilestone(p){
-      const m = nextMilestone(p);
-      if(!m) return '<span class="text-slate-400">—</span>';
-      const d = new Date(m.dueDate).toLocaleDateString('es-ES',{year:'2-digit',month:'short',day:'2-digit'});
-      return `${m.name} · ${d}`;
+    function formatDate(dateString) {
+      if (!dateString) return '—';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        year: '2-digit',
+        month: 'short',
+        day: '2-digit'
+      });
     }
 
     function renderTable(){
-      const term = (searchInput.value||'').toLowerCase();
+      const term = (searchInput.value || '').toLowerCase();
       const st = statusFilter.value;
       
       let rows;
       
       if (projects.length === 0) {
         rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">
-          No hay datos de proyectos. <a href="documentos.html" class="text-navy underline font-semibold">Carga datos aquí</a>
+          No hay proyectos cargados. <a href="documentos.html" class="text-navy underline font-semibold">Gestiona proyectos aquí</a>
         </td></tr>`;
       } else {
-        const filteredProjects = projects.filter(p=>{
+        const filteredProjects = projects.filter(p => {
           const okTerm = !term || p.name.toLowerCase().includes(term);
-          const okSt = !st || p.status===st;
+          const okSt = !st || p.status === st;
           return okTerm && okSt;
         });
         
         if (filteredProjects.length === 0) {
           rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No se encontraron proyectos con los filtros aplicados</td></tr>`;
         } else {
-          rows = filteredProjects.map(p=>{
-            const prog = projectProgress(p);
-            const rate = milestoneRate(p);
-            const dev = budgetDevPct(p);
-            const vel = velocity4Weeks(p);
+          rows = filteredProjects.map(p => {
             return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
               <td class="px-3 py-2 font-semibold">${p.name}</td>
-              <td class="px-3 py-2">${fmtPct(prog)}</td>
+              <td class="px-3 py-2">${fmtPct(p.progress || 0)}</td>
               <td class="px-3 py-2">${statusPill(p.status)}</td>
-              <td class="px-3 py-2">${fmtPct(rate)}</td>
-              <td class="px-3 py-2">${fmtPct(dev)}</td>
-              <td class="px-3 py-2">${vel.toFixed(1)}</td>
-              <td class="px-3 py-2">${formatNextMilestone(p)}</td>
+              <td class="px-3 py-2">${formatDate(p.startDate)}</td>
+              <td class="px-3 py-2">${formatDate(p.endDate)}</td>
+              <td class="px-3 py-2">${p.responsible || '—'}</td>
+              <td class="px-3 py-2 text-xs text-slate-600 max-w-xs">${p.observations || '—'}</td>
             </tr>`;
           }).join('');
         }
@@ -719,192 +726,106 @@
 
     searchInput.addEventListener('input', renderTable);
     statusFilter.addEventListener('change', renderTable);
-    
-    // Render tabla inicial
-    renderTable();
 
     // Project view
     const projectSelect = document.getElementById('projectSelect');
     
-    // Limpiar y poblar select de proyectos
-    projectSelect.innerHTML = '';
-    if (projects.length > 0) {
-      projects.forEach(p=>{
+    function updateProjectSelect() {
+      projectSelect.innerHTML = '';
+      if (projects.length > 0) {
+        projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name;
+          projectSelect.appendChild(opt);
+        });
+      } else {
         const opt = document.createElement('option');
-        opt.value = p.id; 
-        opt.textContent = p.name; 
+        opt.value = '';
+        opt.textContent = 'No hay proyectos';
+        opt.disabled = true;
         projectSelect.appendChild(opt);
-      });
-    } else {
-      const opt = document.createElement('option');
-      opt.value = ''; 
-      opt.textContent = 'No hay proyectos'; 
-      opt.disabled = true;
-      projectSelect.appendChild(opt);
-    }
-    
-    const projectMeta = document.getElementById('projectMeta');
-
-    let projProgressChart, projBudgetChart, projVelocityChart;
-
-    function destroyChart(ch){ 
-      try{ 
-        ch && ch.destroy(); 
-      } catch(e) {
-        console.log('Error destruyendo chart:', e);
       }
     }
 
-    function renderProject(id){
-      const p = projects.find(x=>x.id===id);
-      if(!p) {
+    function renderProject(id) {
+      const p = projects.find(x => x.id === id);
+      if (!p) {
         console.log('Proyecto no encontrado:', id);
         return;
       }
       
-      projectMeta.textContent = `${p.id} · Presupuesto plan: $${p.plannedBudget.toLocaleString('es-CO')} · Gastado: $${p.actualSpent.toLocaleString('es-CO')}`;
-
-      // KPIs
-      const prog = projectProgress(p);
-      document.getElementById('projProgressBar').style.width = clamp01(prog)+'%';
-      document.getElementById('projProgressLabel').textContent = `${fmtPct(prog)} — entregado ${p.deliveredDeliverables} de ${p.plannedDeliverables}`;
+      // Información básica
+      document.getElementById('projProgressBar').style.width = clamp01(p.progress || 0) + '%';
+      document.getElementById('projProgressLabel').textContent = `${fmtPct(p.progress || 0)} de avance`;
       document.getElementById('projStatus').innerHTML = statusPill(p.status);
-      document.getElementById('projMilestoneRate').textContent = fmtPct(milestoneRate(p));
-      document.getElementById('projBudgetDev').textContent = fmtPct(budgetDevPct(p));
-
-      // Charts
-      const ctxProg = document.getElementById('projProgressChart');
-      const ctxBud = document.getElementById('projBudgetChart');
-      const ctxVel = document.getElementById('projVelocityChart');
-
-      destroyChart(projProgressChart);
-      destroyChart(projBudgetChart);
-      destroyChart(projVelocityChart);
-
-      // Progress Chart
-      projProgressChart = new Chart(ctxProg, {
-        type:'doughnut', 
-        data:{ 
-          labels:['Entregado','Restante'], 
-          datasets:[{ 
-            data:[p.deliveredDeliverables, Math.max(0,p.plannedDeliverables - p.deliveredDeliverables)], 
-            backgroundColor:['#22c55e','#e2e8f0'] 
-          }] 
-        }, 
-        options:{ 
-          plugins:{ 
-            legend:{ position:'bottom' } 
-          } 
-        }
-      });
-
-      // Budget Chart
-      projBudgetChart = new Chart(ctxBud, {
-        type:'bar', 
-        data:{ 
-          labels:['Planificado','Gastado'], 
-          datasets:[{ 
-            data:[p.plannedBudget, p.actualSpent], 
-            backgroundColor:['#0ea5e980','#ef4444aa'] 
-          }] 
-        }, 
-        options:{ 
-          plugins:{ 
-            legend:{display:false}, 
-            tooltip:{
-              callbacks:{ 
-                label:(c)=>'$'+c.raw.toLocaleString('es-CO') 
-              }
-            }
-          }, 
-          scales:{ 
-            y:{ 
-              ticks:{ 
-                callback:(v)=>'$'+Number(v).toLocaleString('es-CO') 
-              }
-            }
-          } 
-        }
-      });
-
-      // Velocity Chart
-      const weeks = (p.weeklyDeliveries||[]).map(w=>w.week);
-      const values = (p.weeklyDeliveries||[]).map(w=>w.points);
-      projVelocityChart = new Chart(ctxVel, {
-        type:'line', 
-        data:{ 
-          labels: weeks.map(w=>new Date(w).toLocaleDateString('es-ES',{month:'short', day:'2-digit'})), 
-          datasets:[{ 
-            label:'Puntos', 
-            data: values, 
-            borderColor:'#0ea5e9', 
-            backgroundColor:'#0ea5e955', 
-            fill:true, 
-            tension:.3 
-          }] 
-        }, 
-        options:{ 
-          plugins:{ 
-            legend:{display:false} 
-          } 
-        }
-      });
-
-      // Milestones
-      const ul = document.getElementById('milestoneList');
-      const items = (p.milestones||[]).slice().sort((a,b)=>byDateAsc(a.dueDate,b.dueDate)).map(m=>{
-        const due = new Date(m.dueDate);
-        const dueStr = due.toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'short'});
-        const st = m.status==='completed' ? 
-          '<span class="status-pill status-green">Completado</span>' : 
-          (due < new Date() ? 
-            '<span class="status-pill status-red">Vencido</span>' : 
-            '<span class="status-pill status-yellow">Pendiente</span>');
-        return `<li class="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200">`+
-          `<span class="font-medium">${m.name}</span>`+
-          `<span class="text-slate-600 text-sm">${dueStr}</span>`+
-          `${st}`+
-        `</li>`;
-      }).join('');
-      ul.innerHTML = items || '<li class="text-slate-500">Sin hitos definidos</li>';
+      document.getElementById('projStartDate').textContent = formatDate(p.startDate);
+      document.getElementById('projEndDate').textContent = formatDate(p.endDate);
+      
+      // Detalles del proyecto
+      const detailsHtml = `
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="font-semibold text-slate-600">Responsable:</span>
+            <p class="mt-1">${p.responsible || 'No asignado'}</p>
+          </div>
+          <div>
+            <span class="font-semibold text-slate-600">Estado:</span>
+            <p class="mt-1">${p.status || 'No definido'}</p>
+          </div>
+          <div class="col-span-2">
+            <span class="font-semibold text-slate-600">Observaciones:</span>
+            <p class="mt-1">${p.observations || 'Sin observaciones'}</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('projectDetails').innerHTML = detailsHtml;
+      
+      // Cargar documentos asociados (simulado)
+      const projectDocs = projectStatusData.filter(doc => doc.name === p.name);
+      const docsHtml = projectDocs.length > 0 ? 
+        projectDocs.map(doc => `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+            <span class="text-sm">${doc.name}</span>
+            <span class="text-xs text-slate-500">${fmtPct(doc.progress || 0)}</span>
+          </div>
+        `).join('') : 
+        '<p class="text-sm text-slate-500 text-center py-4">No hay documentos asociados</p>';
+      document.getElementById('projectDocuments').innerHTML = docsHtml;
+      
+      // Historial (simulado)
+      const historyHtml = p.history && p.history.length > 0 ? 
+        p.history.slice().reverse().map(entry => `
+          <div class="border-l-2 border-navy pl-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium text-sm">${entry.action}</p>
+                <p class="text-xs text-slate-600">${entry.details}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-500">${new Date(entry.date).toLocaleDateString('es-ES')}</p>
+              </div>
+            </div>
+          </div>
+        `).join('') : 
+        '<p class="text-sm text-slate-500 text-center py-4">No hay historial disponible</p>';
+      document.getElementById('projectHistory').innerHTML = historyHtml;
     }
 
-    projectSelect.addEventListener('change', (e)=> {
+    projectSelect.addEventListener('change', (e) => {
       if (e.target.value && projects.length > 0) {
         renderProject(e.target.value);
       }
     });
 
-    // Initialize default view
-    showView('general');
-
-    // Chatbot overlay - CÓDIGO COMPLETAMENTE CORREGIDO
+    // Chatbot (simplificado)
     const chatFab = document.getElementById('chatFab');
     const chatPanel = document.getElementById('chatPanel');
     const chatClose = document.getElementById('chatClose');
     const chatForm = document.getElementById('chatForm');
     const chatWindow = document.getElementById('chatWindow');
     const chatInput = document.getElementById('chatInput');
-    const useLLM = document.getElementById('useLLM');
-    const chatModeHelp = document.getElementById('chatModeHelp');
 
-    // Estado inicial del chat
-    let isChatOpen = false;
-    let chatInitialized = false;
-
-    // Configuración LLM
-    const hasLLM = typeof window.OPENAI_KEY === 'string' && window.OPENAI_KEY.trim().length > 0;
-    if(hasLLM){ 
-      useLLM.disabled = false; 
-      useLLM.checked = true; 
-      chatModeHelp.textContent = 'Modo LLM económico activo (gpt-4o-mini).'; 
-    } else { 
-      useLLM.disabled = true; 
-      useLLM.checked = false; 
-      chatModeHelp.textContent = 'Modo local (rule-based). Define window.OPENAI_KEY para habilitar LLM.'; 
-    }
-
-    // Funciones del chat - CORREGIDAS
     function addMessage(role, text) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `chat-message ${role}`;
@@ -915,199 +836,58 @@
       
       messageDiv.appendChild(bubble);
       chatWindow.appendChild(messageDiv);
-      
-      // Scroll to bottom
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function openChat() {
-      console.log('Abriendo chat...');
-      chatPanel.style.display = 'flex';
-      chatPanel.classList.add('open');
-      isChatOpen = true;
-      chatFab.setAttribute('aria-expanded', 'true');
-      
-      if (!chatInitialized) {
-        addMessage('bot', '¡Hola! Soy tu asistente de KPIs. Puedo ayudarte con información sobre:<br>• Estado de proyectos<br>• Avances y progresos<br>• Próximos hitos<br>• Métricas del portafolio<br><br>¿En qué puedo ayudarte?');
-        chatInitialized = true;
-      }
-      
-      chatInput.focus();
-    }
-
-    function closeChat() {
-      console.log('Cerrando chat...');
-      chatPanel.style.display = 'none';
-      chatPanel.classList.remove('open');
-      isChatOpen = false;
-      chatFab.setAttribute('aria-expanded', 'false');
-    }
-
     function toggleChat() {
-      console.log('Toggle chat, estado actual:', isChatOpen);
-      if (isChatOpen) {
-        closeChat();
-      } else {
-        openChat();
+      const isOpen = chatPanel.style.display === 'flex';
+      chatPanel.style.display = isOpen ? 'none' : 'flex';
+      chatPanel.classList.toggle('open', !isOpen);
+      
+      if (!isOpen && chatWindow.children.length === 0) {
+        addMessage('bot', '¡Hola! Soy tu asistente de KPIs. Puedo ayudarte con información sobre el estado de tus proyectos.');
       }
+      
+      if (!isOpen) chatInput.focus();
     }
 
-    // Event listeners CORREGIDOS - usando addEventListener
-    chatFab.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Clic en chatFab');
-      toggleChat();
-    });
+    chatFab.addEventListener('click', toggleChat);
+    chatClose.addEventListener('click', toggleChat);
 
-    chatClose.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Clic en chatClose');
-      closeChat();
-    });
-
-    // Cerrar al presionar Escape
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && isChatOpen) {
-        closeChat();
-      }
-    });
-
-    // Prevenir que clicks dentro del chat lo cierren
-    chatPanel.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-
-    // Cerrar al hacer click fuera del chat
-    document.addEventListener('click', function(e) {
-      if (isChatOpen && !chatPanel.contains(e.target) && e.target !== chatFab) {
-        closeChat();
-      }
-    });
-
-    // Helper para encontrar proyectos
-    const names = projects.map(p=>p.name.toLowerCase());
-    const idByName = new Map(projects.map(p=>[p.name.toLowerCase(), p.id]));
-
-    function findProjectInText(q){
-      const text = q.toLowerCase();
-      const sorted = names.slice().sort((a,b)=>b.length-a.length);
-      for(const nm of sorted){ 
-        if(text.includes(nm)){ 
-          return idByName.get(nm); 
-        } 
-      }
-      return null;
-    }
-
-    function answerLocal(q){
-      const t = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      const pid = findProjectInText(t);
-
-      // promedio de avance (portafolio)
-      if((/promedio/.test(t) || /media/.test(t)) && /avance|progreso/.test(t)){
-        return `• Promedio ponderado de avance: <strong>${fmtPct(portfolioAvg)}</strong><br/>• Proyectos: ${projects.length} (V:${statusCounts.green} · A:${statusCounts.yellow} · R:${statusCounts.red})<br/>• Velocidad 4s: ${portfolioVelocityVal ? portfolioVelocityVal.toFixed(1) : '0.0'} pts/sem`;
-      }
-
-      // proyectos en rojo
-      if(/rojo/.test(t)){
-        const reds = projects.filter(p=>p.status==='red').map(p=>p.name);
-        if(!reds.length) return '• No hay proyectos en rojo.<br/>• Sugerencia: revisa desviaciones presupuestales.<br/>• Próximos pasos: monitorear semanalmente.';
-        return `• Proyectos en rojo (${reds.length}): <strong>${reds.join(', ')}</strong><br/>• Revisa hitos y presupuesto.<br/>• Prioriza bloqueos y recursos.`;
-      }
-
-      // próximo hito (global o por proyecto)
-      if(/proximo hito|pr[oó]ximo hito/.test(t)){
-        const list = (pid? [projects.find(p=>p.id===pid)] : projects).map(p=>({ p, m: nextMilestone(p) })).filter(x=>x.m);
-        if(!list.length) return '• No hay próximos hitos en la base de datos.';
-        list.sort((a,b)=>byDateAsc(a.m.dueDate, b.m.dueDate));
-        const top = list[0];
-        const d = new Date(top.m.dueDate).toLocaleDateString('es-ES', { month:'short', day:'2-digit' });
-        return `• Próximo hito${pid?'':' del portafolio'}: <strong>${top.m.name}</strong> (${top.p.name})<br/>• Fecha objetivo: ${d}<br/>• Seguimiento: ${fmtPct(projectProgress(top.p))}`;
-      }
-
-      // ¿Cómo va Proyecto X?
-      if(/como va|c[oó]mo va|estado/.test(t) || pid){
-        const target = pid ? projects.find(p=>p.id===pid) : null;
-        if(!target) return '• Indica el nombre exacto del proyecto (ej.: "¿Cómo va Proyecto Aurora?")';
-        const prog = projectProgress(target);
-        const dev = budgetDevPct(target);
-        const vel = velocity4Weeks(target);
-        const nm = nextMilestone(target);
-        const nmTxt = nm? `${nm.name} (${new Date(nm.dueDate).toLocaleDateString('es-ES',{month:'short',day:'2-digit'})})` : '—';
-        return `• ${target.name}: ${fmtPct(prog)} · ${target.status.toUpperCase()}<br/>• Desv. presupuestal: ${fmtPct(dev)} · Velocidad 4s: ${vel.toFixed(1)}<br/>• Próximo hito: ${nmTxt}`;
-      }
-
-      // fallback
-      return '• Puedo responder: "¿Cómo va Proyecto X?", "promedio de avance", "proyectos en rojo", "próximo hito".<br/>• Usa el nombre exacto del proyecto.<br/>• También puedo mostrar métricas por proyecto.';
-    }
-
-    async function answerLLM(q){
-      const key = (window.OPENAI_KEY||'').trim();
-      if(!key) throw new Error('Falta OPENAI_KEY');
-      const model = 'gpt-4o-mini';
-      // Compact context from dataset
-      const context = {
-        updatedAt,
-        portfolio: { avgProgress: portfolioAvg, statusCounts },
-        projects: projects.map(p=>({
-          id:p.id, name:p.name, status:p.status,
-          progress: projectProgress(p),
-          budgetDeviation: budgetDevPct(p),
-          velocity4w: velocity4Weeks(p),
-          nextMilestone: nextMilestone(p)
-        }))
-      };
-      const sys = 'Eres un analista de PMO. Responde en español, muy conciso (máx. 90 palabras), en 3 viñetas y una línea de próximos pasos. Usa solo el contexto proporcionado.';
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+key },
-        body: JSON.stringify({ model, temperature:0.1, max_tokens:220, messages:[
-          { role:'system', content: sys },
-          { role:'user', content: `Pregunta: ${q}\n\nContexto:\n${JSON.stringify(context)}` }
-        ]})
-      });
-      if(!res.ok){ throw new Error(await res.text()); }
-      const data = await res.json();
-      return data.choices?.[0]?.message?.content || '(sin respuesta)';
-    }
-
-    // Manejo del formulario del chat
-    chatForm.addEventListener('submit', async function(e) {
+    chatForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const question = chatInput.value.trim();
-      
       if (!question) return;
       
-      // Agregar mensaje del usuario
       addMessage('user', question);
       chatInput.value = '';
       
-      try {
-        let answer;
-        if (useLLM.checked && hasLLM) {
-          answer = await answerLLM(question);
+      // Respuesta simple del chatbot
+      setTimeout(() => {
+        if (question.toLowerCase().includes('proyecto')) {
+          addMessage('bot', `Actualmente tienes ${projects.length} proyectos. El avance promedio es ${fmtPct(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length)}.`);
         } else {
-          answer = answerLocal(question);
+          addMessage('bot', 'Puedo ayudarte con información sobre el estado de proyectos, avances y métricas del portafolio. ¿Qué te gustaría saber?');
         }
-        addMessage('bot', answer);
-      } catch (error) {
-        console.error('Error en el chat:', error);
-        addMessage('bot', `❌ Error: ${error.message || 'No se pudo procesar la solicitud'}`);
+      }, 1000);
+    });
+
+    // Escuchar cambios en localStorage para actualizar en tiempo real
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'projectStatus' || e.key === 'projectData') {
+        console.log('🔄 Datos actualizados desde otra pestaña');
+        loadProjectData();
       }
     });
 
-    // Asegurar que el chat esté cerrado al inicio
-    closeChat();
+    // También verificar cambios periódicamente
+    setInterval(loadProjectData, 5000);
 
-    // Si hay proyectos, renderizar el primero en la vista de proyecto
-    if (projects.length > 0) {
-      renderProject(projects[0].id);
-    }
+    // Inicializar
+    loadProjectData();
+    showView('general');
 
     console.log('✅ Dashboard inicializado correctamente');
-    console.log('📊 Proyectos cargados:', projects.length);
-    console.log('💬 Chat configurado:', { isChatOpen, chatInitialized });
 
   })();
   </script>
