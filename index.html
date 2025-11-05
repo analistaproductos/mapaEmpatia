@@ -6,6 +6,8 @@
   <title>Dashboard de KPIs — Portafolio de Proyectos</title>
   <meta name="description" content="Dashboard ejecutivo de KPIs con vista general de portafolio y por proyecto, con tabla filtrable, gráficos y chatbot en cliente." />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
       theme: {
@@ -29,24 +31,85 @@
       }
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     html, body { height: 100%; }
     body { background: linear-gradient(180deg,#f7fafc 0%,#f3f7ff 100%); }
-    .status-pill { display:inline-flex; align-items:center; gap:.5rem; padding:.25rem .6rem; border-radius:999px; font-weight:700; font-size:.75rem; }
+    
+    /* Estados mejorados */
+    .status-pill { 
+      display:inline-flex; 
+      align-items:center; 
+      gap:.5rem; 
+      padding:.25rem .6rem; 
+      border-radius:999px; 
+      font-weight:700; 
+      font-size:.75rem; 
+    }
     .status-green { background:#e8faef; color:#166534; border:1px solid #bbf7d0; }
     .status-yellow { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
     .status-red { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
-    .progress { height: 10px; background:#eef2ff; border-radius:999px; overflow:hidden; }
-    .progress > span { display:block; height:100%; background:linear-gradient(90deg,#16a34a,#0ea5e9); width:0; }
-    .tooltip { text-decoration: underline dotted; cursor: help; }
-    /* Chatbot overlay - MEJORADO */
+    .status-blue { background:#eff6ff; color:#1e40af; border:1px solid #dbeafe; }
+    .status-purple { background:#faf5ff; color:#7c3aed; border:1px solid #e9d5ff; }
+    .status-gray { background:#f8fafc; color:#475569; border:1px solid #e2e8f0; }
+    
+    .progress { 
+      height: 10px; 
+      background:#eef2ff; 
+      border-radius:999px; 
+      overflow:hidden; 
+    }
+    .progress > span { 
+      display:block; 
+      height:100%; 
+      background:linear-gradient(90deg,#16a34a,#0ea5e9); 
+      width:0; 
+      transition: width 0.5s ease;
+    }
+    
+    .tooltip { 
+      text-decoration: underline dotted; 
+      cursor: help; 
+    }
+    
+    /* Cards mejoradas */
+    .stat-card {
+      transition: all 0.3s ease;
+      border: 1px solid #e2e8f0;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    /* Botones mejorados */
+    .btn-primary {
+      background: linear-gradient(135deg, #0b2f6b 0%, #1e40af 100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(11, 47, 107, 0.2);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 47, 107, 0.3);
+      background: linear-gradient(135deg, #1e40af 0%, #0b2f6b 100%);
+    }
+    
+    /* Tabs mejorados */
+    .tab-active {
+      background: #0b2f6b;
+      color: white;
+    }
+    
+    /* Chatbot mejorado */
     .chat-fab { 
       position: fixed; 
       right: 16px; 
       bottom: 16px; 
       z-index: 10000; 
       cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .chat-fab:hover {
+      transform: scale(1.05);
     }
     .chat-panel { 
       position: fixed; 
@@ -65,6 +128,17 @@
     }
     .chat-panel.open { 
       display: flex !important;
+      animation: slideInUp 0.3s ease;
+    }
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     .chat-window { 
       flex: 1;
@@ -120,228 +194,303 @@
       background: #0b2f6b;
       color: white;
     }
-    .quick-stats {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 8px 0;
+    
+    /* Loading states */
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
     }
-    .quick-stats-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
+    .pulse {
+      animation: pulse 2s infinite;
     }
-    .quick-stats-item:last-child {
-      margin-bottom: 0;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
-    /* Estilos para el botón de documentos */
-    .btn-documents {
-      background: linear-gradient(135deg, #0b2f6b 0%, #1e40af 100%);
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(11, 47, 107, 0.2);
+    
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
     }
-    .btn-documents:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(11, 47, 107, 0.3);
-      background: linear-gradient(135deg, #1e40af 0%, #0b2f6b 100%);
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
     }
   </style>
 </head>
 <body class="text-slate-900">
   <div class="max-w-7xl mx-auto p-4 lg:p-6">
-    <header class="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
+    <!-- Header mejorado -->
+    <header class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
       <div class="flex items-center gap-3">
         <img src="https://cotrafasocial.com/wp-content/uploads/2023/09/logo-cotrafasocial.png" alt="Cotrafa Social" class="h-10 w-auto" />
         <div>
-          <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-navy via-sky-600 to-gold">Dashboard de KPIs</h1>
+          <h1 class="text-2xl lg:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-navy via-sky-600 to-gold">Dashboard de KPIs</h1>
           <p class="text-sm text-slate-600">Portafolio de proyectos — Vista ejecutiva</p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="text-right text-sm text-slate-600">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div class="text-sm text-slate-600">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
-            <span class="font-semibold">Última actualización</span>
+            <i class="fas fa-sync-alt text-xs"></i>
+            <span class="font-semibold">Última actualización:</span>
             <time id="lastUpdated" datetime=""></time>
           </div>
         </div>
         <!-- Botón mejorado para documentos -->
-        <a href="documentos.html" class="btn-documents inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
+        <a href="documentos.html" class="btn-primary inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg font-semibold">
+          <i class="fas fa-folder-open"></i>
           Gestión de Documentos
         </a>
       </div>
     </header>
 
-    <!-- Tabs -->
-    <nav class="mt-4" role="tablist" aria-label="Vistas">
+    <!-- Tabs mejorados -->
+    <nav class="mt-6" role="tablist" aria-label="Vistas">
       <div class="inline-flex rounded-xl overflow-hidden border border-slate-200 shadow-sm" role="tablist">
-        <button id="tab-general" role="tab" aria-controls="view-general" aria-selected="true" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy">General (portafolio)</button>
-        <button id="tab-proyecto" role="tab" aria-controls="view-proyecto" aria-selected="false" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 border-l border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy">Por proyecto</button>
+        <button id="tab-general" role="tab" aria-controls="view-general" aria-selected="true" class="tab-active px-4 py-2 text-sm font-bold bg-navy text-white hover:bg-blue-800 focus:outline-none transition-colors">
+          <i class="fas fa-chart-pie mr-2"></i>
+          General
+        </button>
+        <button id="tab-proyecto" role="tab" aria-controls="view-proyecto" aria-selected="false" class="px-4 py-2 text-sm font-bold bg-white hover:bg-slate-50 border-l border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy transition-colors">
+          <i class="fas fa-project-diagram mr-2"></i>
+          Por proyecto
+        </button>
       </div>
     </nav>
 
     <!-- View: General -->
-    <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-4 grid gap-6">
-      <!-- KPIs resumen portafolio - ACTUALIZADOS -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass" aria-labelledby="kpi-avg">
+    <section id="view-general" role="tabpanel" aria-labelledby="tab-general" class="mt-6 grid gap-6">
+      <!-- KPIs resumen portafolio - MEJORADOS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card p-4 bg-white/90 backdrop-blur rounded-xl shadow-glass" aria-labelledby="kpi-avg">
           <div class="flex items-center justify-between">
-            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700">Estado Promedio
-              <span class="tooltip" title="Promedio de avance de todos los proyectos">[?]</span>
+            <h3 id="kpi-avg" class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+              <i class="fas fa-chart-line text-blue-500"></i>
+              Estado Promedio
             </h3>
-            <span id="avgProgressLabel" class="text-sm font-bold"></span>
+            <span id="avgProgressLabel" class="text-sm font-bold text-navy">0%</span>
           </div>
-          <div class="progress mt-2" aria-hidden="true"><span id="avgProgressBar"></span></div>
-          <p class="mt-2 text-xs text-slate-600" id="avgProgressText">Avance promedio del portafolio</p>
+          <div class="progress mt-2" aria-hidden="true">
+            <span id="avgProgressBar"></span>
+          </div>
+          <p class="mt-2 text-xs text-slate-600" id="avgProgressText">Cargando datos...</p>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Cantidad de Proyectos
-            <span class="tooltip" title="Total de proyectos activos en el portafolio">[?]</span>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+            <i class="fas fa-cubes text-green-500"></i>
+            Cantidad de Proyectos
           </h3>
-          <p class="mt-2 text-2xl font-black" id="totalProjectsCount">0</p>
+          <p class="mt-2 text-2xl font-black text-navy" id="totalProjectsCount">
+            <span class="pulse">0</span>
+          </p>
           <p class="mt-1 text-xs text-slate-600">Proyectos activos</p>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Mes de Creación
-            <span class="tooltip" title="Mes con más proyectos creados">[?]</span>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+            <i class="fas fa-rocket text-purple-500"></i>
+            Mes de Creación
           </h3>
-          <p class="mt-2 text-2xl font-black" id="creationMonth">—</p>
+          <p class="mt-2 text-2xl font-black text-navy" id="creationMonth">—</p>
           <p class="mt-1 text-xs text-slate-600">Mes más activo</p>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Mes de Finalización
-            <span class="tooltip" title="Próximo mes con más finalizaciones">[?]</span>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+            <i class="fas fa-flag-checkered text-orange-500"></i>
+            Mes de Finalización
           </h3>
-          <p class="mt-2 text-2xl font-black" id="completionMonth">—</p>
+          <p class="mt-2 text-2xl font-black text-navy" id="completionMonth">—</p>
           <p class="mt-1 text-xs text-slate-600">Próximas entregas</p>
         </div>
       </div>
 
-      <!-- Charts -->
+      <!-- Charts mejorados -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Distribución por Estado</h3>
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-blue-500"></i>
+            Distribución por Estado
+          </h3>
           <canvas id="statusChart" class="mt-2" aria-label="Gráfico de distribución por estado" role="img"></canvas>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Avance por Proyecto</h3>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-chart-bar text-green-500"></i>
+            Avance por Proyecto
+          </h3>
           <canvas id="progressChart" class="mt-2" aria-label="Gráfico de avance por proyecto" role="img"></canvas>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Timeline de Proyectos</h3>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-timeline text-purple-500"></i>
+            Timeline de Proyectos
+          </h3>
           <canvas id="timelineChart" class="mt-2" aria-label="Gráfico de timeline" role="img"></canvas>
         </div>
       </div>
 
-      <!-- Filtros + Tabla -->
-      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <label for="searchInput" class="text-sm font-semibold">Buscar</label>
-            <input id="searchInput" type="search" placeholder="Nombre de proyecto…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-64" />
+      <!-- Filtros + Tabla mejorados -->
+      <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex items-center gap-2">
+              <label for="searchInput" class="text-sm font-semibold flex items-center gap-1">
+                <i class="fas fa-search text-slate-500"></i>
+                Buscar
+              </label>
+              <input id="searchInput" type="search" placeholder="Nombre de proyecto…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="statusFilter" class="text-sm font-semibold flex items-center gap-1">
+                <i class="fas fa-filter text-slate-500"></i>
+                Estado
+              </label>
+              <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+                <option value="">Todos</option>
+                <option value="planificacion">Planificación</option>
+                <option value="desarrollo">Desarrollo</option>
+                <option value="pruebas">Pruebas</option>
+                <option value="revision">Revisión</option>
+                <option value="completado">Completado</option>
+                <option value="pausado">Pausado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <label for="statusFilter" class="text-sm font-semibold">Estado</label>
-            <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
-              <option value="">Todos</option>
-              <option value="planificacion">Planificación</option>
-              <option value="desarrollo">Desarrollo</option>
-              <option value="pruebas">Pruebas</option>
-              <option value="revision">Revisión</option>
-              <option value="completado">Completado</option>
-              <option value="pausado">Pausado</option>
-              <option value="cancelado">Cancelado</option>
-            </select>
+          <div class="text-xs text-slate-500">
+            Mostrando <span id="filteredCount">0</span> de <span id="totalCount">0</span> proyectos
           </div>
         </div>
 
-        <div class="mt-4 overflow-auto">
+        <div class="overflow-auto rounded-lg border border-slate-200">
           <table class="min-w-full text-sm" role="table" aria-label="Tabla de proyectos">
-            <thead class="text-left border-b border-slate-200 bg-slate-50">
+            <thead class="text-left bg-slate-50">
               <tr>
-                <th class="px-3 py-2">Proyecto</th>
-                <th class="px-3 py-2">% Avance</th>
-                <th class="px-3 py-2">Estado</th>
-                <th class="px-3 py-2">Fecha Inicio</th>
-                <th class="px-3 py-2">Fecha Fin</th>
-                <th class="px-3 py-2">Responsable</th>
-                <th class="px-3 py-2">Observaciones</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Proyecto</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">% Avance</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Estado</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Fecha Inicio</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Fecha Fin</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Responsable</th>
+                <th class="px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">Observaciones</th>
               </tr>
             </thead>
-            <tbody id="projectTableBody"></tbody>
+            <tbody id="projectTableBody" class="bg-white">
+              <!-- Filas se cargarán aquí -->
+            </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- View: Proyecto -->
-    <section id="view-proyecto" role="tabpanel" aria-labelledby="tab-proyecto" class="mt-4 grid gap-6 hidden">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <!-- View: Proyecto - MEJORADO -->
+    <section id="view-proyecto" role="tabpanel" aria-labelledby="tab-proyecto" class="mt-6 grid gap-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
         <div class="flex items-center gap-2">
           <label for="projectSelect" class="text-sm font-semibold">Proyecto</label>
-          <select id="projectSelect" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-72"></select>
+          <select id="projectSelect" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent">
+            <option value="">Seleccionar proyecto...</option>
+          </select>
         </div>
-        <div class="text-sm text-slate-600" id="projectMeta"></div>
+        <div class="text-sm text-slate-600" id="projectMeta">
+          Selecciona un proyecto para ver detalles
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">% de Avance</h3>
-          <div class="mt-2 progress" aria-hidden="true"><span id="projProgressBar"></span></div>
-          <p class="mt-2 text-xs text-slate-600" id="projProgressLabel"></p>
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-percentage text-blue-500"></i>
+            % de Avance
+          </h3>
+          <div class="mt-2 progress" aria-hidden="true">
+            <span id="projProgressBar"></span>
+          </div>
+          <p class="mt-2 text-xs text-slate-600" id="projProgressLabel">—</p>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Estado</h3>
-          <div class="mt-2" id="projStatus"></div>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-tasks text-green-500"></i>
+            Estado
+          </h3>
+          <div class="mt-2" id="projStatus">—</div>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Fecha Inicio</h3>
-          <p class="mt-2 text-xl font-black" id="projStartDate">—</p>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-calendar-plus text-purple-500"></i>
+            Fecha Inicio
+          </h3>
+          <p class="mt-2 text-xl font-black text-navy" id="projStartDate">—</p>
           <p class="text-xs text-slate-600">Inicio del proyecto</p>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Fecha Fin</h3>
-          <p class="mt-2 text-xl font-black" id="projEndDate">—</p>
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <i class="fas fa-flag-checkered text-orange-500"></i>
+            Fecha Fin
+          </h3>
+          <p class="mt-2 text-xl font-black text-navy" id="projEndDate">—</p>
           <p class="text-xs text-slate-600">Fin estimado</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Detalles del Proyecto</h3>
-          <div class="mt-4 space-y-3" id="projectDetails">
-            <!-- Detalles se cargarán aquí -->
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-4">
+            <i class="fas fa-info-circle text-blue-500"></i>
+            Detalles del Proyecto
+          </h3>
+          <div class="space-y-3" id="projectDetails">
+            <div class="empty-state">
+              <i class="fas fa-project-diagram"></i>
+              <p class="text-lg font-medium">Selecciona un proyecto</p>
+              <p class="text-sm mt-2">Elige un proyecto de la lista para ver sus detalles</p>
+            </div>
           </div>
         </div>
-        <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-          <h3 class="text-sm font-semibold text-slate-700">Documentos Asociados</h3>
-          <div id="projectDocuments" class="mt-4 space-y-2">
-            <!-- Documentos se cargarán aquí -->
+        
+        <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+          <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-4">
+            <i class="fas fa-file-alt text-green-500"></i>
+            Documentos Asociados
+          </h3>
+          <div id="projectDocuments" class="space-y-2">
+            <div class="empty-state">
+              <i class="fas fa-folder-open"></i>
+              <p class="text-sm mt-2">Los documentos aparecerán aquí al seleccionar un proyecto</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
-        <h3 class="text-sm font-semibold text-slate-700">Historial de Cambios</h3>
-        <div id="projectHistory" class="mt-4 space-y-3 max-h-60 overflow-y-auto">
-          <!-- Historial se cargará aquí -->
+      <div class="stat-card p-4 bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-glass">
+        <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-4">
+          <i class="fas fa-history text-purple-500"></i>
+          Historial de Cambios
+        </h3>
+        <div id="projectHistory" class="space-y-3 max-h-60 overflow-y-auto">
+          <div class="empty-state">
+            <i class="fas fa-clock"></i>
+            <p class="text-sm mt-2">El historial se cargará al seleccionar un proyecto</p>
+          </div>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- Floating Chatbot - VERSIÓN MEJORADA -->
+  <!-- Floating Chatbot mejorado -->
   <button id="chatFab" class="chat-fab inline-flex items-center gap-2 px-4 py-3 rounded-full bg-navy text-white font-bold shadow-lg hover:bg-blue-800 transition-colors">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
+    <i class="fas fa-robot"></i>
     Asistente
   </button>
   
@@ -351,16 +500,18 @@
         <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
         <h2 class="text-sm font-bold">Asistente Inteligente</h2>
       </div>
-      <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">✕</button>
+      <button id="chatClose" class="p-2 rounded-full hover:bg-slate-200 transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
     </header>
     
     <div id="chatWindow" class="chat-window">
-      <!-- Mensaje de bienvenida se insertará aquí -->
+      <!-- Mensajes del chat -->
     </div>
     
     <form id="chatForm" class="p-3 border-t border-slate-200 bg-white rounded-b-2xl">
       <div id="suggestionsContainer" class="mb-3">
-        <!-- Chips de sugerencias se insertarán aquí -->
+        <!-- Sugerencias -->
       </div>
       <div class="flex gap-2">
         <input 
@@ -371,8 +522,9 @@
         >
         <button 
           type="submit" 
-          class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+          class="px-4 py-2 bg-navy text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
         >
+          <i class="fas fa-paper-plane"></i>
           Enviar
         </button>
       </div>
@@ -381,86 +533,233 @@
 
   <script>
   (function(){
+    // Utilidades mejoradas
     const $ = (s, r=document) => r.querySelector(s);
     const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-
-    // Cargar datos desde documentos.html
+    
+    // Estado de la aplicación
     let projects = [];
-    let projectStatusData = [];
+    let filteredProjects = [];
+    let charts = {};
+
+    // CORRECCIÓN: Función para corregir el problema de fechas
+    function fixDateTimezone(dateString) {
+      if (!dateString) return null;
+      
+      // Crear fecha y ajustar por diferencia de zona horaria
+      const date = new Date(dateString);
+      const timezoneOffset = date.getTimezoneOffset() * 60000;
+      const correctedDate = new Date(date.getTime() + timezoneOffset);
+      
+      return correctedDate;
+    }
+
+    // Función para formatear fechas correctamente
+    function formatDate(dateString) {
+      if (!dateString) return '—';
+      
+      const date = fixDateTimezone(dateString);
+      if (!date || isNaN(date.getTime())) return '—';
+      
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
 
     // Función para cargar datos desde localStorage
     function loadProjectData() {
       console.log('🔄 Cargando datos desde localStorage...');
       
-      // Cargar estado de proyectos desde documentos.html
-      const savedProjectStatus = localStorage.getItem('projectStatus');
-      if (savedProjectStatus) {
-        try {
-          projectStatusData = JSON.parse(savedProjectStatus);
-          console.log('✅ Estado de proyectos cargado:', projectStatusData);
-        } catch (error) {
-          console.error('❌ Error cargando estado de proyectos:', error);
-        }
-      }
-
-      // Cargar datos de proyectos desde documentos.html
-      const savedProjectData = localStorage.getItem('projectData');
-      if (savedProjectData) {
-        try {
-          const data = JSON.parse(savedProjectData);
-          projects = data.projectStatus || [];
-          console.log('✅ Proyectos cargados:', projects);
-        } catch (error) {
-          console.error('❌ Error cargando proyectos:', error);
-        }
-      }
-
-      // Si no hay datos, usar datos de ejemplo
-      if (projects.length === 0) {
-        console.log('📊 Usando datos de ejemplo');
-        projects = [
-          {
-            id: 'project-1',
-            name: 'Proyecto Aurora',
-            status: 'desarrollo',
-            progress: 65,
-            startDate: '2024-01-15',
-            endDate: '2024-06-30',
-            responsible: 'Ana García',
-            observations: 'Proyecto en fase de desarrollo avanzada'
-          },
-          {
-            id: 'project-2',
-            name: 'Proyecto Boreal',
-            status: 'planificacion',
-            progress: 25,
-            startDate: '2024-02-01',
-            endDate: '2024-08-15',
-            responsible: 'Carlos López',
-            observations: 'Fase inicial de planificación'
+      try {
+        // Cargar datos de proyectos desde documentos.html
+        const savedProjectData = localStorage.getItem('projectData');
+        const savedProjectStatus = localStorage.getItem('projectStatus');
+        
+        let loadedProjects = [];
+        
+        // Intentar cargar desde projectStatus primero (más reciente)
+        if (savedProjectStatus) {
+          try {
+            const statusData = JSON.parse(savedProjectStatus);
+            if (Array.isArray(statusData)) {
+              loadedProjects = statusData.map(project => ({
+                id: project.id,
+                name: project.name,
+                status: project.status,
+                progress: project.progress || 0,
+                startDate: project.startDate,
+                endDate: project.endDate,
+                responsible: project.responsible,
+                observations: project.observations,
+                history: project.history || []
+              }));
+              console.log('✅ Proyectos cargados desde projectStatus:', loadedProjects.length);
+            }
+          } catch (error) {
+            console.error('❌ Error cargando projectStatus:', error);
           }
-        ];
-      }
+        }
+        
+        // Si no hay datos en projectStatus, intentar con projectData
+        if (loadedProjects.length === 0 && savedProjectData) {
+          try {
+            const data = JSON.parse(savedProjectData);
+            if (data && Array.isArray(data.projectStatus)) {
+              loadedProjects = data.projectStatus;
+              console.log('✅ Proyectos cargados desde projectData:', loadedProjects.length);
+            }
+          } catch (error) {
+            console.error('❌ Error cargando projectData:', error);
+          }
+        }
 
-      updateDashboard();
+        projects = loadedProjects;
+        
+        // Si no hay datos, usar datos de ejemplo
+        if (projects.length === 0) {
+          console.log('📊 Usando datos de ejemplo');
+          projects = [
+            {
+              id: 'project-1',
+              name: 'Proyecto Aurora',
+              status: 'desarrollo',
+              progress: 65,
+              startDate: '2024-01-15',
+              endDate: '2024-06-30',
+              responsible: 'Ana García',
+              observations: 'Proyecto en fase de desarrollo avanzada',
+              history: [
+                {
+                  date: '2024-01-15',
+                  action: 'Creación',
+                  details: 'Proyecto creado',
+                  user: 'Sistema'
+                }
+              ]
+            },
+            {
+              id: 'project-2',
+              name: 'Proyecto Boreal',
+              status: 'planificacion',
+              progress: 25,
+              startDate: '2024-02-01',
+              endDate: '2024-08-15',
+              responsible: 'Carlos López',
+              observations: 'Fase inicial de planificación',
+              history: [
+                {
+                  date: '2024-02-01',
+                  action: 'Creación',
+                  details: 'Proyecto creado',
+                  user: 'Sistema'
+                }
+              ]
+            }
+          ];
+        }
+
+        updateDashboard();
+        
+      } catch (error) {
+        console.error('❌ Error crítico cargando datos:', error);
+        showError('Error cargando datos de proyectos');
+      }
     }
 
-    // Utils
-    const fmtPct = (n) => `${(n).toFixed(1)}%`;
-    const pct = (num, den) => den > 0 ? (num/den)*100 : 0;
-    const clamp01 = (v) => Math.max(0, Math.min(100, v));
-    const sum = (arr, f = (x)=>x) => arr.reduce((a,b)=>a+f(b),0);
-    const byDateAsc = (a,b) => new Date(a) - new Date(b);
-    const nowIso = new Date().toISOString();
+    // Función para mostrar errores
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>${message}</span>
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5000);
+    }
 
-    // Función para obtener el nombre del mes en español
-    function getMonthName(dateString) {
-      const date = new Date(dateString);
-      const months = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-      ];
-      return months[date.getMonth()];
+    // Función para mostrar éxito
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      successDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fas fa-check-circle"></i>
+          <span>${message}</span>
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      
+      setTimeout(() => {
+        successDiv.remove();
+      }, 3000);
+    }
+
+    // Función para actualizar todo el dashboard
+    function updateDashboard() {
+      console.log('🔄 Actualizando dashboard con', projects.length, 'proyectos');
+      
+      try {
+        // Actualizar KPIs principales
+        updateMainKPIs();
+        
+        // Actualizar gráficos
+        updateCharts();
+        
+        // Actualizar tabla
+        renderTable();
+        
+        // Actualizar select de proyectos
+        updateProjectSelect();
+        
+        // Actualizar última actualización
+        updateLastUpdated();
+        
+        showSuccess('Datos actualizados correctamente');
+        
+      } catch (error) {
+        console.error('❌ Error actualizando dashboard:', error);
+        showError('Error actualizando el dashboard');
+      }
+    }
+
+    // Actualizar KPIs principales
+    function updateMainKPIs() {
+      if (projects.length === 0) {
+        document.getElementById('avgProgressLabel').textContent = '0%';
+        document.getElementById('avgProgressBar').style.width = '0%';
+        document.getElementById('avgProgressText').textContent = 'Sin datos de proyectos';
+        document.getElementById('totalProjectsCount').textContent = '0';
+        document.getElementById('creationMonth').textContent = '—';
+        document.getElementById('completionMonth').textContent = '—';
+        return;
+      }
+
+      // KPI 1: Estado Promedio
+      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
+      document.getElementById('avgProgressLabel').textContent = `${avgProgress.toFixed(1)}%`;
+      document.getElementById('avgProgressBar').style.width = `${Math.max(0, Math.min(100, avgProgress))}%`;
+      document.getElementById('avgProgressText').textContent = `Promedio de ${projects.length} proyectos`;
+
+      // KPI 2: Cantidad de Proyectos
+      document.getElementById('totalProjectsCount').textContent = projects.length;
+
+      // KPI 3: Mes de Creación
+      const startDates = projects.map(p => p.startDate).filter(Boolean);
+      const creationMonth = getMostCommonMonth(startDates);
+      document.getElementById('creationMonth').textContent = creationMonth;
+
+      // KPI 4: Mes de Finalización
+      const endDates = projects.map(p => p.endDate).filter(Boolean);
+      const completionMonth = getMostCommonMonth(endDates);
+      document.getElementById('completionMonth').textContent = completionMonth;
     }
 
     // Función para obtener el mes más común
@@ -478,66 +777,28 @@
       );
     }
 
-    // Función para actualizar todo el dashboard
-    function updateDashboard() {
-      console.log('🔄 Actualizando dashboard con', projects.length, 'proyectos');
+    // Función para obtener nombre del mes
+    function getMonthName(dateString) {
+      const date = fixDateTimezone(dateString);
+      if (!date || isNaN(date.getTime())) return '—';
       
-      // Actualizar KPIs principales
-      updateMainKPIs();
-      
-      // Actualizar gráficos
-      updateCharts();
-      
-      // Actualizar tabla
-      renderTable();
-      
-      // Actualizar select de proyectos
-      updateProjectSelect();
-      
-      // Actualizar última actualización
-      updateLastUpdated();
-    }
-
-    // Actualizar KPIs principales
-    function updateMainKPIs() {
-      if (projects.length === 0) {
-        document.getElementById('avgProgressLabel').textContent = '0%';
-        document.getElementById('avgProgressBar').style.width = '0%';
-        document.getElementById('avgProgressText').textContent = 'Sin datos de proyectos';
-        document.getElementById('totalProjectsCount').textContent = '0';
-        document.getElementById('creationMonth').textContent = '—';
-        document.getElementById('completionMonth').textContent = '—';
-        return;
-      }
-
-      // KPI 1: Estado Promedio
-      const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
-      document.getElementById('avgProgressLabel').textContent = fmtPct(avgProgress);
-      document.getElementById('avgProgressBar').style.width = clamp01(avgProgress) + '%';
-      document.getElementById('avgProgressText').textContent = `Promedio de ${projects.length} proyectos`;
-
-      // KPI 2: Cantidad de Proyectos
-      document.getElementById('totalProjectsCount').textContent = projects.length;
-
-      // KPI 3: Mes de Creación
-      const startDates = projects.map(p => p.startDate).filter(Boolean);
-      const creationMonth = getMostCommonMonth(startDates);
-      document.getElementById('creationMonth').textContent = creationMonth;
-
-      // KPI 4: Mes de Finalización
-      const endDates = projects.map(p => p.endDate).filter(Boolean);
-      const completionMonth = getMostCommonMonth(endDates);
-      document.getElementById('completionMonth').textContent = completionMonth;
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      return months[date.getMonth()];
     }
 
     // Actualizar gráficos
     function updateCharts() {
-      if (projects.length === 0) return;
+      if (projects.length === 0) {
+        // Mostrar estado vacío en gráficos
+        destroyCharts();
+        return;
+      }
 
       // Destruir gráficos existentes
-      destroyChart(window.statusChart);
-      destroyChart(window.progressChart);
-      destroyChart(window.timelineChart);
+      destroyCharts();
 
       // Gráfico 1: Distribución por Estado
       const statusCounts = {
@@ -565,19 +826,27 @@
 
       const statusCtx = document.getElementById('statusChart');
       if (statusCtx) {
-        window.statusChart = new Chart(statusCtx, {
+        charts.statusChart = new Chart(statusCtx, {
           type: 'doughnut',
           data: {
             labels: statusLabels,
             datasets: [{
               data: statusData,
-              backgroundColor: statusColors
+              backgroundColor: statusColors,
+              borderWidth: 2,
+              borderColor: '#ffffff'
             }]
           },
           options: {
             responsive: true,
             plugins: {
-              legend: { position: 'bottom' }
+              legend: { 
+                position: 'bottom',
+                labels: {
+                  usePointStyle: true,
+                  padding: 15
+                }
+              }
             }
           }
         });
@@ -586,14 +855,20 @@
       // Gráfico 2: Avance por Proyecto
       const progressCtx = document.getElementById('progressChart');
       if (progressCtx) {
-        window.progressChart = new Chart(progressCtx, {
+        const projectNames = projects.map(p => p.name);
+        const progressData = projects.map(p => p.progress || 0);
+        
+        charts.progressChart = new Chart(progressCtx, {
           type: 'bar',
           data: {
-            labels: projects.map(p => p.name),
+            labels: projectNames,
             datasets: [{
               label: '% Avance',
-              data: projects.map(p => p.progress || 0),
-              backgroundColor: '#0ea5e9'
+              data: progressData,
+              backgroundColor: '#0ea5e9',
+              borderColor: '#0c8fd6',
+              borderWidth: 1,
+              borderRadius: 4
             }]
           },
           options: {
@@ -604,7 +879,20 @@
                 max: 100,
                 ticks: {
                   callback: value => value + '%'
+                },
+                grid: {
+                  color: 'rgba(0,0,0,0.1)'
                 }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
               }
             }
           }
@@ -626,7 +914,7 @@
         const months = Object.keys(monthlyData);
         const counts = Object.values(monthlyData);
 
-        window.timelineChart = new Chart(timelineCtx, {
+        charts.timelineChart = new Chart(timelineCtx, {
           type: 'line',
           data: {
             labels: months,
@@ -634,24 +922,46 @@
               label: 'Proyectos por Mes',
               data: counts,
               borderColor: '#10b981',
-              backgroundColor: '#10b98120',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
               fill: true,
-              tension: 0.4
+              tension: 0.4,
+              pointBackgroundColor: '#10b981',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2
             }]
           },
           options: {
-            responsive: true
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1
+                },
+                grid: {
+                  color: 'rgba(0,0,0,0.1)'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
           }
         });
       }
     }
 
-    function destroyChart(chart) {
-      try {
-        chart && chart.destroy();
-      } catch (e) {
-        console.log('Error destruyendo chart:', e);
-      }
+    function destroyCharts() {
+      Object.values(charts).forEach(chart => {
+        try {
+          chart && chart.destroy();
+        } catch (e) {
+          console.log('Error destruyendo chart:', e);
+        }
+      });
+      charts = {};
     }
 
     // Actualizar última actualización
@@ -667,7 +977,7 @@
       }
     }
 
-    // Tabs
+    // Sistema de tabs
     const tabGeneral = document.getElementById('tab-general');
     const tabProyecto = document.getElementById('tab-proyecto');
     const viewGeneral = document.getElementById('view-general');
@@ -677,12 +987,28 @@
       const isGeneral = which === 'general';
       tabGeneral.setAttribute('aria-selected', isGeneral ? 'true' : 'false');
       tabProyecto.setAttribute('aria-selected', isGeneral ? 'false' : 'true');
+      
+      // Actualizar clases visuales
+      if (isGeneral) {
+        tabGeneral.classList.add('tab-active');
+        tabGeneral.classList.remove('bg-white');
+        tabProyecto.classList.remove('tab-active');
+        tabProyecto.classList.add('bg-white');
+      } else {
+        tabProyecto.classList.add('tab-active');
+        tabProyecto.classList.remove('bg-white');
+        tabGeneral.classList.remove('tab-active');
+        tabGeneral.classList.add('bg-white');
+      }
+      
       viewGeneral.classList.toggle('hidden', !isGeneral);
       viewProyecto.classList.toggle('hidden', isGeneral);
       
       if (!isGeneral && projects.length > 0) {
         const projectSelect = document.getElementById('projectSelect');
-        if (!projectSelect.value) {
+        if (projectSelect.value) {
+          renderProject(projectSelect.value);
+        } else if (projects[0]) {
           projectSelect.value = projects[0].id;
           renderProject(projects[0].id);
         }
@@ -692,10 +1018,12 @@
     tabGeneral.addEventListener('click', () => showView('general'));
     tabProyecto.addEventListener('click', () => showView('proyecto'));
 
-    // Table
+    // Sistema de tabla y filtros
     const tbody = document.getElementById('projectTableBody');
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
+    const filteredCountEl = document.getElementById('filteredCount');
+    const totalCountEl = document.getElementById('totalCount');
 
     function statusPill(status){
       const statusTexts = {
@@ -711,59 +1039,65 @@
       const base = 'status-pill ';
       const statusClasses = {
         'planificacion': 'status-yellow',
-        'desarrollo': 'status-processing',
-        'pruebas': 'status-processing',
-        'revision': 'status-processing',
+        'desarrollo': 'status-blue',
+        'pruebas': 'status-purple',
+        'revision': 'status-purple',
         'completado': 'status-green',
-        'pausado': 'status-error',
+        'pausado': 'status-gray',
         'cancelado': 'status-red'
       };
       
-      return `<span class="${base}${statusClasses[status] || 'status-processing'}">${statusTexts[status] || status}</span>`;
-    }
-
-    function formatDate(dateString) {
-      if (!dateString) return '—';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        year: '2-digit',
-        month: 'short',
-        day: '2-digit'
-      });
+      return `<span class="${base}${statusClasses[status] || 'status-gray'}">${statusTexts[status] || status}</span>`;
     }
 
     function renderTable(){
       const term = (searchInput.value || '').toLowerCase();
       const st = statusFilter.value;
       
+      filteredProjects = projects.filter(p => {
+        const okTerm = !term || p.name.toLowerCase().includes(term);
+        const okSt = !st || p.status === st;
+        return okTerm && okSt;
+      });
+      
+      // Actualizar contadores
+      filteredCountEl.textContent = filteredProjects.length;
+      totalCountEl.textContent = projects.length;
+      
       let rows;
       
-      if (projects.length === 0) {
-        rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">
-          No hay proyectos cargados. <a href="documentos.html" class="text-navy underline font-semibold">Gestiona proyectos aquí</a>
-        </td></tr>`;
+      if (filteredProjects.length === 0) {
+        rows = `<tr>
+          <td colspan="7" class="px-4 py-8 text-center text-slate-500">
+            <div class="empty-state">
+              <i class="fas fa-search"></i>
+              <p class="text-lg font-medium">No se encontraron proyectos</p>
+              <p class="text-sm mt-2">${projects.length === 0 ? 
+                'No hay proyectos cargados. <a href="documentos.html" class="text-navy underline font-semibold">Gestiona proyectos aquí</a>' : 
+                'Prueba ajustando los filtros de búsqueda'
+              }</p>
+            </div>
+          </td>
+        </tr>`;
       } else {
-        const filteredProjects = projects.filter(p => {
-          const okTerm = !term || p.name.toLowerCase().includes(term);
-          const okSt = !st || p.status === st;
-          return okTerm && okSt;
-        });
-        
-        if (filteredProjects.length === 0) {
-          rows = `<tr><td colspan="7" class="px-3 py-6 text-center text-slate-500">No se encontraron proyectos con los filtros aplicados</td></tr>`;
-        } else {
-          rows = filteredProjects.map(p => {
-            return `<tr class="border-b border-slate-100 hover:bg-slate-50 focus-within:bg-slate-50">
-              <td class="px-3 py-2 font-semibold">${p.name}</td>
-              <td class="px-3 py-2">${fmtPct(p.progress || 0)}</td>
-              <td class="px-3 py-2">${statusPill(p.status)}</td>
-              <td class="px-3 py-2">${formatDate(p.startDate)}</td>
-              <td class="px-3 py-2">${formatDate(p.endDate)}</td>
-              <td class="px-3 py-2">${p.responsible || '—'}</td>
-              <td class="px-3 py-2 text-xs text-slate-600 max-w-xs">${p.observations || '—'}</td>
-            </tr>`;
-          }).join('');
-        }
+        rows = filteredProjects.map(p => {
+          return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+            <td class="px-4 py-3 font-semibold text-slate-800">${p.name}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="progress flex-1">
+                  <span style="width: ${p.progress || 0}%"></span>
+                </div>
+                <span class="text-sm font-medium w-12">${p.progress || 0}%</span>
+              </div>
+            </td>
+            <td class="px-4 py-3">${statusPill(p.status)}</td>
+            <td class="px-4 py-3 text-slate-600">${formatDate(p.startDate)}</td>
+            <td class="px-4 py-3 text-slate-600">${formatDate(p.endDate)}</td>
+            <td class="px-4 py-3 text-slate-600">${p.responsible || '—'}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 max-w-xs truncate">${p.observations || '—'}</td>
+          </tr>`;
+        }).join('');
       }
       
       tbody.innerHTML = rows;
@@ -772,11 +1106,12 @@
     searchInput.addEventListener('input', renderTable);
     statusFilter.addEventListener('change', renderTable);
 
-    // Project view
+    // Vista de proyecto individual
     const projectSelect = document.getElementById('projectSelect');
     
     function updateProjectSelect() {
-      projectSelect.innerHTML = '';
+      projectSelect.innerHTML = '<option value="">Seleccionar proyecto...</option>';
+      
       if (projects.length > 0) {
         projects.forEach(p => {
           const opt = document.createElement('option');
@@ -784,12 +1119,6 @@
           opt.textContent = p.name;
           projectSelect.appendChild(opt);
         });
-      } else {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No hay proyectos';
-        opt.disabled = true;
-        projectSelect.appendChild(opt);
       }
     }
 
@@ -801,72 +1130,99 @@
       }
       
       // Información básica
-      document.getElementById('projProgressBar').style.width = clamp01(p.progress || 0) + '%';
-      document.getElementById('projProgressLabel').textContent = `${fmtPct(p.progress || 0)} de avance`;
+      document.getElementById('projProgressBar').style.width = `${p.progress || 0}%`;
+      document.getElementById('projProgressLabel').textContent = `${p.progress || 0}% de avance`;
       document.getElementById('projStatus').innerHTML = statusPill(p.status);
       document.getElementById('projStartDate').textContent = formatDate(p.startDate);
       document.getElementById('projEndDate').textContent = formatDate(p.endDate);
       
+      // Actualizar metadata
+      document.getElementById('projectMeta').innerHTML = `
+        <div class="flex items-center gap-2 text-sm">
+          <span class="bg-slate-100 px-2 py-1 rounded">ID: ${p.id}</span>
+          <span>•</span>
+          <span>Actualizado: ${formatDate(p.lastUpdate || p.history?.[p.history.length-1]?.date)}</span>
+        </div>
+      `;
+      
       // Detalles del proyecto
       const detailsHtml = `
-        <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <span class="font-semibold text-slate-600">Responsable:</span>
-            <p class="mt-1">${p.responsible || 'No asignado'}</p>
+            <p class="mt-1 text-slate-800">${p.responsible || 'No asignado'}</p>
           </div>
           <div>
             <span class="font-semibold text-slate-600">Estado:</span>
             <p class="mt-1">${p.status || 'No definido'}</p>
           </div>
-          <div class="col-span-2">
+          <div class="md:col-span-2">
             <span class="font-semibold text-slate-600">Observaciones:</span>
-            <p class="mt-1">${p.observations || 'Sin observaciones'}</p>
+            <p class="mt-1 text-slate-800 bg-slate-50 p-3 rounded-lg">${p.observations || 'Sin observaciones'}</p>
           </div>
         </div>
       `;
       document.getElementById('projectDetails').innerHTML = detailsHtml;
       
-      // Cargar documentos asociados (simulado)
-      const projectDocs = projectStatusData.filter(doc => doc.name === p.name);
-      const docsHtml = projectDocs.length > 0 ? 
-        projectDocs.map(doc => `
-          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-            <span class="text-sm">${doc.name}</span>
-            <span class="text-xs text-slate-500">${fmtPct(doc.progress || 0)}</span>
+      // Cargar documentos asociados desde localStorage
+      const projectDocuments = loadProjectDocuments(p.name);
+      const docsHtml = projectDocuments.length > 0 ? 
+        projectDocuments.map(doc => `
+          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div class="flex items-center gap-3">
+              <i class="fas fa-file text-slate-400"></i>
+              <div>
+                <p class="text-sm font-medium text-slate-800">${doc.name}</p>
+                <p class="text-xs text-slate-500">${formatDate(doc.uploadDate)} • ${doc.categories?.join(', ') || 'Sin categoría'}</p>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">${doc.extension?.toUpperCase() || 'FILE'}</span>
           </div>
         `).join('') : 
-        '<p class="text-sm text-slate-500 text-center py-4">No hay documentos asociados</p>';
+        '<div class="empty-state"><i class="fas fa-folder-open"></i><p class="text-sm mt-2">No hay documentos asociados</p></div>';
       document.getElementById('projectDocuments').innerHTML = docsHtml;
       
-      // Historial (simulado)
+      // Historial
       const historyHtml = p.history && p.history.length > 0 ? 
         p.history.slice().reverse().map(entry => `
-          <div class="border-l-2 border-navy pl-3">
+          <div class="border-l-2 border-navy pl-4 py-2">
             <div class="flex justify-between items-start">
               <div>
-                <p class="font-medium text-sm">${entry.action}</p>
-                <p class="text-xs text-slate-600">${entry.details}</p>
+                <p class="font-medium text-sm text-slate-800">${entry.action}</p>
+                <p class="text-xs text-slate-600 mt-1">${entry.details}</p>
               </div>
               <div class="text-right">
-                <p class="text-xs text-slate-500">${new Date(entry.date).toLocaleDateString('es-ES')}</p>
+                <p class="text-xs text-slate-500">${formatDate(entry.date)}</p>
+                <p class="text-xs text-slate-400">${entry.user || 'Sistema'}</p>
               </div>
             </div>
           </div>
         `).join('') : 
-        '<p class="text-sm text-slate-500 text-center py-4">No hay historial disponible</p>';
+        '<div class="empty-state"><i class="fas fa-clock"></i><p class="text-sm mt-2">No hay historial disponible</p></div>';
       document.getElementById('projectHistory').innerHTML = historyHtml;
     }
 
+    // Función para cargar documentos asociados a un proyecto
+    function loadProjectDocuments(projectName) {
+      try {
+        const savedDocuments = localStorage.getItem('projectDocuments');
+        if (savedDocuments) {
+          const documents = JSON.parse(savedDocuments);
+          return documents.filter(doc => doc.project === projectName);
+        }
+      } catch (error) {
+        console.error('Error cargando documentos:', error);
+      }
+      return [];
+    }
+
     projectSelect.addEventListener('change', (e) => {
-      if (e.target.value && projects.length > 0) {
+      if (e.target.value) {
         renderProject(e.target.value);
       }
     });
 
-    // =============================================
-    // CHATBOT MEJORADO - ACCESO COMPLETO AL CONTEXTO
-    // =============================================
-
+    // Sistema de Chatbot (versión simplificada para este ejemplo)
     const chatFab = document.getElementById('chatFab');
     const chatPanel = document.getElementById('chatPanel');
     const chatClose = document.getElementById('chatClose');
@@ -875,669 +1231,108 @@
     const chatInput = document.getElementById('chatInput');
     const suggestionsContainer = document.getElementById('suggestionsContainer');
 
-    // Estado del chat
     let isChatOpen = false;
-    let chatInitialized = false;
 
-    // Sugerencias de preguntas mejoradas
-    const suggestionChips = [
-        "Estado general del portafolio",
-        "Proyectos con riesgos",
-        "Documentos pendientes",
-        "Próximos vencimientos",
-        "Análisis por responsable",
-        "Recomendaciones prioritarias",
-        "Proyectos bloqueados",
-        "Métricas de cumplimiento"
-    ];
-
-    // Funciones de análisis mejoradas con acceso completo al contexto
-    function getCompleteProjectContext() {
-        console.log('🔄 Obteniendo contexto completo de proyectos...');
-        
-        // Cargar datos de proyectos desde localStorage
-        const savedProjectData = localStorage.getItem('projectData');
-        let projects = [];
-        
-        if (savedProjectData) {
-            try {
-                const data = JSON.parse(savedProjectData);
-                projects = data.projectStatus || [];
-                console.log('✅ Proyectos cargados para análisis:', projects.length);
-            } catch (error) {
-                console.error('❌ Error cargando proyectos:', error);
-            }
-        }
-        
-        // Cargar estados de documentos desde localStorage
-        const savedProjectStatus = localStorage.getItem('projectStatus');
-        let documentStatus = [];
-        
-        if (savedProjectStatus) {
-            try {
-                documentStatus = JSON.parse(savedProjectStatus);
-                console.log('✅ Estados de documentos cargados:', documentStatus.length);
-            } catch (error) {
-                console.error('❌ Error cargando estados de documentos:', error);
-            }
-        }
-        
-        return { projects, documentStatus };
-    }
-
-    function analyzeCompletePortfolio() {
-        const { projects, documentStatus } = getCompleteProjectContext();
-        
-        if (projects.length === 0 && documentStatus.length === 0) {
-            return { 
-                message: "No hay datos de proyectos ni documentos cargados para analizar.",
-                hasData: false
-            };
-        }
-
-        // Análisis de proyectos
-        const totalProjects = projects.length;
-        const avgProgress = totalProjects > 0 ? 
-            projects.reduce((sum, p) => sum + (p.progress || 0), 0) / totalProjects : 0;
-        
-        // Proyectos por estado
-        const statusCounts = {
-            planificacion: projects.filter(p => p.status === 'planificacion').length,
-            desarrollo: projects.filter(p => p.status === 'desarrollo').length,
-            pruebas: projects.filter(p => p.status === 'pruebas').length,
-            revision: projects.filter(p => p.status === 'revision').length,
-            completado: projects.filter(p => p.status === 'completado').length,
-            pausado: projects.filter(p => p.status === 'pausado').length,
-            cancelado: projects.filter(p => p.status === 'cancelado').length
-        };
-
-        // Análisis de documentos
-        const totalDocuments = documentStatus.length;
-        const documentProgress = totalDocuments > 0 ?
-            documentStatus.reduce((sum, doc) => sum + (doc.progress || 0), 0) / totalDocuments : 0;
-        
-        // Documentos por estado
-        const documentStatusCounts = {
-            pendiente: documentStatus.filter(doc => doc.status === 'pendiente').length,
-            en_revision: documentStatus.filter(doc => doc.status === 'en_revision').length,
-            aprobado: documentStatus.filter(doc => doc.status === 'aprobado').length,
-            rechazado: documentStatus.filter(doc => doc.status === 'rechazado').length
-        };
-
-        // Proyectos atrasados
-        const today = new Date();
-        const delayedProjects = projects.filter(p => {
-            if (!p.endDate || p.status === 'completado') return false;
-            return new Date(p.endDate) < today;
-        });
-
-        // Próximos vencimientos (próximos 30 días)
-        const next30Days = new Date();
-        next30Days.setDate(today.getDate() + 30);
-        const upcomingDeadlines = projects.filter(p => {
-            if (!p.endDate || p.status === 'completado') return false;
-            const endDate = new Date(p.endDate);
-            return endDate > today && endDate <= next30Days;
-        });
-
-        // Proyectos con bajo avance (< 25%)
-        const lowProgressProjects = projects.filter(p => (p.progress || 0) < 25);
-
-        // Proyectos con alto avance (> 75%)
-        const highProgressProjects = projects.filter(p => (p.progress || 0) > 75);
-
-        // Documentos críticos (pendientes y con alta prioridad)
-        const criticalDocuments = documentStatus.filter(doc => 
-            doc.status === 'pendiente' && doc.priority === 'alta'
-        );
-
-        // Responsables con más proyectos
-        const responsibleStats = {};
-        projects.forEach(p => {
-            if (p.responsible) {
-                if (!responsibleStats[p.responsible]) {
-                    responsibleStats[p.responsible] = {
-                        count: 0,
-                        totalProgress: 0,
-                        projects: []
-                    };
-                }
-                responsibleStats[p.responsible].count++;
-                responsibleStats[p.responsible].totalProgress += p.progress || 0;
-                responsibleStats[p.responsible].projects.push(p);
-            }
-        });
-
-        // Calcular promedios por responsable
-        Object.keys(responsibleStats).forEach(responsible => {
-            responsibleStats[responsible].avgProgress = 
-                responsibleStats[responsible].totalProgress / responsibleStats[responsible].count;
-        });
-
-        return {
-            hasData: true,
-            totalProjects,
-            avgProgress,
-            statusCounts,
-            totalDocuments,
-            documentProgress,
-            documentStatusCounts,
-            delayedProjects: delayedProjects.length,
-            upcomingDeadlines: upcomingDeadlines.length,
-            lowProgressProjects: lowProgressProjects.length,
-            highProgressProjects: highProgressProjects.length,
-            criticalDocuments: criticalDocuments.length,
-            delayedProjectsList: delayedProjects,
-            upcomingDeadlinesList: upcomingDeadlines,
-            lowProgressList: lowProgressProjects,
-            highProgressList: highProgressProjects,
-            criticalDocumentsList: criticalDocuments,
-            responsibleStats,
-            projects, // Incluir proyectos completos para análisis detallado
-            documentStatus // Incluir documentos completos para análisis detallado
-        };
-    }
-
-    function getProjectWithDocuments(projectName) {
-        const { projects, documentStatus } = getCompleteProjectContext();
-        
-        const project = projects.find(p => 
-            p.name.toLowerCase().includes(projectName.toLowerCase()) ||
-            projectName.toLowerCase().includes(p.name.toLowerCase())
-        );
-        
-        if (!project) return null;
-
-        // Buscar documentos asociados al proyecto
-        const associatedDocuments = documentStatus.filter(doc => 
-            doc.name && doc.name.toLowerCase().includes(project.name.toLowerCase())
-        );
-
-        const today = new Date();
-        const endDate = project.endDate ? new Date(project.endDate) : null;
-        
-        return {
-            ...project,
-            associatedDocuments,
-            documentsCount: associatedDocuments.length,
-            pendingDocuments: associatedDocuments.filter(doc => doc.status === 'pendiente').length,
-            isDelayed: endDate && endDate < today && project.status !== 'completado',
-            daysRemaining: endDate ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)) : null,
-            riskLevel: calculateProjectRisk(project, associatedDocuments)
-        };
-    }
-
-    function calculateProjectRisk(project, documents) {
-        let riskScore = 0;
-        
-        // Riesgo por avance bajo
-        if (project.progress < 25) riskScore += 3;
-        else if (project.progress < 50) riskScore += 2;
-        else if (project.progress < 75) riskScore += 1;
-        
-        // Riesgo por estado
-        if (project.status === 'pausado') riskScore += 2;
-        if (project.status === 'cancelado') riskScore += 3;
-        
-        // Riesgo por documentos pendientes
-        const pendingDocs = documents.filter(doc => doc.status === 'pendiente').length;
-        riskScore += Math.min(pendingDocs, 3);
-        
-        // Riesgo por fecha
-        if (project.endDate) {
-            const daysLeft = Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24));
-            if (daysLeft < 0) riskScore += 3;
-            else if (daysLeft < 7) riskScore += 2;
-            else if (daysLeft < 30) riskScore += 1;
-        }
-        
-        if (riskScore >= 6) return 'alto';
-        if (riskScore >= 3) return 'medio';
-        return 'bajo';
-    }
-
-    function generateIntelligentRecommendations(analysis) {
-        const recommendations = [];
-        
-        if (!analysis.hasData) {
-            return ["• Cargar datos de proyectos y documentos para obtener recomendaciones"];
-        }
-        
-        // Recomendaciones basadas en proyectos
-        if (analysis.delayedProjects > 0) {
-            recommendations.push(`• Revisar urgentemente los ${analysis.delayedProjects} proyectos atrasados`);
-        }
-        
-        if (analysis.upcomingDeadlines > 0) {
-            recommendations.push(`• Priorizar los ${analysis.upcomingDeadlines} proyectos con vencimiento próximo`);
-        }
-        
-        if (analysis.lowProgressProjects > 0) {
-            recommendations.push(`• Dar seguimiento a ${analysis.lowProgressProjects} proyectos con avance inferior al 25%`);
-        }
-        
-        if (analysis.avgProgress < 50) {
-            recommendations.push(`• El avance promedio (${analysis.avgProgress.toFixed(1)}%) está por debajo del 50%, considerar ajustes en la planificación`);
-        }
-
-        // Recomendaciones basadas en documentos
-        if (analysis.criticalDocuments > 0) {
-            recommendations.push(`• Atender ${analysis.criticalDocuments} documentos críticos pendientes de alta prioridad`);
-        }
-        
-        if (analysis.documentStatusCounts.pendiente > analysis.totalDocuments * 0.3) {
-            recommendations.push(`• ${analysis.documentStatusCounts.pendiente} documentos pendientes (${((analysis.documentStatusCounts.pendiente/analysis.totalDocuments)*100).toFixed(0)}%), revisar procesos de aprobación`);
-        }
-
-        // Recomendaciones por responsable
-        Object.entries(analysis.responsibleStats).forEach(([responsible, stats]) => {
-            if (stats.avgProgress < 40 && stats.count > 2) {
-                recommendations.push(`• ${responsible} tiene ${stats.count} proyectos con avance promedio bajo (${stats.avgProgress.toFixed(1)}%), considerar redistribución`);
-            }
-        });
-
-        return recommendations.length > 0 ? recommendations : ["• El portafolio se encuentra en estado saludable. Mantener el seguimiento regular."];
-    }
-
-    // Funciones del chat mejoradas
     function addMessage(role, text, isHtml = false) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${role}`;
-        
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${role}`;
-        
-        if (isHtml) {
-            bubble.innerHTML = text;
-        } else {
-            bubble.textContent = text;
-        }
-        
-        messageDiv.appendChild(bubble);
-        chatWindow.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function showEnhancedQuickStats(analysis) {
-        if (!analysis.hasData) {
-            addMessage('bot', "📊 No hay datos disponibles. Por favor, carga proyectos y documentos primero.");
-            return;
-        }
-
-        const statsHtml = `
-            <div class="quick-stats">
-                <div class="text-sm font-semibold mb-2 text-navy">📊 Resumen Ejecutivo</div>
-                <div class="quick-stats-item">
-                    <span>📈 Proyectos totales:</span>
-                    <strong>${analysis.totalProjects}</strong>
-                </div>
-                <div class="quick-stats-item">
-                    <span>📄 Documentos totales:</span>
-                    <strong>${analysis.totalDocuments}</strong>
-                </div>
-                <div class="quick-stats-item">
-                    <span>🎯 Avance promedio:</span>
-                    <strong>${analysis.avgProgress.toFixed(1)}%</strong>
-                </div>
-                <div class="quick-stats-item">
-                    <span>⚠️ Proyectos atrasados:</span>
-                    <strong style="color: ${analysis.delayedProjects > 0 ? '#ef4444' : '#16a34a'}">${analysis.delayedProjects}</strong>
-                </div>
-                <div class="quick-stats-item">
-                    <span>📅 Próximos vencimientos:</span>
-                    <strong>${analysis.upcomingDeadlines}</strong>
-                </div>
-                <div class="quick-stats-item">
-                    <span>🚨 Documentos críticos:</span>
-                    <strong style="color: ${analysis.criticalDocuments > 0 ? '#ef4444' : '#16a34a'}">${analysis.criticalDocuments}</strong>
-                </div>
-            </div>
-        `;
-        addMessage('bot', statsHtml, true);
-    }
-
-    function showSuggestions() {
-        suggestionsContainer.innerHTML = '';
-        const suggestionsDiv = document.createElement('div');
-        suggestionsDiv.className = 'suggestions';
-        
-        suggestionChips.forEach(suggestion => {
-            const chip = document.createElement('div');
-            chip.className = 'suggestion-chip';
-            chip.textContent = suggestion;
-            chip.addEventListener('click', () => {
-                chatInput.value = suggestion;
-                chatForm.dispatchEvent(new Event('submit'));
-            });
-            suggestionsDiv.appendChild(chip);
-        });
-        
-        suggestionsContainer.appendChild(suggestionsDiv);
-    }
-
-    function processEnhancedQuestion(question) {
-        const q = question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const analysis = analyzeCompletePortfolio();
-        
-        if (!analysis.hasData && !q.includes('cargar') && !q.includes('datos')) {
-            return `📊 <strong>No hay datos disponibles</strong><br><br>
-            Para usar todas las funciones del asistente, necesitas:<br>
-            • <strong>Cargar proyectos</strong> en la gestión de documentos<br>
-            • <strong>Actualizar estados</strong> de proyectos y documentos<br><br>
-            <a href="documentos.html" style="color: #0b2f6b; text-decoration: underline;">Ir a Gestión de Documentos</a>`;
-        }
-
-        // Estado general del portafolio
-        if (q.includes('estado general') || q.includes('cómo vamos') || q.includes('resumen') || q.includes('dashboard')) {
-            showEnhancedQuickStats(analysis);
-            const recommendations = generateIntelligentRecommendations(analysis);
-            let response = `<strong>📈 Análisis Completo del Portafolio</strong><br><br>`;
-            
-            response += `<strong>Proyectos (${analysis.totalProjects}):</strong><br>`;
-            response += `• Avance promedio: <strong>${analysis.avgProgress.toFixed(1)}%</strong><br>`;
-            response += `• Atrasados: <strong style="color: ${analysis.delayedProjects > 0 ? '#ef4444' : '#16a34a'}">${analysis.delayedProjects}</strong><br>`;
-            response += `• Próximos vencimientos: <strong>${analysis.upcomingDeadlines}</strong><br>`;
-            response += `• Bajo avance (<25%): <strong>${analysis.lowProgressProjects}</strong><br><br>`;
-            
-            response += `<strong>Documentos (${analysis.totalDocuments}):</strong><br>`;
-            response += `• Pendientes: <strong>${analysis.documentStatusCounts.pendiente || 0}</strong><br>`;
-            response += `• En revisión: <strong>${analysis.documentStatusCounts.en_revision || 0}</strong><br>`;
-            response += `• Críticos: <strong style="color: ${analysis.criticalDocuments > 0 ? '#ef4444' : '#16a34a'}">${analysis.criticalDocuments}</strong><br><br>`;
-            
-            response += `<strong>💡 Recomendaciones Prioritarias:</strong><br>`;
-            recommendations.forEach(rec => response += `${rec}<br>`);
-            return response;
-        }
-
-        // Proyectos con riesgos
-        if (q.includes('riesgo') || q.includes('problema') || q.includes('bloqueado') || q.includes('crítico')) {
-            const riskyProjects = analysis.projects.filter(p => 
-                calculateProjectRisk(p, analysis.documentStatus.filter(doc => 
-                    doc.name && doc.name.toLowerCase().includes(p.name.toLowerCase())
-                )) === 'alto'
-            );
-
-            if (riskyProjects.length === 0) {
-                return "✅ <strong>No se identificaron proyectos de alto riesgo</strong><br><br>El portafolio se encuentra en estado controlado.";
-            }
-            
-            let response = `<strong>🚨 Proyectos de Alto Riesgo (${riskyProjects.length})</strong><br><br>`;
-            riskyProjects.forEach(project => {
-                const riskDetails = getProjectWithDocuments(project.name);
-                response += `• <strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
-                response += `  📍 Estado: ${project.status}<br>`;
-                if (project.responsible) {
-                    response += `  👤 Responsable: ${project.responsible}<br>`;
-                }
-                if (riskDetails.pendingDocuments > 0) {
-                    response += `  📄 Documentos pendientes: ${riskDetails.pendingDocuments}<br>`;
-                }
-                response += `<br>`;
-            });
-            return response;
-        }
-
-        // Documentos pendientes
-        if (q.includes('documento pendiente') || q.includes('documentos por aprobar') || q.includes('aprobación')) {
-            const pendingDocuments = analysis.documentStatus.filter(doc => doc.status === 'pendiente');
-            
-            if (pendingDocuments.length === 0) {
-                return "✅ <strong>No hay documentos pendientes</strong><br><br>Todos los documentos están gestionados.";
-            }
-            
-            let response = `<strong>📄 Documentos Pendientes (${pendingDocuments.length})</strong><br><br>`;
-            pendingDocuments.forEach(doc => {
-                response += `• <strong>${doc.name}</strong><br>`;
-                if (doc.progress !== undefined) {
-                    response += `  📊 Avance: ${doc.progress}%<br>`;
-                }
-                if (doc.priority) {
-                    const priorityColor = doc.priority === 'alta' ? '#ef4444' : doc.priority === 'media' ? '#f59e0b' : '#16a34a';
-                    response += `  🎯 Prioridad: <strong style="color: ${priorityColor}">${doc.priority}</strong><br>`;
-                }
-                response += `<br>`;
-            });
-            return response;
-        }
-
-        // Información específica de proyecto con documentos
-        const projectMatch = analysis.projects.find(p => 
-            q.includes(p.name.toLowerCase()) || 
-            p.name.toLowerCase().includes(q.split(' ')[0])
-        );
-        
-        if (projectMatch) {
-            const details = getProjectWithDocuments(projectMatch.name);
-            let response = `<strong>📋 ${details.name}</strong><br>`;
-            response += `<div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin: 8px 0;">`;
-            
-            response += `<strong>Información del Proyecto:</strong><br>`;
-            response += `• <strong>Estado:</strong> ${details.status || 'No definido'}<br>`;
-            response += `• <strong>Avance:</strong> ${details.progress || 0}%<br>`;
-            response += `• <strong>Nivel de riesgo:</strong> <span style="color: ${
-                details.riskLevel === 'alto' ? '#ef4444' : 
-                details.riskLevel === 'medio' ? '#f59e0b' : '#16a34a'
-            }">${details.riskLevel.toUpperCase()}</span><br>`;
-            
-            if (details.responsible) {
-                response += `• <strong>Responsable:</strong> ${details.responsible}<br>`;
-            }
-            if (details.startDate) {
-                response += `• <strong>Inicio:</strong> ${new Date(details.startDate).toLocaleDateString('es-ES')}<br>`;
-            }
-            if (details.endDate) {
-                const daysLeft = details.daysRemaining;
-                response += `• <strong>Fin estimado:</strong> ${new Date(details.endDate).toLocaleDateString('es-ES')}`;
-                if (daysLeft !== null) {
-                    response += details.isDelayed ? 
-                        ` <span style="color: #ef4444;">(⚠️ ${Math.abs(daysLeft)} días de retraso)</span>` :
-                        ` (📅 ${daysLeft} días restantes)`;
-                }
-                response += `<br>`;
-            }
-            if (details.observations) {
-                response += `• <strong>Observaciones:</strong> ${details.observations}<br>`;
-            }
-            
-            response += `</div>`;
-            
-            // Documentos asociados
-            if (details.associatedDocuments.length > 0) {
-                response += `<strong>Documentos Asociados (${details.documentsCount}):</strong><br>`;
-                response += `<div style="background: #f0f9ff; padding: 8px; border-radius: 6px; margin: 8px 0;">`;
-                details.associatedDocuments.forEach(doc => {
-                    const statusIcon = doc.status === 'aprobado' ? '✅' : 
-                                     doc.status === 'en_revision' ? '🔍' : 
-                                     doc.status === 'rechazado' ? '❌' : '⏳';
-                    response += `• ${statusIcon} <strong>${doc.name}</strong>`;
-                    if (doc.progress !== undefined) {
-                        response += ` - ${doc.progress}%`;
-                    }
-                    response += `<br>`;
-                });
-                response += `</div>`;
-            }
-            
-            return response;
-        }
-
-        // Proyectos por responsable con análisis completo
-        const responsibleMatch = Object.keys(analysis.responsibleStats).find(name => 
-            q.includes(name.toLowerCase())
-        );
-        
-        if (responsibleMatch) {
-            const responsibleData = analysis.responsibleStats[responsibleMatch];
-            let response = `<strong>👤 Análisis de ${responsibleMatch}</strong><br><br>`;
-            
-            response += `<strong>Métricas:</strong><br>`;
-            response += `• Total proyectos: <strong>${responsibleData.count}</strong><br>`;
-            response += `• Avance promedio: <strong>${responsibleData.avgProgress.toFixed(1)}%</strong><br>`;
-            response += `• Proyectos completados: <strong>${responsibleData.projects.filter(p => p.status === 'completado').length}</strong><br><br>`;
-            
-            response += `<strong>Proyectos asignados:</strong><br>`;
-            response += `<div style="max-height: 200px; overflow-y: auto;">`;
-            responsibleData.projects.forEach(project => {
-                const riskLevel = calculateProjectRisk(project, []);
-                const riskColor = riskLevel === 'alto' ? '#ef4444' : riskLevel === 'medio' ? '#f59e0b' : '#16a34a';
-                
-                response += `<div style="border-left: 3px solid ${riskColor}; padding-left: 8px; margin: 4px 0;">`;
-                response += `<strong>${project.name}</strong> - ${project.progress || 0}%<br>`;
-                response += `<small>Estado: ${project.status} | Riesgo: <span style="color: ${riskColor}">${riskLevel}</span></small>`;
-                response += `</div>`;
-            });
-            response += `</div>`;
-            
-            return response;
-        }
-
-        // Recomendaciones inteligentes
-        if (q.includes('recomendación') || q.includes('consejo') || q.includes('sugerencia') || q.includes('qué hacer')) {
-            const recommendations = generateIntelligentRecommendations(analysis);
-            let response = `<strong>💡 Recomendaciones Inteligentes</strong><br><br>`;
-            response += `<strong>Basado en el análisis de:</strong><br>`;
-            response += `• ${analysis.totalProjects} proyectos<br>`;
-            response += `• ${analysis.totalDocuments} documentos<br>`;
-            response += `• ${Object.keys(analysis.responsibleStats).length} responsables<br><br>`;
-            
-            response += `<strong>Acciones recomendadas:</strong><br>`;
-            recommendations.forEach((rec, index) => {
-                response += `${index + 1}. ${rec}<br>`;
-            });
-            return response;
-        }
-
-        // Respuesta por defecto mejorada
-        return `🤖 <strong>Asistente Inteligente de Proyectos</strong><br><br>
-        Puedo ayudarte con análisis avanzados de:<br><br>
-        
-        <strong>📊 Análisis General</strong><br>
-        • Estado completo del portafolio<br>
-        • Proyectos de alto riesgo<br>
-        • Documentos críticos pendientes<br>
-        • Métricas por responsable<br><br>
-        
-        <strong>🔍 Análisis Específico</strong><br>
-        • Información detallada de cualquier proyecto<br>
-        • Documentos asociados por proyecto<br>
-        • Niveles de riesgo calculados<br>
-        • Recomendaciones personalizadas<br><br>
-        
-        <strong>💡 Recomendaciones</strong><br>
-        • Acciones prioritarias<br>
-        • Prevención de riesgos<br>
-        • Optimización de recursos<br><br>
-        
-        <em>Menciona un proyecto, responsable o área de interés...</em>`;
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${role}`;
+      
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${role}`;
+      
+      if (isHtml) {
+        bubble.innerHTML = text;
+      } else {
+        bubble.textContent = text;
+      }
+      
+      messageDiv.appendChild(bubble);
+      chatWindow.appendChild(messageDiv);
+      
+      chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     function openChat() {
-        chatPanel.style.display = 'flex';
-        chatPanel.classList.add('open');
-        isChatOpen = true;
-        
-        if (!chatInitialized) {
-            const welcomeMessage = `👋 <strong>¡Hola! Soy tu asistente inteligente de proyectos.</strong><br><br>
-            Tengo acceso completo a:<br>
-            • <strong>Todos los proyectos</strong> y su estado actual<br>
-            • <strong>Documentos asociados</strong> y su progreso<br>
-            • <strong>Métricas en tiempo real</strong> del portafolio<br>
-            • <strong>Análisis de riesgos</strong> automatizado<br><br>
-            <em>Usa las sugerencias o pregúntame lo que necesites saber.</em>`;
-            
-            addMessage('bot', welcomeMessage, true);
-            showSuggestions();
-            chatInitialized = true;
-        }
-        
-        chatInput.focus();
+      chatPanel.style.display = 'flex';
+      chatPanel.classList.add('open');
+      isChatOpen = true;
+      
+      // Mensaje de bienvenida
+      if (chatWindow.children.length === 0) {
+        addMessage('bot', `👋 ¡Hola! Soy tu asistente de proyectos. Puedo ayudarte a analizar el estado del portafolio, encontrar proyectos específicos o responder preguntas sobre el avance. ¿En qué puedo ayudarte?`);
+      }
+      
+      chatInput.focus();
     }
 
     function closeChat() {
-        chatPanel.style.display = 'none';
-        chatPanel.classList.remove('open');
-        isChatOpen = false;
+      chatPanel.style.display = 'none';
+      chatPanel.classList.remove('open');
+      isChatOpen = false;
     }
 
     function toggleChat() {
-        if (isChatOpen) {
-            closeChat();
-        } else {
-            openChat();
-        }
+      if (isChatOpen) {
+        closeChat();
+      } else {
+        openChat();
+      }
     }
 
     // Event listeners del chat
-    chatFab.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleChat();
-    });
-
-    chatClose.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeChat();
-    });
-
+    chatFab.addEventListener('click', toggleChat);
+    chatClose.addEventListener('click', closeChat);
+    
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isChatOpen) {
-            closeChat();
-        }
-    });
-
-    chatPanel.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-
-    document.addEventListener('click', function(e) {
-        if (isChatOpen && !chatPanel.contains(e.target) && e.target !== chatFab) {
-            closeChat();
-        }
+      if (e.key === 'Escape' && isChatOpen) {
+        closeChat();
+      }
     });
 
     chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const question = chatInput.value.trim();
+      e.preventDefault();
+      const question = chatInput.value.trim();
+      
+      if (!question) return;
+      
+      addMessage('user', question);
+      chatInput.value = '';
+      
+      // Respuesta simple del bot
+      setTimeout(() => {
+        let response = "Puedo ver que tienes " + projects.length + " proyectos en el portafolio. ";
+        if (projects.length > 0) {
+          const avgProgress = projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length;
+          response += `El avance promedio es del ${avgProgress.toFixed(1)}%. `;
+          
+          const delayed = projects.filter(p => {
+            if (!p.endDate || p.status === 'completado') return false;
+            return new Date(p.endDate) < new Date();
+          }).length;
+          
+          if (delayed > 0) {
+            response += `Hay ${delayed} proyectos atrasados que requieren atención.`;
+          } else {
+            response += "Todos los proyectos parecen estar en buen estado.";
+          }
+        }
         
-        if (!question) return;
-        
-        // Agregar mensaje del usuario
-        addMessage('user', question);
-        chatInput.value = '';
-        
-        // Mostrar typing indicator
-        const typingIndicator = document.createElement('div');
-        typingIndicator.className = 'chat-message bot';
-        typingIndicator.innerHTML = '<div class="chat-bubble bot">💭 Analizando datos completos...</div>';
-        chatWindow.appendChild(typingIndicator);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        
-        // Procesar pregunta después de un breve delay
-        setTimeout(() => {
-            // Remover typing indicator
-            typingIndicator.remove();
-            
-            const answer = processEnhancedQuestion(question);
-            addMessage('bot', answer, true);
-            showSuggestions();
-        }, 1500 + Math.random() * 1000);
+        addMessage('bot', response);
+      }, 1000);
     });
 
     // Escuchar cambios en localStorage para actualizar en tiempo real
     window.addEventListener('storage', function(e) {
-        if (e.key === 'projectStatus' || e.key === 'projectData') {
-            console.log('🔄 Datos actualizados desde otra pestaña');
-            loadProjectData();
-        }
+      if (e.key === 'projectStatus' || e.key === 'projectData' || e.key === 'projectDocuments') {
+        console.log('🔄 Datos actualizados desde otra pestaña');
+        loadProjectData();
+      }
     });
 
     // También verificar cambios periódicamente
-    setInterval(loadProjectData, 5000);
+    setInterval(loadProjectData, 10000);
 
-    // Inicializar
+    // Inicializar aplicación
     loadProjectData();
     showView('general');
     closeChat();
