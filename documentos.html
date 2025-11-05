@@ -932,9 +932,12 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Proyecto *</label>
-                    <input type="text" id="projectName" placeholder="Ingresa el nombre del proyecto" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Proyecto *</label>
+                    <select id="projectName" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Seleccionar proyecto existente</option>
+                    </select>
+                    <input type="text" id="newProjectName" placeholder="Ingresa el nombre del nuevo proyecto" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2 hidden">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -1048,7 +1051,13 @@
         // Estado global para almacenar datos, documentos y carpetas
         window.projectData = {
             updatedAt: new Date().toISOString(),
-            projects: [],
+            projects: [
+                { id: 'proj-001', name: 'Proyecto Aurora' },
+                { id: 'proj-002', name: 'Proyecto Centauro' },
+                { id: 'proj-003', name: 'Proyecto Nebula' },
+                { id: 'proj-004', name: 'Proyecto Orion' },
+                { id: 'proj-005', name: 'Proyecto Phoenix' }
+            ],
             projectStatus: JSON.parse(localStorage.getItem('projectStatus') || '[]')
         };
 
@@ -1121,6 +1130,36 @@
             const modal = document.getElementById('projectModal');
             const modalTitle = document.getElementById('modalTitle');
             
+            // Cargar proyectos precargados en el select
+            const projectSelect = document.getElementById('projectName');
+            projectSelect.innerHTML = '<option value="">Seleccionar proyecto existente</option>';
+            
+            // Agregar proyectos precargados
+            window.projectData.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.name;
+                option.textContent = project.name;
+                projectSelect.appendChild(option);
+            });
+            
+            // Opción para crear nuevo proyecto
+            const newOption = document.createElement('option');
+            newOption.value = 'new';
+            newOption.textContent = '➕ Crear nuevo proyecto';
+            projectSelect.appendChild(newOption);
+            
+            // Manejar cambio de selección
+            projectSelect.addEventListener('change', function() {
+                const newProjectInput = document.getElementById('newProjectName');
+                if (this.value === 'new') {
+                    newProjectInput.style.display = 'block';
+                    newProjectInput.focus();
+                } else {
+                    newProjectInput.style.display = 'none';
+                    newProjectInput.value = '';
+                }
+            });
+            
             if (projectId) {
                 // Modo edición
                 modalTitle.textContent = 'Editar Proyecto';
@@ -1160,9 +1199,18 @@
             const modal = document.getElementById('projectModal');
             const projectId = modal.dataset.editingId;
             
+            const projectName = document.getElementById('projectName').value;
+            const newProjectName = document.getElementById('newProjectName').value;
+            
+            // Determinar el nombre final del proyecto
+            let finalProjectName = projectName;
+            if (projectName === 'new' && newProjectName.trim()) {
+                finalProjectName = newProjectName.trim();
+            }
+            
             const projectData = {
                 id: projectId || 'project-' + Date.now(),
-                name: document.getElementById('projectName').value,
+                name: finalProjectName,
                 status: document.getElementById('projectStatus').value,
                 progress: parseInt(document.getElementById('projectProgress').value) || 0,
                 observations: document.getElementById('projectObservations').value.trim(),
@@ -1207,6 +1255,14 @@
                     user: 'Usuario'
                 });
                 window.projectData.projectStatus.push(projectData);
+                
+                // Si es un proyecto nuevo, agregarlo a la lista de proyectos precargados
+                if (!window.projectData.projects.find(p => p.name === finalProjectName)) {
+                    window.projectData.projects.push({
+                        id: 'proj-' + Date.now(),
+                        name: finalProjectName
+                    });
+                }
             }
             
             saveProjectStatusToStorage();
