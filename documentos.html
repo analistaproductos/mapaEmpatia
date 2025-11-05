@@ -434,6 +434,22 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .modal-close:hover {
+            color: #374151;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -872,10 +888,15 @@
     <!-- Quick Upload Modal -->
     <div id="quickUploadModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-file-upload mr-2 text-blue-500"></i>
-                Subir Documento Rápido
-            </h3>
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-file-upload mr-2 text-blue-500"></i>
+                    Subir Documento Rápido
+                </h3>
+                <button class="modal-close" onclick="hideQuickUpload()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
             <div class="mb-4">
                 <input type="file" id="quickFileInput" class="hidden">
@@ -891,7 +912,7 @@
             </div>
             
             <div class="flex gap-3 justify-end">
-                <button id="cancelQuickUpload" 
+                <button onclick="hideQuickUpload()" 
                         class="action-btn secondary">
                     Cancelar
                 </button>
@@ -902,16 +923,18 @@
     <!-- Project Modal -->
     <div id="projectModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 class="text-lg font-semibold mb-4" id="modalTitle">Agregar Proyecto</h3>
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold" id="modalTitle">Agregar Proyecto</h3>
+                <button class="modal-close" onclick="hideProjectModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Proyecto *</label>
-                    <select id="projectName" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">Seleccionar proyecto existente o crear nuevo</option>
-                    </select>
-                    <input type="text" id="newProjectName" placeholder="O ingresa un nuevo nombre de proyecto" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2 hidden">
+                    <input type="text" id="projectName" placeholder="Ingresa el nombre del proyecto" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -968,11 +991,11 @@
             </div>
             
             <div class="flex gap-3 justify-end mt-6">
-                <button id="cancelProject" 
+                <button onclick="hideProjectModal()" 
                         class="action-btn secondary">
                     Cancelar
                 </button>
-                <button id="saveProject" 
+                <button onclick="saveProjectStatus()" 
                         class="action-btn primary">
                     Guardar Proyecto
                 </button>
@@ -983,7 +1006,12 @@
     <!-- Project Detail Modal -->
     <div id="projectDetailModal" class="modal-overlay hidden">
         <div class="modal-content max-w-4xl">
-            <h3 class="text-lg font-semibold mb-4" id="detailModalTitle">Detalles del Proyecto</h3>
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold" id="detailModalTitle">Detalles del Proyecto</h3>
+                <button class="modal-close" onclick="hideProjectDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <div class="col-span-2">
@@ -1008,7 +1036,7 @@
             </div>
             
             <div class="flex gap-3 justify-end mt-6">
-                <button id="closeDetailModal" 
+                <button onclick="hideProjectDetailModal()" 
                         class="action-btn secondary">
                     Cerrar
                 </button>
@@ -1027,20 +1055,6 @@
         window.projectDocuments = JSON.parse(localStorage.getItem('projectDocuments') || '[]');
         window.projectFolders = JSON.parse(localStorage.getItem('projectFolders') || '[]');
         window.pendingDocument = null;
-
-        // Elementos del DOM
-        const documentsDropZone = document.getElementById('documentsDropZone');
-        const documentsFileInput = document.getElementById('documentsFileInput');
-        const documentsList = document.getElementById('documentsList');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const projectFilter = document.getElementById('projectFilter');
-        const projectAssignment = document.getElementById('projectAssignment');
-        const documentsSearch = document.getElementById('documentsSearch');
-
-        const foldersList = document.getElementById('foldersList');
-        const foldersCount = document.getElementById('foldersCount');
-        const folderName = document.getElementById('folderName');
-        const folderDescription = document.getElementById('folderDescription');
 
         // Sistema de notificaciones
         function showNotification(message, type = 'info') {
@@ -1107,9 +1121,6 @@
             const modal = document.getElementById('projectModal');
             const modalTitle = document.getElementById('modalTitle');
             
-            // Actualizar lista de proyectos disponibles
-            updateProjectSelect();
-            
             if (projectId) {
                 // Modo edición
                 modalTitle.textContent = 'Editar Proyecto';
@@ -1141,27 +1152,17 @@
             modal.classList.remove('hidden');
         }
 
-        function updateProjectSelect() {
-            const projectSelect = document.getElementById('projectName');
-            const projectOptions = window.projectFolders.map(folder => 
-                `<option value="${folder.name}">${folder.name}</option>`
-            ).join('');
-            
-            projectSelect.innerHTML = '<option value="">Seleccionar proyecto existente o crear nuevo</option>' + projectOptions;
+        function hideProjectModal() {
+            document.getElementById('projectModal').classList.add('hidden');
         }
 
         function saveProjectStatus() {
             const modal = document.getElementById('projectModal');
             const projectId = modal.dataset.editingId;
             
-            // Obtener el nombre del proyecto (seleccionado o nuevo)
-            const selectedProject = document.getElementById('projectName').value;
-            const newProjectName = document.getElementById('newProjectName').value;
-            const projectName = selectedProject || newProjectName;
-            
             const projectData = {
                 id: projectId || 'project-' + Date.now(),
-                name: projectName,
+                name: document.getElementById('projectName').value,
                 status: document.getElementById('projectStatus').value,
                 progress: parseInt(document.getElementById('projectProgress').value) || 0,
                 observations: document.getElementById('projectObservations').value.trim(),
@@ -1190,7 +1191,7 @@
                     date: new Date().toISOString(),
                     action: 'Actualización',
                     details: `Estado cambiado a ${getStatusText(projectData.status)}, progreso: ${projectData.progress}%`,
-                    user: 'Usuario' // En una app real, esto vendría del sistema de autenticación
+                    user: 'Usuario'
                 });
                 
                 const index = window.projectData.projectStatus.findIndex(p => p.id === projectId);
@@ -1375,12 +1376,8 @@
             modal.classList.remove('hidden');
         }
 
-        function showProjectDocuments(projectName) {
-            // Filtrar documentos por proyecto y cambiar a la pestaña de documentos
-            const projectDocuments = window.projectDocuments.filter(doc => doc.project === projectName);
-            document.getElementById('projectFilter').value = projectName;
-            showTab('documents');
-            renderDocumentsList(projectDocuments);
+        function hideProjectDetailModal() {
+            document.getElementById('projectDetailModal').classList.add('hidden');
         }
 
         function getStatusClass(status) {
@@ -1457,8 +1454,124 @@
             }));
         }
 
+        // FUNCIONES PARA CARPETAS - CORREGIDAS
+        function createFolder() {
+            const name = document.getElementById('folderName').value.trim();
+            const description = document.getElementById('folderDescription').value.trim();
+
+            if (!name) {
+                showNotification('Por favor ingresa un nombre para la carpeta', 'error');
+                return;
+            }
+
+            const folderId = 'folder-' + Date.now();
+            const newFolder = {
+                id: folderId,
+                name: name,
+                description: description,
+                createdAt: new Date().toISOString(),
+                documentCount: 0
+            };
+
+            window.projectFolders.push(newFolder);
+            saveFoldersToStorage();
+
+            // Limpiar formulario
+            document.getElementById('folderName').value = '';
+            document.getElementById('folderDescription').value = '';
+
+            // Actualizar lista
+            renderFoldersList();
+
+            // Actualizar filtros de proyectos
+            updateProjectFilters();
+
+            // Actualizar estadísticas
+            updateQuickStats();
+
+            // Mostrar mensaje de éxito
+            showNotification(`Carpeta "${name}" creada exitosamente`, 'success');
+        }
+
+        function renderFoldersList() {
+            const foldersList = document.getElementById('foldersList');
+            const foldersCount = document.getElementById('foldersCount');
+            
+            if (window.projectFolders.length === 0) {
+                foldersList.innerHTML = `
+                    <div class="empty-state col-span-3">
+                        <i class="fas fa-folder"></i>
+                        <p class="text-lg font-medium">No hay carpetas creadas aún</p>
+                        <p class="text-sm mt-2">Crea tu primera carpeta para organizar los proyectos</p>
+                    </div>
+                `;
+                foldersCount.textContent = '0';
+                return;
+            }
+
+            foldersList.innerHTML = window.projectFolders.map(folder => {
+                // ACTUALIZAR CONTADOR ACTUAL AL RENDERIZAR
+                const actualDocumentCount = window.projectDocuments.filter(doc => doc.project === folder.name).length;
+                folder.documentCount = actualDocumentCount; // Sincronizar con la realidad
+                
+                return `
+                <div class="folder-card">
+                    <div class="flex items-start gap-4">
+                        <div class="folder-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 mb-1">${folder.name}</h3>
+                            <p class="text-sm text-gray-500 mb-2">${folder.description || 'Sin descripción'}</p>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span><i class="fas fa-calendar-plus mr-1"></i>${new Date(folder.createdAt).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span><i class="fas fa-file mr-1"></i>${folder.documentCount || 0} documentos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="deleteFolder('${folder.id}')" 
+                                class="action-btn secondary w-full">
+                            <i class="fas fa-trash mr-2"></i>
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+
+            foldersCount.textContent = window.projectFolders.length;
+            
+            // Guardar cambios en el contador
+            saveFoldersToStorage();
+        }
+
+        function deleteFolder(folderId) {
+            const folder = window.projectFolders.find(f => f.id === folderId);
+            if (!folder) return;
+
+            if (confirm(`¿Estás seguro de que quieres eliminar la carpeta "${folder.name}"?`)) {
+                // Eliminar la carpeta
+                window.projectFolders = window.projectFolders.filter(f => f.id !== folderId);
+                
+                saveFoldersToStorage();
+                renderFoldersList();
+                updateProjectFilters();
+                updateQuickStats();
+                
+                showNotification(`Carpeta "${folder.name}" eliminada correctamente`, 'success');
+            }
+        }
+
+        function saveFoldersToStorage() {
+            localStorage.setItem('projectFolders', JSON.stringify(window.projectFolders));
+        }
+
         // FUNCIONES PARA DOCUMENTOS
         function setupDocumentsUpload() {
+            const documentsDropZone = document.getElementById('documentsDropZone');
+            const documentsFileInput = document.getElementById('documentsFileInput');
+            
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 documentsDropZone.addEventListener(eventName, preventDefaults, false);
             });
@@ -1494,48 +1607,407 @@
             quickFileInput.addEventListener('change', handleQuickFileSelect, false);
         }
 
-        // ... (resto de funciones para documentos se mantienen igual)
+        function handleDocumentsDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleDocumentsFiles(files);
+        }
 
-        // Funciones para carpetas
-        function createFolder() {
-            const name = folderName.value.trim();
-            const description = folderDescription.value.trim();
+        function handleDocumentsFileSelect(e) {
+            const files = e.target.files;
+            handleDocumentsFiles(files);
+        }
 
-            if (!name) {
-                showNotification('Por favor ingresa un nombre para la carpeta', 'error');
+        function handleQuickDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleQuickFiles(files);
+        }
+
+        function handleQuickFileSelect(e) {
+            const files = e.target.files;
+            handleQuickFiles(files);
+        }
+
+        function handleDocumentsFiles(files) {
+            if (files.length > 0) {
+                // Mostrar progreso de carga
+                const uploadProgress = document.getElementById('uploadProgress');
+                const progressFill = document.getElementById('progressFill');
+                const progressPercent = document.getElementById('progressPercent');
+                
+                uploadProgress.classList.add('show');
+                progressFill.style.width = '0%';
+                progressPercent.textContent = '0%';
+                
+                // Simular progreso (en un caso real, esto sería con una API)
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressFill.style.width = `${progress}%`;
+                    progressPercent.textContent = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            uploadProgress.classList.remove('show');
+                            [...files].forEach(uploadDocument);
+                        }, 500);
+                    }
+                }, 100);
+            }
+        }
+
+        function handleQuickFiles(files) {
+            if (files.length > 0) {
+                // Cerrar modal rápido
+                document.getElementById('quickUploadModal').classList.add('hidden');
+                
+                // Mostrar notificación
+                showNotification(`Preparando ${files.length} archivo(s) para subir`, 'info');
+                
+                // Procesar archivos
+                setTimeout(() => {
+                    [...files].forEach(uploadDocument);
+                    showNotification(`${files.length} archivo(s) subidos correctamente`, 'success');
+                }, 1000);
+            }
+        }
+
+        function uploadDocument(file) {
+            console.log('Intentando subir documento:', file.name, file.type);
+
+            const validTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'text/csv'
+            ];
+            
+            const validExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.csv', '.txt'];
+            const fileExtension = '.' + getFileExtension(file.name).toLowerCase();
+            
+            if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+                showNotification('Tipo de documento no válido. Use PDF, Word, PowerPoint, Excel, CSV o archivos de texto.', 'error');
                 return;
             }
 
-            const folderId = 'folder-' + Date.now();
-            const newFolder = {
-                id: folderId,
-                name: name,
-                description: description,
-                createdAt: new Date().toISOString(),
-                documentCount: 0 // Inicializar en 0
+            // Obtener categorías seleccionadas
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedCategories.length === 0) {
+                showNotification('Por favor selecciona al menos una categoría para el documento.', 'error');
+                return;
+            }
+
+            // Obtener proyecto asignado
+            const assignedProject = document.getElementById('projectAssignment').value;
+
+            // Guardar el documento pendiente y mostrar confirmación
+            window.pendingDocument = {
+                file: file,
+                categories: selectedCategories,
+                project: assignedProject
+            };
+            
+            showUploadConfirmation(file, selectedCategories, assignedProject);
+        }
+
+        function showUploadConfirmation(file, categories, project) {
+            const existingModal = document.querySelector('.upload-confirmation-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'upload-confirmation-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-file-upload mr-2 text-blue-500"></i>
+                        Confirmar carga de documento
+                    </h3>
+                    <div class="mb-4">
+                        <p class="font-medium">${file.name}</p>
+                        <p class="text-sm text-gray-600">Tamaño: ${formatFileSize(file.size)}</p>
+                        <p class="text-sm text-gray-600">Categorías: ${categories.join(', ')}</p>
+                        ${project ? `<p class="text-sm text-gray-600">Proyecto: ${project}</p>` : ''}
+                    </div>
+                    <div class="flex gap-3 justify-end">
+                        <button id="cancelUpload" 
+                                class="action-btn secondary">
+                            Cancelar
+                        </button>
+                        <button id="confirmUpload" 
+                                class="action-btn primary">
+                            <i class="fas fa-check mr-2"></i>
+                            Cargar Documento
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+
+            document.getElementById('cancelUpload').addEventListener('click', function() {
+                modal.remove();
+                window.pendingDocument = null;
+            });
+
+            document.getElementById('confirmUpload').addEventListener('click', function() {
+                modal.remove();
+                if (window.pendingDocument) {
+                    confirmDocumentUpload();
+                }
+            });
+        }
+
+        function confirmDocumentUpload() {
+            if (!window.pendingDocument) {
+                console.error('No hay documento pendiente para cargar');
+                return;
+            }
+
+            const { file, categories, project } = window.pendingDocument;
+            
+            // Proceder con la carga
+            addDocumentToList(file, categories, project);
+            window.pendingDocument = null;
+            
+            // Mostrar notificación de éxito
+            showNotification(`Documento "${file.name}" cargado correctamente`, 'success');
+        }
+
+        function addDocumentToList(file, categories, project) {
+            const documentId = 'doc-' + Date.now();
+            const fileExtension = getFileExtension(file.name).toLowerCase();
+            const iconClass = getDocumentIconClass(fileExtension);
+            const iconText = getDocumentIconText(fileExtension);
+
+            const documentItem = document.createElement('div');
+            documentItem.className = 'document-card';
+            documentItem.id = documentId;
+            documentItem.innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="document-icon ${iconClass}">
+                        ${iconText}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 mb-1 truncate">${file.name}</h3>
+                        <p class="text-sm text-gray-500 mb-2">${formatFileSize(file.size)}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${categories.map(cat => `
+                                <span class="category-tag bg-blue-100 text-blue-800">
+                                    <i class="fas fa-tag mr-1"></i>
+                                    ${cat}
+                                </span>
+                            `).join('')}
+                            ${project ? `<span class="category-tag bg-green-100 text-green-800">
+                                <i class="fas fa-project-diagram mr-1"></i>
+                                ${project}
+                            </span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>${new Date().toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>${fileExtension.toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-actions">
+                    <div class="document-action preview" onclick="previewDocument('${documentId}')">
+                        <i class="fas fa-eye"></i>
+                        Ver
+                    </div>
+                    <div class="document-action download" onclick="downloadDocument('${documentId}')">
+                        <i class="fas fa-download"></i>
+                        Descargar
+                    </div>
+                    <div class="document-action delete" onclick="removeDocument('${documentId}')">
+                        <i class="fas fa-trash"></i>
+                        Eliminar
+                    </div>
+                </div>
+            `;
+
+            // Guardar documento en el estado global
+            const documentData = {
+                id: documentId,
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                extension: fileExtension,
+                categories: categories,
+                project: project,
+                uploadDate: new Date().toISOString(),
+                file: file
             };
 
-            window.projectFolders.push(newFolder);
-            saveFoldersToStorage();
+            window.projectDocuments.push(documentData);
+            saveDocumentsToStorage();
 
-            // Limpiar formulario
-            folderName.value = '';
-            folderDescription.value = '';
+            // ACTUALIZAR CONTADOR DE DOCUMENTOS EN CARPETAS
+            updateFolderDocumentCount(project);
 
-            // Actualizar lista
-            renderFoldersList();
-
-            // Actualizar filtros de proyectos
-            updateProjectFilters();
+            const documentsList = document.getElementById('documentsList');
+            if (documentsList.querySelector('.empty-state')) {
+                documentsList.innerHTML = '';
+            }
+            documentsList.appendChild(documentItem);
 
             // Actualizar estadísticas
             updateQuickStats();
-
-            // Mostrar mensaje de éxito
-            showNotification(`Carpeta "${name}" creada exitosamente`, 'success');
+            
+            console.log('✅ Documento agregado exitosamente:', documentData);
         }
 
-        // ... (resto de funciones para carpetas se mantienen igual)
+        // FUNCIÓN CORREGIDA: Actualizar contador de documentos en carpetas
+        function updateFolderDocumentCount(projectName) {
+            if (!projectName) return;
+            
+            // Encontrar la carpeta con el nombre del proyecto
+            const folder = window.projectFolders.find(f => f.name === projectName);
+            if (folder) {
+                // Contar documentos asociados a este proyecto
+                const documentCount = window.projectDocuments.filter(doc => doc.project === projectName).length;
+                folder.documentCount = documentCount;
+                saveFoldersToStorage();
+                renderFoldersList(); // Actualizar la vista
+            }
+        }
+
+        function renderDocumentsList(filteredDocuments = null) {
+            const documentsList = document.getElementById('documentsList');
+            const documentsToShow = filteredDocuments || window.projectDocuments;
+            
+            if (documentsToShow.length === 0) {
+                documentsList.innerHTML = `
+                    <div class="empty-state col-span-3">
+                        <i class="fas fa-folder-open"></i>
+                        <p class="text-lg font-medium">No hay documentos cargados aún</p>
+                        <p class="text-sm mt-2">Comienza subiendo tu primer documento</p>
+                    </div>
+                `;
+                return;
+            }
+
+            documentsList.innerHTML = documentsToShow.map(doc => `
+                <div class="document-card">
+                    <div class="flex items-start gap-4">
+                        <div class="document-icon ${getDocumentIconClass(doc.extension)}">
+                            ${getDocumentIconText(doc.extension)}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 mb-1 truncate">${doc.name}</h3>
+                            <p class="text-sm text-gray-500 mb-2">${formatFileSize(doc.size)}</p>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${doc.categories.map(cat => `
+                                    <span class="category-tag bg-blue-100 text-blue-800">
+                                        <i class="fas fa-tag mr-1"></i>
+                                        ${cat}
+                                    </span>
+                                `).join('')}
+                                ${doc.project ? `<span class="category-tag bg-green-100 text-green-800">
+                                    <i class="fas fa-project-diagram mr-1"></i>
+                                    ${doc.project}
+                                </span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span><i class="fas fa-calendar-alt mr-1"></i>${new Date(doc.uploadDate).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span>${doc.extension.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="document-actions">
+                        <div class="document-action preview" onclick="previewDocument('${doc.id}')">
+                            <i class="fas fa-eye"></i>
+                            Ver
+                        </div>
+                        <div class="document-action download" onclick="downloadDocument('${doc.id}')">
+                            <i class="fas fa-download"></i>
+                            Descargar
+                        </div>
+                        <div class="document-action delete" onclick="removeDocument('${doc.id}')">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function previewDocument(documentId) {
+            const doc = window.projectDocuments.find(d => d.id === documentId);
+            if (doc) {
+                if (doc.extension === 'pdf') {
+                    const url = URL.createObjectURL(doc.file);
+                    window.open(url, '_blank');
+                } else {
+                    showNotification(`Vista previa no disponible para archivos ${doc.extension.toUpperCase()}. Descarga el archivo para verlo.`, 'info');
+                }
+            }
+        }
+
+        function downloadDocument(documentId) {
+            const doc = window.projectDocuments.find(d => d.id === documentId);
+            if (doc) {
+                const url = URL.createObjectURL(doc.file);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = doc.name;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification(`Descargando "${doc.name}"`, 'info');
+            }
+        }
+
+        function removeDocument(documentId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+                const doc = window.projectDocuments.find(d => d.id === documentId);
+                
+                window.projectDocuments = window.projectDocuments.filter(d => d.id !== documentId);
+                saveDocumentsToStorage();
+                
+                // ACTUALIZAR CONTADOR DE DOCUMENTOS EN CARPETAS AL ELIMINAR
+                if (doc && doc.project) {
+                    updateFolderDocumentCount(doc.project);
+                }
+                
+                const docElement = document.getElementById(documentId);
+                if (docElement) {
+                    docElement.remove();
+                }
+                
+                // Si no hay documentos, mostrar mensaje
+                if (window.projectDocuments.length === 0) {
+                    const documentsList = document.getElementById('documentsList');
+                    documentsList.innerHTML = `
+                        <div class="empty-state col-span-3">
+                            <i class="fas fa-folder-open"></i>
+                            <p class="text-lg font-medium">No hay documentos cargados aún</p>
+                            <p class="text-sm mt-2">Comienza subiendo tu primer documento</p>
+                        </div>
+                    `;
+                }
+                
+                // Actualizar estadísticas
+                updateQuickStats();
+                
+                showNotification('Documento eliminado correctamente', 'success');
+            }
+        }
+
+        function saveDocumentsToStorage() {
+            localStorage.setItem('projectDocuments', JSON.stringify(window.projectDocuments));
+        }
 
         // Funciones para el botón flotante y modal rápido
         function showQuickUpload() {
@@ -1676,37 +2148,12 @@
             updateProjectFilters();
             updateQuickStats();
 
-            // Event listeners para el modal de proyectos
-            document.getElementById('cancelProject').addEventListener('click', function() {
-                document.getElementById('projectModal').classList.add('hidden');
-            });
-
-            document.getElementById('saveProject').addEventListener('click', saveProjectStatus);
-
-            // Event listener para el modal de detalles
-            document.getElementById('closeDetailModal').addEventListener('click', function() {
-                document.getElementById('projectDetailModal').classList.add('hidden');
-            });
-
-            // Event listener para el modal rápido
-            document.getElementById('cancelQuickUpload').addEventListener('click', hideQuickUpload);
-
             // Cerrar modales con ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     document.getElementById('projectModal').classList.add('hidden');
                     document.getElementById('projectDetailModal').classList.add('hidden');
                     document.getElementById('quickUploadModal').classList.add('hidden');
-                }
-            });
-
-            // Manejar selección de proyecto existente vs nuevo
-            document.getElementById('projectName').addEventListener('change', function() {
-                const newProjectInput = document.getElementById('newProjectName');
-                if (this.value === '') {
-                    newProjectInput.classList.remove('hidden');
-                } else {
-                    newProjectInput.classList.add('hidden');
                 }
             });
 
